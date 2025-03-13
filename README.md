@@ -22,6 +22,8 @@ This container automatically organizes Formula and MotoGP racing media files int
 - Docker and Docker Compose
 - MWR releases for Formula 1-3 or MotoGP/Moto2/Moto3 content
 - Storage volumes for source and destination directories
+  - Prefferably you mount the top directory and then provide source and dest from within that directory. That way we can use hardlinks which saves space and is superfast.
+- Plex library requires to have the Agent set as "Personal Media"
 
 ## Installation
 
