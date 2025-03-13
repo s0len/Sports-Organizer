@@ -104,7 +104,8 @@ organize_sports() {
     elif [[ $filename =~ [Ff]ormula* ]] && [[ $filename == *.mkv ]]; then
         process_f1_racing "$file"
         return $?
-    elif [[ $filename == UFC* ]] && [[ $filename == *.mkv ]]; then
+    # Fix the UFC pattern match to handle lowercase filenames
+    elif [[ $filename =~ ^[Uu][Ff][Cc]\.* ]] && [[ $filename == *.mkv ]]; then
         process_ufc "$file"
         return $?
     else
