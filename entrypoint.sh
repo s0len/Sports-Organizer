@@ -93,7 +93,7 @@ organize_sports() {
         echo "Skipping sample file: $filename"
         ((skipped_count++))
         return 0
-    }
+    fi
 
     # Determine sport type based on filename
     local sport_type=""
