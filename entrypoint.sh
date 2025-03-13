@@ -111,6 +111,9 @@ organize_sports() {
     else
         echo "Unknown sport type in filename: $filename"
         ((error_count++))
+        if [ "$PUSHOVER_NOTIFICATION" = true ]; then
+            send_pushover_notification "Unknown sport type in filename: $filename" "Sports Organizer Error"
+        fi
         return 1
     fi
 }
