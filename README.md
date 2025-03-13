@@ -63,17 +63,6 @@ services:
     restart: unless-stopped
 ```
 
-docker run -it --rm \
-  --name sports-organizer-test \
-  --user 568:568 \
-  -v /Volumes/nfs:/data \
-  -e SRC_DIR=/data/torrents/sport \
-  -e DEST_DIR=/data/media/sport \
-  -e PROCESS_INTERVAL=60 \
-  -e PUSHOVER_USER_KEY=urnui677x3zy4v4uuupxo3qjhmwere \
-  -e PUSHOVER_API_TOKEN=a5kruyhg135xvrf2gvx3rtges2f38d \
-  sports-organizer:test;
-
 ## Configuration
 
 ### Environment Variables
