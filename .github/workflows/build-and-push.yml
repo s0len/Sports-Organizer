@@ -8,6 +8,11 @@ on:
       - 'v*.*.*'  
   workflow_dispatch:
 
+# Add this permissions block
+permissions:
+  contents: write
+  packages: write
+
 jobs:
   build-and-push:
     runs-on: ubuntu-latest

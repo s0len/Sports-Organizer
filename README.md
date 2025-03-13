@@ -63,6 +63,79 @@ services:
     restart: unless-stopped
 ```
 
+### HelmRelease in Kubernetes
+
+```yaml
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/main/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: &app sports-organizer
+  namespace: media
+spec:
+  interval: 15m
+  chart:
+    spec:
+      chart: app-template
+      version: 3.7.2
+      sourceRef:
+        kind: HelmRepository
+        name: bjw-s
+        namespace: flux-system
+  maxHistory: 3
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    cleanupOnFail: true
+    remediation:
+      strategy: rollback
+      retries: 3
+
+  values:
+    controllers:
+      main:
+        type: deployment
+        containers:
+          app:
+            image:
+              repository: ghcr.io/s0len/sports-organizer
+              tag: develop
+            env:
+              SRC_DIR: /data/torrents/sport
+              DEST_DIR: /data/media/sport
+              PROCESS_INTERVAL: 60
+              PUSHOVER_NOTIFICATION: true
+            envFrom:
+              - secretRef:
+                  name: sports-organizer-secret
+            securityContext:
+              privileged: false
+
+    defaultPodOptions:
+      automountServiceAccountToken: false
+      enableServiceLinks: false
+      securityContext:
+        runAsUser: 568
+        runAsGroup: 568
+        runAsNonRoot: true
+        fsGroup: 568
+
+    persistence:
+      data:
+        type: nfs
+        server: "${TRUENAS_IP}"
+        path: /mnt/rust/data
+        globalMounts:
+          - path: /data
+            readOnly: false
+
+      tmp:
+        type: emptyDir
+        medium: Memory
+```
+
 ## Configuration
 
 ### Environment Variables
