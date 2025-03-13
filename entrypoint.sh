@@ -88,6 +88,13 @@ organize_sports() {
         return 0
     fi
 
+    # Skip sample files early
+    if [[ $filename == *sample* ]]; then
+        echo "Skipping sample file: $filename"
+        ((skipped_count++))
+        return 0
+    }
+
     # Determine sport type based on filename
     local sport_type=""
     local year=""
@@ -104,12 +111,17 @@ organize_sports() {
     elif [[ $filename =~ [Ff]ormula* ]] && [[ $filename == *.mkv ]]; then
         process_f1_racing "$file"
         return $?
-    # elif [[ $filename == Tennis* ]] && [[ $filename == *.mkv ]]; then
-    #     process_tennis "$file"
-    #     return $?
+    # Fix the UFC pattern match - use case-insensitive check
+    elif [[ $filename =~ ^[uU][fF][cC][\.] ]] && [[ $filename == *.mkv ]]; then
+        echo "Detected UFC file, sending to process_ufc"
+        process_ufc "$file"
+        return $?
     else
         echo "Unknown sport type in filename: $filename"
         ((error_count++))
+        if [ "$PUSHOVER_NOTIFICATION" = true ]; then
+            send_pushover_notification "Unknown sport type in filename: $filename" "Sports Organizer Error"
+        fi
         return 1
     fi
 }
@@ -213,6 +225,99 @@ process_moto_racing() {
 
     # Create the target filename
     local target_file="$round_dir/${round}x${episode} ${sport_type} ${session}.${extension}"
+
+    # Check if file already exists
+    if [[ -f "$target_file" ]]; then
+        echo "File already exists at destination: $target_file - skipping"
+        ((skipped_count++))
+        return 0
+    fi
+
+    echo "Moving: $file to $target_file"
+    # Create hardlink instead of moving
+    if ln "$file" "$target_file" 2>/dev/null || cp "$file" "$target_file"; then
+        echo "Successfully processed file!"
+        ((processed_count++))
+    else
+        echo "Error: Failed to create hardlink or copy file"
+        ((error_count++))
+        return 1
+    fi
+
+    return 0
+}
+
+# Function to process UFC files
+process_ufc() {
+    local file="$1"
+    local filename=$(basename "$file")
+
+    # Skip sample files
+    if [[ $filename == *sample* ]]; then
+        echo "Skipping sample file: $filename"
+        ((skipped_count++))
+        return 0
+    fi
+
+    # Check if it's a UFC file
+    if [[ ! $filename =~ ^ufc\. ]]; then
+        echo "Not a UFC file: $filename"
+        ((error_count++))
+        return 1
+    fi
+
+    # Parse UFC number (season)
+    local season=""
+    if [[ $filename =~ ^ufc\.([0-9]+)\. ]]; then
+        season="${BASH_REMATCH[1]}"
+    else
+        echo "Could not parse UFC number from filename: $filename"
+        ((error_count++))
+        return 1
+    fi
+
+    # Parse event name (fighters)
+    local event_name=""
+    if [[ $filename =~ ^ufc\.[0-9]+\.(.+?)\.(early\.prelims|prelims|ppv)\. ]]; then
+        event_name="${BASH_REMATCH[1]}"
+        # Replace dots with spaces for readability
+        event_name="${event_name//./ }"
+    else
+        echo "Could not parse event name from filename: $filename"
+        ((error_count++))
+        return 1
+    fi
+
+    # Determine episode type and number
+    local episode_type=""
+    local episode_num=""
+    if [[ $filename == *early.prelims* ]]; then
+        episode_type="Early Prelims"
+        episode_num="1"
+    elif [[ $filename == *prelims* && ! $filename == *early.prelims* ]]; then
+        episode_type="Prelims"
+        episode_num="2"
+    elif [[ $filename == *ppv* ]]; then
+        episode_type="Main Card"
+        episode_num="3"
+    else
+        echo "Unknown episode type in filename: $filename"
+        ((error_count++))
+        return 1
+    fi
+
+    echo "Season: $season, Event: $event_name, Episode Type: $episode_type, Episode Number: $episode_num"
+
+    # Get file extension
+    local extension="${filename##*.}"
+
+    # Create target directories
+    local season_dir="$DEST_DIR/UFC"
+    local event_dir="$season_dir/$season $event_name"
+    mkdir -p "$event_dir"
+
+    # Create the target filename
+    local target_file="$event_dir/${season}x${episode_num} UFC $episode_type.${extension}"
 
     # Check if file already exists
     if [[ -f "$target_file" ]]; then

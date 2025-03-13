@@ -22,6 +22,19 @@ This container automatically organizes Formula and MotoGP racing media files int
 - Docker and Docker Compose
 - MWR releases for Formula 1-3 or MotoGP/Moto2/Moto3 content
 - Storage volumes for source and destination directories
+  - Prefferably you mount the top directory and then provide source and dest from within that directory. That way we can use hardlinks which saves space and is superfast.
+- Plex library requires to have the Agent set as "Personal Media"
+
+## Recommended Workflow
+
+For the best experience, we recommend setting up an automated workflow:
+
+1. **autobrr**: Configure to monitor for specific MWR racing releases
+2. **qBittorrent**: Set up to receive downloads from autobrr with a dedicated "sports" category
+3. **Sports-Organizer**: Monitors the qBittorrent download directory and processes files
+4. **Kometa**: Use for metadata enrichment, posters, and proper Plex integration
+
+This workflow creates a fully automated pipeline from release detection to properly organized and metadata-enriched media in your Plex library.
 
 ## Installation
 
