@@ -112,7 +112,7 @@ organize_sports() {
         process_f1_racing "$file"
         return $?
     # Fix the UFC pattern match - use case-insensitive check
-    elif [[ $filename =~ ^[uU][fF][cC][\.] ]] && [[ $filename == *.mkv ]]; then
+    elif [[ $filename =~ ^[uU][fF][cC][\.\-] ]] && [[ $filename == *.mkv ]]; then
         echo "Detected UFC file, sending to process_ufc"
         process_ufc "$file"
         return $?
@@ -260,7 +260,7 @@ process_ufc() {
     fi
 
     # Check if it's a UFC file
-    if [[ ! $filename =~ ^ufc\. ]]; then
+    if [[ ! $filename =~ ^[uU][fF][cC][\.\-] ]]; then
         echo "Not a UFC file: $filename"
         ((error_count++))
         return 1
