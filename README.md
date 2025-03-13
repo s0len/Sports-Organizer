@@ -1,4 +1,4 @@
-# Motorsport Media Organizer
+# Sports Media Organizer
 
 This container automatically organizes Formula and MotoGP racing media files into a structured Plex-friendly format. It monitors a source directory for new racing videos and organizes them by series, year, round, and session type.
 
@@ -29,7 +29,7 @@ This container automatically organizes Formula and MotoGP racing media files int
 
 ```bash
 docker run -d \
-  --name=motorsport-organizer \
+  --name=sports-organizer \
   -e SRC_DIR=/data/torrents/sport \
   -e DEST_DIR=/data/media/sport \
   -e PROCESS_INTERVAL=60 \
@@ -37,7 +37,7 @@ docker run -d \
   -v /path/to/downloads:/data/torrents/sport \
   -v /path/to/media:/data/media/sport \
   --restart unless-stopped \
-  ghcr.io/username/motorsport-organizer:latest
+  ghcr.io/username/sports-organizer:latest
 ```
 
 ### Docker Compose
@@ -45,9 +45,9 @@ docker run -d \
 ```yaml
 version: '3'
 services:
-  motorsport-organizer:
-    image: ghcr.io/username/motorsport-organizer:latest
-    container_name: motorsport-organizer
+  sports-organizer:
+    image: ghcr.io/username/sports-organizer:latest
+    container_name: sports-organizer
     environment:
       - SRC_DIR=/data/torrents/sport
       - DEST_DIR=/data/media/sport
@@ -125,7 +125,7 @@ Files are organized in the following structure:
 Check the container logs for any errors:
 
 ```bash
-docker logs motorsport-organizer
+docker logs sports-organizer
 ```
 
 Common issues:
