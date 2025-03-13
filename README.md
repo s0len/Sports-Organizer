@@ -135,7 +135,7 @@ Common issues:
 
 ## License
 
-MIT
+GPL v3
 
 ## Support
 
