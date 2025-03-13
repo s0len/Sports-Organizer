@@ -88,6 +88,13 @@ organize_sports() {
         return 0
     fi
 
+    # Skip sample files early
+    if [[ $filename == *sample* ]]; then
+        echo "Skipping sample file: $filename"
+        ((skipped_count++))
+        return 0
+    }
+
     # Determine sport type based on filename
     local sport_type=""
     local year=""
@@ -104,8 +111,9 @@ organize_sports() {
     elif [[ $filename =~ [Ff]ormula* ]] && [[ $filename == *.mkv ]]; then
         process_f1_racing "$file"
         return $?
-    # Fix the UFC pattern match to handle lowercase filenames
-    elif [[ $filename =~ ^[Uu][Ff][Cc]\.* ]] && [[ $filename == *.mkv ]]; then
+    # Fix the UFC pattern match - use case-insensitive check
+    elif [[ $filename =~ ^[uU][fF][cC][\.] ]] && [[ $filename == *.mkv ]]; then
+        echo "Detected UFC file, sending to process_ufc"
         process_ufc "$file"
         return $?
     else
