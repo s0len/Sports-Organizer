@@ -241,10 +241,14 @@ process_moto_racing() {
         return 0
     fi
 
-    echo "Moving: $file to $target_file"
+    echo "🚚 Moving"
+    echo "From: $file" 
+    echo "To: $target_file"
     # Create hardlink instead of moving
     if ln "$file" "$target_file" 2>/dev/null || cp "$file" "$target_file"; then
-        echo "Successfully processed file!"
+        echo "----------------------------------------"
+        echo "✅ Successfully processed file!"
+        echo "----------------------------------------"
         ((processed_count++))
     else
         echo "Error: Failed to create hardlink or copy file"
@@ -279,9 +283,13 @@ process_ufc() {
     local event_name=""
     
     # This regex captures the UFC number and event name before any of the episode types
-    if [[ $filename =~ ^ufc\.([0-9]+)\.(.+?)\.((early\.)?prelims|ppv)\. ]]; then
+    if [[ $filename =~ ^ufc\.([0-9]+)\.(.+?)\.(early\.prelims|prelims|ppv)\. ]]; then
         season="${BASH_REMATCH[1]}"
         event_name="${BASH_REMATCH[2]}"
+        
+        # Remove any trailing "early" from the event name
+        event_name="${event_name%.early}"
+        
         # Replace dots with spaces for readability
         event_name="${event_name//./ }"
     else
@@ -335,8 +343,9 @@ process_ufc() {
         return 0
     fi
 
-    echo "Moving: $file"
-    echo "To $target_file"
+    echo "🚚 Moving"
+    echo "From: $file" 
+    echo "To: $target_file"
     # Create hardlink instead of moving
     if ln "$file" "$target_file" 2>/dev/null || cp "$file" "$target_file"; then
         echo "Successfully processed file!"
@@ -505,7 +514,9 @@ process_f1_racing() {
         return 0
     fi
 
-    echo "Moving: $file to $target_file"
+    echo "🚚 Moving"
+    echo "From: $file" 
+    echo "To: $target_file"
     # Create hardlink instead of moving
     if ln "$file" "$target_file" 2>/dev/null || cp "$file" "$target_file"; then
         echo "Successfully processed file!"
@@ -575,6 +586,8 @@ fi
 
 echo "Looking for sports files..."
 while IFS= read -r file; do
+    echo ""
+    echo "================================================"
     echo "Found MKV file: $file"
     organize_sports "$file"
 done < <(find "$SRC_DIR" -name "*.mkv")
