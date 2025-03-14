@@ -65,8 +65,17 @@ print_summary() {
     
     # Send summary notification if enabled
     if [ "$PUSHOVER_NOTIFICATION" = true ] && [ $((processed_count + skipped_count + error_count)) -gt 0 ]; then
-        summary_message="Files processed: $processed_count<br>Files skipped: $skipped_count<br>Errors encountered: $error_count"
-        send_pushover_notification "$summary_message" "Sports Organizer Summary"
+        summary_html="<b>📊 Sports Organizer Summary</b><br><br>"
+        summary_html+="<b>✅ Processed:</b> $processed_count files<br>"
+        summary_html+="<b>⏭️ Skipped:</b> $skipped_count files<br>"
+        
+        if [ $error_count -gt 0 ]; then
+            summary_html+="<b>❌ Errors:</b> $error_count files"
+        else
+            summary_html+="<b>✓ No errors encountered</b>"
+        fi
+        
+        send_pushover_notification "$summary_html" "Sports Organizer Summary"
     fi
 }
 
@@ -213,7 +222,15 @@ process_moto_racing() {
         episode="0"
     fi
 
-    echo "Session: $session, Episode: $episode"
+    # Format the output in a more readable way with clear sections
+    echo "----------------------------------------"
+    echo "🏍️ Moto Racing Processing Details:"
+    echo "----------------------------------------"
+    echo "🏁 Class: $sport_type"
+    echo "📅 Year: $year"
+    echo "🔄 Round: $round, Location: $location"
+    echo "📺 Session: $session (${round}x${episode})"
+    echo "----------------------------------------"
 
     # Get file extension
     local extension="${filename##*.}"
@@ -233,10 +250,14 @@ process_moto_racing() {
         return 0
     fi
 
-    echo "Moving: $file to $target_file"
+    echo "🚚 Moving"
+    echo "From: $file" 
+    echo "To: $target_file"
     # Create hardlink instead of moving
     if ln "$file" "$target_file" 2>/dev/null || cp "$file" "$target_file"; then
-        echo "Successfully processed file!"
+        echo "----------------------------------------"
+        echo "✅ Successfully processed file!"
+        echo "----------------------------------------"
         ((processed_count++))
     else
         echo "Error: Failed to create hardlink or copy file"
@@ -266,24 +287,22 @@ process_ufc() {
         return 1
     fi
 
-    # Parse UFC number (season)
+    # Parse UFC number (season) and event name in one regex
     local season=""
-    if [[ $filename =~ ^ufc\.([0-9]+)\. ]]; then
-        season="${BASH_REMATCH[1]}"
-    else
-        echo "Could not parse UFC number from filename: $filename"
-        ((error_count++))
-        return 1
-    fi
-
-    # Parse event name (fighters)
     local event_name=""
-    if [[ $filename =~ ^ufc\.[0-9]+\.(.+?)\.(early\.prelims|prelims|ppv)\. ]]; then
-        event_name="${BASH_REMATCH[1]}"
+    
+    # This regex captures the UFC number and event name before any of the episode types
+    if [[ $filename =~ ^ufc\.([0-9]+)\.(.+?)\.(early\.prelims|prelims|ppv)\. ]]; then
+        season="${BASH_REMATCH[1]}"
+        event_name="${BASH_REMATCH[2]}"
+        
+        # Remove any trailing "early" from the event name
+        event_name="${event_name%.early}"
+        
         # Replace dots with spaces for readability
         event_name="${event_name//./ }"
     else
-        echo "Could not parse event name from filename: $filename"
+        echo "Could not parse UFC number and event name from filename: $filename"
         ((error_count++))
         return 1
     fi
@@ -306,7 +325,14 @@ process_ufc() {
         return 1
     fi
 
-    echo "Season: $season, Event: $event_name, Episode Type: $episode_type, Episode Number: $episode_num"
+    # Format the output in a more readable way with clear sections
+    echo "----------------------------------------"
+    echo "📊 UFC File Processing Details:"
+    echo "----------------------------------------"
+    echo "🏆 Season: UFC $season"
+    echo "🥊 Event: $event_name"
+    echo "📺 Episode: $episode_type (${season}x${episode_num})"
+    echo "----------------------------------------"
 
     # Get file extension
     local extension="${filename##*.}"
@@ -317,7 +343,7 @@ process_ufc() {
     mkdir -p "$event_dir"
 
     # Create the target filename
-    local target_file="$event_dir/${season}x${episode_num} UFC $episode_type.${extension}"
+    local target_file="$event_dir/${season}x${episode_num} UFC ${season} $episode_type.${extension}"
 
     # Check if file already exists
     if [[ -f "$target_file" ]]; then
@@ -326,13 +352,21 @@ process_ufc() {
         return 0
     fi
 
-    echo "Moving: $file to $target_file"
+    echo "🚚 Moving"
+    echo "From: $file" 
+    echo "To: $target_file"
     # Create hardlink instead of moving
     if ln "$file" "$target_file" 2>/dev/null || cp "$file" "$target_file"; then
         echo "Successfully processed file!"
+        if [ "$PUSHOVER_NOTIFICATION" = true ]; then
+            send_pushover_notification "<b>✅ Processed UFC file:</b><br><br>Season: ${season}<br>Event: ${event_name}<br>Episode: ${episode_type} (${season}x${episode_num})" "UFC Processing Complete"
+        fi
         ((processed_count++))
     else
         echo "Error: Failed to create hardlink or copy file"
+        if [ "$PUSHOVER_NOTIFICATION" = true ]; then
+            send_pushover_error_notification "❌ Failed to create hardlink or copy file" "Hardlink/Copy Error"
+        fi
         ((error_count++))
         return 1
     fi
@@ -461,7 +495,15 @@ process_f1_racing() {
         episode="0"
     fi
 
-    echo "Session: $session, Episode: $episode"
+    # Format the output in a more readable way with clear sections
+    echo "----------------------------------------"
+    echo "🏎️ Formula Racing Processing Details:"
+    echo "----------------------------------------"
+    echo "🏁 Class: $sport_type"
+    echo "📅 Year: $year"
+    echo "🔄 Round: $round, Location: $location"
+    echo "📺 Session: $session (${round}x${episode})"
+    echo "----------------------------------------"
 
     # Get file extension
     local extension="${filename##*.}"
@@ -481,13 +523,21 @@ process_f1_racing() {
         return 0
     fi
 
-    echo "Moving: $file to $target_file"
+    echo "🚚 Moving"
+    echo "From: $file" 
+    echo "To: $target_file"
     # Create hardlink instead of moving
     if ln "$file" "$target_file" 2>/dev/null || cp "$file" "$target_file"; then
         echo "Successfully processed file!"
+        if [ "$PUSHOVER_NOTIFICATION" = true ]; then
+            send_pushover_notification "<b>✅ Processed Formula Racing file</b><br><br>Class: ${sport_type}<br>Year: ${year}<br>Round: ${round} ${location}<br>Session: ${session} (${round}x${episode})" "Formula Racing Processing Complete"
+        fi
         ((processed_count++))
     else
         echo "Error: Failed to create hardlink or copy file"
+        if [ "$PUSHOVER_NOTIFICATION" = true ]; then
+            send_pushover_error_notification "❌ Failed to create hardlink or copy file for ${sport_type}" "Hardlink/Copy Error"
+        fi
         ((error_count++))
         return 1
     fi
@@ -545,6 +595,8 @@ fi
 
 echo "Looking for sports files..."
 while IFS= read -r file; do
+    echo ""
+    echo "================================================"
     echo "Found MKV file: $file"
     organize_sports "$file"
 done < <(find "$SRC_DIR" -name "*.mkv")
@@ -574,6 +626,9 @@ while true; do
     
     if [ $find_status -ne 0 ]; then
         echo "ERROR: Find command failed with status $find_status: $find_output"
+        if [ "$PUSHOVER_NOTIFICATION" = true ]; then
+            send_pushover_error_notification "<b>❌ Find Command Failed</b><br><br>Status: $find_status<br>Error: $find_output" "Sports Organizer Error"
+        fi
     else
         echo "DEBUG: Find command completed successfully"
     fi
@@ -583,10 +638,7 @@ while true; do
             echo "Found new MKV file: $file"
             organize_sports "$file"
             
-            # Send notification for successful processing
-            if [ "$PUSHOVER_NOTIFICATION" = true ]; then
-                send_pushover_notification "Processed: $(basename "$file")" "Sports Organizer"
-            fi
+            # We'll let the individual processing functions handle their own notifications
         fi
     done
     
@@ -594,6 +646,21 @@ while true; do
     if [ $((processed_count + skipped_count + error_count)) -gt 0 ]; then
         echo "Summary for this check cycle:"
         print_summary
+        
+        # Send a nicely formatted summary notification
+        if [ "$PUSHOVER_NOTIFICATION" = true ]; then
+            summary_html="<b>📊 Sports Organizer Summary</b><br><br>"
+            summary_html+="<b>✅ Processed:</b> $processed_count files<br>"
+            summary_html+="<b>⏭️ Skipped:</b> $skipped_count files<br>"
+            
+            if [ $error_count -gt 0 ]; then
+                summary_html+="<b>❌ Errors:</b> $error_count files"
+            else
+                summary_html+="<b>✓ No errors encountered</b>"
+            fi
+            
+            send_pushover_notification "$summary_html" "Sports Organizer Summary"
+        fi
         
         # Reset counters after printing summary
         processed_count=0
