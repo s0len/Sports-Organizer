@@ -266,24 +266,18 @@ process_ufc() {
         return 1
     fi
 
-    # Parse UFC number (season)
+    # Parse UFC number (season) and event name in one regex
     local season=""
-    if [[ $filename =~ ^ufc\.([0-9]+)\. ]]; then
-        season="${BASH_REMATCH[1]}"
-    else
-        echo "Could not parse UFC number from filename: $filename"
-        ((error_count++))
-        return 1
-    fi
-
-    # Parse event name (fighters)
     local event_name=""
-    if [[ $filename =~ ^ufc\.[0-9]+\.(.+?)\.(early\.prelims|prelims|ppv)\. ]]; then
-        event_name="${BASH_REMATCH[1]}"
+    
+    # This regex captures the UFC number and event name before any of the episode types
+    if [[ $filename =~ ^ufc\.([0-9]+)\.(.+?)\.(early\.prelims|prelims|ppv)\. ]]; then
+        season="${BASH_REMATCH[1]}"
+        event_name="${BASH_REMATCH[2]}"
         # Replace dots with spaces for readability
         event_name="${event_name//./ }"
     else
-        echo "Could not parse event name from filename: $filename"
+        echo "Could not parse UFC number and event name from filename: $filename"
         ((error_count++))
         return 1
     fi
@@ -317,7 +311,7 @@ process_ufc() {
     mkdir -p "$event_dir"
 
     # Create the target filename
-    local target_file="$event_dir/${season}x${episode_num} UFC $episode_type.${extension}"
+    local target_file="$event_dir/${season}x${episode_num} UFC ${season} $episode_type.${extension}"
 
     # Check if file already exists
     if [[ -f "$target_file" ]]; then
