@@ -65,8 +65,17 @@ print_summary() {
     
     # Send summary notification if enabled
     if [ "$PUSHOVER_NOTIFICATION" = true ] && [ $((processed_count + skipped_count + error_count)) -gt 0 ]; then
-        summary_message="Files processed: $processed_count<br>Files skipped: $skipped_count<br>Errors encountered: $error_count"
-        send_pushover_notification "$summary_message" "Sports Organizer Summary"
+        summary_html="<b>📊 Sports Organizer Summary</b><br><br>"
+        summary_html+="<b>✅ Processed:</b> $processed_count files<br>"
+        summary_html+="<b>⏭️ Skipped:</b> $skipped_count files<br>"
+        
+        if [ $error_count -gt 0 ]; then
+            summary_html+="<b>❌ Errors:</b> $error_count files"
+        else
+            summary_html+="<b>✓ No errors encountered</b>"
+        fi
+        
+        send_pushover_notification "$summary_html" "Sports Organizer Summary"
     fi
 }
 
@@ -350,7 +359,7 @@ process_ufc() {
     if ln "$file" "$target_file" 2>/dev/null || cp "$file" "$target_file"; then
         echo "Successfully processed file!"
         if [ "$PUSHOVER_NOTIFICATION" = true ]; then
-            send_pushover_notification "<b>✅ Processed UFC file:</b> ${filename}"$'\n<pre>'"Season: ${season}\nEvent: ${event_name}\nEpisode: ${episode_type} (${episode_num})"'</pre>' "UFC Processing Complete"
+            send_pushover_notification "<b>✅ Processed UFC file:</b><br><br>Season: ${season}<br>Event: ${event_name}<br>Episode: ${episode_type} (${season}x${episode_num})" "UFC Processing Complete"
         fi
         ((processed_count++))
     else
@@ -521,7 +530,7 @@ process_f1_racing() {
     if ln "$file" "$target_file" 2>/dev/null || cp "$file" "$target_file"; then
         echo "Successfully processed file!"
         if [ "$PUSHOVER_NOTIFICATION" = true ]; then
-            send_pushover_notification "<b>✅ Processed Formula Racing file</b>"$'\n<pre>'"Class: ${sport_type}\nYear: ${year}\nRound: ${round} ${location}\nSession: ${session} (${round}x${episode})"'</pre>' "Formula Racing Processing Complete"
+            send_pushover_notification "<b>✅ Processed Formula Racing file</b><br><br>Class: ${sport_type}<br>Year: ${year}<br>Round: ${round} ${location}<br>Session: ${session} (${round}x${episode})" "Formula Racing Processing Complete"
         fi
         ((processed_count++))
     else
@@ -618,7 +627,7 @@ while true; do
     if [ $find_status -ne 0 ]; then
         echo "ERROR: Find command failed with status $find_status: $find_output"
         if [ "$PUSHOVER_NOTIFICATION" = true ]; then
-            send_pushover_error_notification "<b>❌ Find Command Failed</b>"$'\n<pre>'"Status: $find_status\nError: $find_output"'</pre>' "Sports Organizer Error"
+            send_pushover_error_notification "<b>❌ Find Command Failed</b><br><br>Status: $find_status<br>Error: $find_output" "Sports Organizer Error"
         fi
     else
         echo "DEBUG: Find command completed successfully"
@@ -640,9 +649,9 @@ while true; do
         
         # Send a nicely formatted summary notification
         if [ "$PUSHOVER_NOTIFICATION" = true ]; then
-            summary_html="<b>📊 Sports Organizer Summary</b>"$'\n\n'
-            summary_html+="<b>✅ Processed:</b> $processed_count files"$'\n'
-            summary_html+="<b>⏭️ Skipped:</b> $skipped_count files"$'\n'
+            summary_html="<b>📊 Sports Organizer Summary</b><br><br>"
+            summary_html+="<b>✅ Processed:</b> $processed_count files<br>"
+            summary_html+="<b>⏭️ Skipped:</b> $skipped_count files<br>"
             
             if [ $error_count -gt 0 ]; then
                 summary_html+="<b>❌ Errors:</b> $error_count files"
