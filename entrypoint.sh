@@ -241,7 +241,7 @@ process_moto_racing() {
     mkdir -p "$round_dir"
 
     # Create the target filename
-    local target_file="$round_dir/${sport_type} - S${round}E${episode} - ${session}.${extension}"
+    local target_file="$round_dir/${sport_type} ${year} - S${round}E${episode} - ${session}.${extension}"
 
     # Check if file already exists
     if [[ -f "$target_file" ]]; then
@@ -514,7 +514,7 @@ process_f1_racing() {
     mkdir -p "$round_dir"
 
     # Create the target filename
-    local target_file="$round_dir/${sport_type} - S${round}E${episode} - ${session}.${extension}"
+    local target_file="$round_dir/${sport_type} ${year} - S${round}E${episode} - ${session}.${extension}"
 
     # Check if file already exists
     if [[ -f "$target_file" ]]; then
