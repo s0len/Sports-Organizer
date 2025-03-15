@@ -339,11 +339,11 @@ process_ufc() {
 
     # Create target directories
     local season_dir="$DEST_DIR/UFC"
-    local event_dir="$season_dir/$season $event_name"
+    local event_dir="$season_dir/Season $season"
     mkdir -p "$event_dir"
 
     # Create the target filename
-    local target_file="$event_dir/${season}x${episode_num} UFC ${season} $episode_type.${extension}"
+    local target_file="$event_dir/UFC S${season}E${episode_num} $episode_type.${extension}"
 
     # Check if file already exists
     if [[ -f "$target_file" ]]; then
