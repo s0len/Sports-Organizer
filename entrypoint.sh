@@ -241,7 +241,7 @@ process_moto_racing() {
     mkdir -p "$round_dir"
 
     # Create the target filename
-    local target_file="$round_dir/${round}x${episode} ${sport_type} ${session}.${extension}"
+    local target_file="$round_dir/${sport_type} - S${round}E${episode} - ${session}.${extension}"
 
     # Check if file already exists
     if [[ -f "$target_file" ]]; then
@@ -514,7 +514,7 @@ process_f1_racing() {
     mkdir -p "$round_dir"
 
     # Create the target filename
-    local target_file="$round_dir/${round}x${episode} ${sport_type} ${session}.${extension}"
+    local target_file="$round_dir/${sport_type} - S${round}E${episode} - ${session}.${extension}"
 
     # Check if file already exists
     if [[ -f "$target_file" ]]; then
@@ -530,7 +530,7 @@ process_f1_racing() {
     if ln "$file" "$target_file" 2>/dev/null || cp "$file" "$target_file"; then
         echo "Successfully processed file!"
         if [ "$PUSHOVER_NOTIFICATION" = true ]; then
-            send_pushover_notification "<b>✅ Processed Formula Racing file</b><br><br>Class: ${sport_type}<br>Year: ${year}<br>Round: ${round} ${location}<br>Session: ${session} (${round}x${episode})" "Formula Racing Processing Complete"
+            send_pushover_notification "<b>✅ Processed Formula Racing file</b><br><br>Class: ${sport_type}<br>Year: ${year}<br>Round: ${round} ${location}<br>Session: ${session} (S${round}E${episode})" "Formula Racing Processing Complete"
         fi
         ((processed_count++))
     else
