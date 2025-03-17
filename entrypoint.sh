@@ -142,11 +142,11 @@ process_moto_racing() {
 
     # Get class (MotoGP, Moto2, Moto3)
     local sport_type=""
-    if [[ $filename == MotoGP* ]]; then
+    if [[ $filename =~ [Mm]oto[Gg][Pp][\.\-] ]]; then
         sport_type="MotoGP"
-    elif [[ $filename == Moto2* ]]; then
+    elif [[ $filename =~ [Mm]oto2[\.\-] ]]; then
         sport_type="Moto2"
-    elif [[ $filename == Moto3* ]]; then
+    elif [[ $filename =~ [Mm]oto3[\.\-] ]]; then
         sport_type="Moto3"
     else
         echo "Unknown Moto class in filename: $filename"
@@ -258,9 +258,15 @@ process_moto_racing() {
         echo "----------------------------------------"
         echo "✅ Successfully processed file!"
         echo "----------------------------------------"
+        if [ "$PUSHOVER_NOTIFICATION" = true ]; then
+            send_pushover_notification "<b>✅ Processed Moto Racing file</b><br><br>Class: ${sport_type}<br>Year: ${year}<br>Round: ${round} ${location}<br>Session: ${session} (S${round}E${episode})" "Moto Racing Processing Complete"
+        fi
         ((processed_count++))
     else
         echo "Error: Failed to create hardlink or copy file"
+        if [ "$PUSHOVER_NOTIFICATION" = true ]; then
+            send_pushover_error_notification "❌ Failed to create hardlink or copy file" "Hardlink/Copy Error"
+        fi
         ((error_count++))
         return 1
     fi
@@ -374,16 +380,18 @@ process_ufc() {
     return 0
 }
 
+# Function to process Formula racing files
 process_f1_racing() {
     local file="$1"
     local filename=$(basename "$file")
 
     local sport_type=""
-    if [[ $filename =~ ([Ff]ormula[[:space:]]*1|[Ff]ormula1|[Ff]1) ]]; then
+    # Update regex to match "Formula" followed by a number and a dot or other delimiter
+    if [[ $filename =~ [Ff]ormula1[\.\-] ]]; then
         sport_type="Formula 1"
-    elif [[ $filename =~ ([Ff]ormula[[:space:]]*2|[Ff]ormula2|[Ff]2) ]]; then
+    elif [[ $filename =~ [Ff]ormula2[\.\-] ]]; then
         sport_type="Formula 2"
-    elif [[ $filename =~ ([Ff]ormula[[:space:]]*3|[Ff]ormula3|[Ff]3) ]]; then
+    elif [[ $filename =~ [Ff]ormula3[\.\-] ]]; then
         sport_type="Formula 3"
     else
         echo "Unknown Formula class in filename: $filename"

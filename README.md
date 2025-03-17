@@ -56,12 +56,14 @@ docker run -d \
 ### Docker Compose
 
 ```yaml
-version: '3'
 services:
   sports-organizer:
-    image: ghcr.io/username/sports-organizer:latest
+    image: ghcr.io/s0len/sports-organizer:latest
     container_name: sports-organizer
     environment:
+      - PUID=568 # Replace with the user owner
+      - PGID=568 # Replace with the group owner
+      - TZ=Europe/London
       - SRC_DIR=/data/torrents/sport
       - DEST_DIR=/data/media/sport
       - PROCESS_INTERVAL=60
@@ -71,8 +73,7 @@ services:
       # - PUSHOVER_API_TOKEN=your_api_token
       - DEBUG=false
     volumes:
-      - /path/to/downloads:/data/torrents/sport
-      - /path/to/media:/data/media/sport
+      - /path/to/actual/data:/data
     restart: unless-stopped
 ```
 
