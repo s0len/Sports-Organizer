@@ -258,9 +258,15 @@ process_moto_racing() {
         echo "----------------------------------------"
         echo "✅ Successfully processed file!"
         echo "----------------------------------------"
+        if [ "$PUSHOVER_NOTIFICATION" = true ]; then
+            send_pushover_notification "<b>✅ Processed Moto Racing file</b><br><br>Class: ${sport_type}<br>Year: ${year}<br>Round: ${round} ${location}<br>Session: ${session} (S${round}E${episode})" "Moto Racing Processing Complete"
+        fi
         ((processed_count++))
     else
         echo "Error: Failed to create hardlink or copy file"
+        if [ "$PUSHOVER_NOTIFICATION" = true ]; then
+            send_pushover_error_notification "❌ Failed to create hardlink or copy file" "Hardlink/Copy Error"
+        fi
         ((error_count++))
         return 1
     fi
