@@ -90,7 +90,8 @@ organize_sports() {
     # Handle both files and directories
     if [[ -d "$file" ]]; then
         # For directories, look for matching video files inside
-        find "$file" -type f -name "*.mkv" | while read video_file; do
+        echo "Directory detected, searching for video files inside"
+        find "$file" -type f \( -name "*.mkv" -o -name "*.mp4" \) | while read video_file; do
             echo "Found video file in directory: $video_file"
             organize_sports "$video_file"
         done
@@ -113,15 +114,15 @@ organize_sports() {
     local episode=""
 
     # Check for MotoGP/Moto2/Moto3
-    if [[ $filename == [Mm]oto* ]] && [[ $filename == *.mkv ]]; then
+    if [[ $filename == [Mm]oto* ]] && [[ $filename =~ \.(mkv|mp4)$ ]]; then
         # Process as motorcycle racing
         process_moto_racing "$file"
         return $?
-    elif [[ $filename =~ [Ff]ormula* ]] && [[ $filename == *.mkv ]]; then
+    elif [[ $filename =~ [Ff]ormula* ]] && [[ $filename =~ \.(mkv|mp4)$ ]]; then
         process_f1_racing "$file"
         return $?
     # Fix the UFC pattern match - use case-insensitive check
-    elif [[ $filename =~ ^[uU][fF][cC][\.\-] ]] && [[ $filename == *.mkv ]]; then
+    elif [[ $filename =~ ^[uU][fF][cC][\.\-] ]] && [[ $filename =~ \.(mkv|mp4)$ ]]; then
         echo "Detected UFC file, sending to process_ufc"
         process_ufc "$file"
         return $?
@@ -601,13 +602,13 @@ else
   # Maybe add a loop to wait for the directory
 fi
 
-echo "Looking for sports files..."
+echo "Looking for ALL existing sports files (MKV, MP4, and directories)..."
 while IFS= read -r file; do
     echo ""
     echo "================================================"
-    echo "Found MKV file: $file"
+    echo "Found item: $file"
     organize_sports "$file"
-done < <(find "$SRC_DIR" -name "*.mkv")
+done < <(find "$SRC_DIR" \( -type f \( -name "*.mkv" -o -name "*.mp4" \) -o -type d \))
 
 # Print summary after initial processing
 echo "Initial file processing completed."
@@ -626,10 +627,10 @@ while true; do
     echo "$(date): Checking for new files..."
     
     # Debug output for monitoring loop
-    echo "DEBUG: Running find command: find \"$SRC_DIR\" -name \"*.mkv\" -mmin -$((PROCESS_INTERVAL/60+1))\""
+    echo "DEBUG: Running find command for new MKV and MP4 files..."
     
-    # Check for new files periodically
-    find_output=$(find "$SRC_DIR" -name "*.mkv" -mmin -$((PROCESS_INTERVAL/60+1)) 2>&1)
+    # Check for new files periodically - only files modified in the last interval
+    find_output=$(find "$SRC_DIR" \( -type f \( -name "*.mkv" -o -name "*.mp4" \) -o -type d \) -mmin -$((PROCESS_INTERVAL/60+1)) 2>&1)
     find_status=$?
     
     if [ $find_status -ne 0 ]; then
