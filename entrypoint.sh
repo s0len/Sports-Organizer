@@ -602,13 +602,13 @@ else
   # Maybe add a loop to wait for the directory
 fi
 
-echo "Looking for ALL existing sports files (MKV and MP4)..."
+echo "Looking for ALL existing sports files (MKV, MP4, and directories)..."
 while IFS= read -r file; do
     echo ""
     echo "================================================"
-    echo "Found video file: $file"
+    echo "Found item: $file"
     organize_sports "$file"
-done < <(find "$SRC_DIR" \( -name "*.mkv" -o -name "*.mp4" \))
+done < <(find "$SRC_DIR" \( -type f \( -name "*.mkv" -o -name "*.mp4" \) -o -type d \))
 
 # Print summary after initial processing
 echo "Initial file processing completed."
@@ -630,7 +630,7 @@ while true; do
     echo "DEBUG: Running find command for new MKV and MP4 files..."
     
     # Check for new files periodically - only files modified in the last interval
-    find_output=$(find "$SRC_DIR" \( -name "*.mkv" -o -name "*.mp4" \) -mmin -$((PROCESS_INTERVAL/60+1)) 2>&1)
+    find_output=$(find "$SRC_DIR" \( -type f \( -name "*.mkv" -o -name "*.mp4" \) -o -type d \) -mmin -$((PROCESS_INTERVAL/60+1)) 2>&1)
     find_status=$?
     
     if [ $find_status -ne 0 ]; then
