@@ -569,7 +569,7 @@ process_isle_of_man_tt() {
         echo "Skipping sample file: $filename"
         ((skipped_count++))
         return 0
-    }
+    fi
 
     # Check if it's an Isle of Man TT file
     if [[ ! $filename =~ ^Isle\.Of\.Man\.TT\. ]]; then
