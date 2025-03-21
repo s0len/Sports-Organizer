@@ -113,8 +113,13 @@ organize_sports() {
     local session=""
     local episode=""
 
+    # Check for Isle of Man TT
+    if [[ $filename =~ ^Isle\.Of\.Man\.TT\. ]]; then
+        # Process as Isle of Man TT racing
+        process_isle_of_man_tt "$file"
+        return $?
     # Check for MotoGP/Moto2/Moto3
-    if [[ $filename == [Mm]oto* ]] && [[ $filename =~ \.(mkv|mp4)$ ]]; then
+    elif [[ $filename == [Mm]oto* ]] && [[ $filename =~ \.(mkv|mp4)$ ]]; then
         # Process as motorcycle racing
         process_moto_racing "$file"
         return $?
@@ -261,112 +266,6 @@ process_moto_racing() {
         echo "----------------------------------------"
         if [ "$PUSHOVER_NOTIFICATION" = true ]; then
             send_pushover_notification "<b>✅ Processed Moto Racing file</b><br><br>Class: ${sport_type}<br>Year: ${year}<br>Round: ${round} ${location}<br>Session: ${session} (S${round}E${episode})" "Moto Racing Processing Complete"
-        fi
-        ((processed_count++))
-    else
-        echo "Error: Failed to create hardlink or copy file"
-        if [ "$PUSHOVER_NOTIFICATION" = true ]; then
-            send_pushover_error_notification "❌ Failed to create hardlink or copy file" "Hardlink/Copy Error"
-        fi
-        ((error_count++))
-        return 1
-    fi
-
-    return 0
-}
-
-# Function to process UFC files
-process_ufc() {
-    local file="$1"
-    local filename=$(basename "$file")
-
-    # Skip sample files
-    if [[ $filename == *sample* ]]; then
-        echo "Skipping sample file: $filename"
-        ((skipped_count++))
-        return 0
-    fi
-
-    # Check if it's a UFC file
-    if [[ ! $filename =~ ^[uU][fF][cC][\.\-] ]]; then
-        echo "Not a UFC file: $filename"
-        ((error_count++))
-        return 1
-    fi
-
-    # Parse UFC number (season) and event name in one regex
-    local season=""
-    local event_name=""
-    
-    # This regex captures the UFC number and event name before any of the episode types
-    if [[ $filename =~ ^ufc\.([0-9]+)\.(.+?)\.(early\.prelims|prelims|ppv)\. ]]; then
-        season="${BASH_REMATCH[1]}"
-        event_name="${BASH_REMATCH[2]}"
-        
-        # Remove any trailing "early" from the event name
-        event_name="${event_name%.early}"
-        
-        # Replace dots with spaces for readability
-        event_name="${event_name//./ }"
-    else
-        echo "Could not parse UFC number and event name from filename: $filename"
-        ((error_count++))
-        return 1
-    fi
-
-    # Determine episode type and number
-    local episode_type=""
-    local episode_num=""
-    if [[ $filename == *early.prelims* ]]; then
-        episode_type="Early Prelims"
-        episode_num="1"
-    elif [[ $filename == *prelims* && ! $filename == *early.prelims* ]]; then
-        episode_type="Prelims"
-        episode_num="2"
-    elif [[ $filename == *ppv* ]]; then
-        episode_type="Main Card"
-        episode_num="3"
-    else
-        echo "Unknown episode type in filename: $filename"
-        ((error_count++))
-        return 1
-    fi
-
-    # Format the output in a more readable way with clear sections
-    echo "----------------------------------------"
-    echo "📊 UFC File Processing Details:"
-    echo "----------------------------------------"
-    echo "🏆 Season: UFC $season"
-    echo "🥊 Event: $event_name"
-    echo "📺 Episode: $episode_type (${season}x${episode_num})"
-    echo "----------------------------------------"
-
-    # Get file extension
-    local extension="${filename##*.}"
-
-    # Create target directories
-    local season_dir="$DEST_DIR/UFC"
-    local event_dir="$season_dir/Season $season"
-    mkdir -p "$event_dir"
-
-    # Create the target filename
-    local target_file="$event_dir/UFC - S${season}E${episode_num} - $episode_type.${extension}"
-
-    # Check if file already exists
-    if [[ -f "$target_file" ]]; then
-        echo "File already exists at destination: $target_file - skipping"
-        ((skipped_count++))
-        return 0
-    fi
-
-    echo "🚚 Moving"
-    echo "From: $file" 
-    echo "To: $target_file"
-    # Create hardlink instead of moving
-    if ln "$file" "$target_file" 2>/dev/null || cp "$file" "$target_file"; then
-        echo "Successfully processed file!"
-        if [ "$PUSHOVER_NOTIFICATION" = true ]; then
-            send_pushover_notification "<b>✅ Processed UFC file:</b><br><br>Season: ${season}<br>Event: ${event_name}<br>Episode: ${episode_type} (${season}x${episode_num})" "UFC Processing Complete"
         fi
         ((processed_count++))
     else
@@ -546,6 +445,248 @@ process_f1_racing() {
         echo "Error: Failed to create hardlink or copy file"
         if [ "$PUSHOVER_NOTIFICATION" = true ]; then
             send_pushover_error_notification "❌ Failed to create hardlink or copy file for ${sport_type}" "Hardlink/Copy Error"
+        fi
+        ((error_count++))
+        return 1
+    fi
+
+    return 0
+}
+
+# Function to process UFC files
+process_ufc() {
+    local file="$1"
+    local filename=$(basename "$file")
+
+    # Skip sample files
+    if [[ $filename == *sample* ]]; then
+        echo "Skipping sample file: $filename"
+        ((skipped_count++))
+        return 0
+    fi
+
+    # Check if it's a UFC file
+    if [[ ! $filename =~ ^[uU][fF][cC][\.\-] ]]; then
+        echo "Not a UFC file: $filename"
+        ((error_count++))
+        return 1
+    fi
+
+    # Parse UFC number (season) and event name in one regex
+    local season=""
+    local event_name=""
+    
+    # This regex captures the UFC number and event name before any of the episode types
+    if [[ $filename =~ ^ufc\.([0-9]+)\.(.+?)\.(early\.prelims|prelims|ppv)\. ]]; then
+        season="${BASH_REMATCH[1]}"
+        event_name="${BASH_REMATCH[2]}"
+        
+        # Remove any trailing "early" from the event name
+        event_name="${event_name%.early}"
+        
+        # Replace dots with spaces for readability
+        event_name="${event_name//./ }"
+    else
+        echo "Could not parse UFC number and event name from filename: $filename"
+        ((error_count++))
+        return 1
+    fi
+
+    # Determine episode type and number
+    local episode_type=""
+    local episode_num=""
+    if [[ $filename == *early.prelims* ]]; then
+        episode_type="Early Prelims"
+        episode_num="1"
+    elif [[ $filename == *prelims* && ! $filename == *early.prelims* ]]; then
+        episode_type="Prelims"
+        episode_num="2"
+    elif [[ $filename == *ppv* ]]; then
+        episode_type="Main Card"
+        episode_num="3"
+    else
+        echo "Unknown episode type in filename: $filename"
+        ((error_count++))
+        return 1
+    fi
+
+    # Format the output in a more readable way with clear sections
+    echo "----------------------------------------"
+    echo "📊 UFC File Processing Details:"
+    echo "----------------------------------------"
+    echo "🏆 Season: UFC $season"
+    echo "🥊 Event: $event_name"
+    echo "📺 Episode: $episode_type (${season}x${episode_num})"
+    echo "----------------------------------------"
+
+    # Get file extension
+    local extension="${filename##*.}"
+
+    # Create target directories
+    local season_dir="$DEST_DIR/UFC"
+    local event_dir="$season_dir/Season $season"
+    mkdir -p "$event_dir"
+
+    # Create the target filename
+    local target_file="$event_dir/UFC - S${season}E${episode_num} - $episode_type.${extension}"
+
+    # Check if file already exists
+    if [[ -f "$target_file" ]]; then
+        echo "File already exists at destination: $target_file - skipping"
+        ((skipped_count++))
+        return 0
+    fi
+
+    echo "🚚 Moving"
+    echo "From: $file" 
+    echo "To: $target_file"
+    # Create hardlink instead of moving
+    if ln "$file" "$target_file" 2>/dev/null || cp "$file" "$target_file"; then
+        echo "Successfully processed file!"
+        if [ "$PUSHOVER_NOTIFICATION" = true ]; then
+            send_pushover_notification "<b>✅ Processed UFC file:</b><br><br>Season: ${season}<br>Event: ${event_name}<br>Episode: ${episode_type} (${season}x${episode_num})" "UFC Processing Complete"
+        fi
+        ((processed_count++))
+    else
+        echo "Error: Failed to create hardlink or copy file"
+        if [ "$PUSHOVER_NOTIFICATION" = true ]; then
+            send_pushover_error_notification "❌ Failed to create hardlink or copy file" "Hardlink/Copy Error"
+        fi
+        ((error_count++))
+        return 1
+    fi
+
+    return 0
+}
+
+# Function to process Isle of Man TT racing files
+process_isle_of_man_tt() {
+    local file="$1"
+    local filename=$(basename "$file")
+
+    # Skip sample files
+    if [[ $filename == *sample* ]]; then
+        echo "Skipping sample file: $filename"
+        ((skipped_count++))
+        return 0
+    fi
+
+    # Check if it's an Isle of Man TT file
+    if [[ ! $filename =~ ^Isle\.Of\.Man\.TT\. ]]; then
+        echo "Not an Isle of Man TT file: $filename"
+        ((error_count++))
+        return 1
+    fi
+
+    # Extract year from filename
+    local year=""
+    if [[ $filename =~ ^Isle\.Of\.Man\.TT\.([0-9]{4})\. ]]; then
+        year="${BASH_REMATCH[1]}"
+    else
+        echo "Could not parse year from filename: $filename"
+        ((error_count++))
+        return 1
+    fi
+
+    # Determine race type and episode number
+    local race_type=""
+    local episode_num=""
+    local season="1" # Isle of Man TT is typically one season per year
+
+    # Map race types to episode numbers
+    if [[ $filename == *Qualifying.Highlights* ]]; then
+        race_type="Qualifying Highlights"
+        episode_num="1"
+    elif [[ $filename == *Superbike.Race* ]]; then
+        race_type="Superbike Race"
+        episode_num="2"
+    elif [[ $filename == *Supersport.Race.One* ]]; then
+        race_type="Supersport Race One"
+        episode_num="3"
+    elif [[ $filename == *Sidecar.Race.One* ]]; then
+        race_type="Sidecar Race One"
+        episode_num="4"
+    elif [[ $filename == *Supertwin.Race.One* ]]; then
+        race_type="Supertwin Race One"
+        episode_num="5"
+    elif [[ $filename == *Superstock.Race.One* ]]; then
+        race_type="Superstock Race One"
+        episode_num="6"
+    elif [[ $filename == *Supersport.Race.Two* ]]; then
+        race_type="Supersport Race Two"
+        episode_num="7"
+    elif [[ $filename == *Sidecar.Race.Two* ]]; then
+        race_type="Sidecar Race Two"
+        episode_num="8"
+    elif [[ $filename == *Supertwin.Race.Two* ]] && [[ $year == "2024" ]]; then
+        race_type="Supertwin Race Two"
+        episode_num="9"
+    elif [[ $filename == *Senior.TT.Race* ]] && [[ $year == "2024" ]]; then
+        race_type="Senior TT Race"
+        episode_num="10"
+    elif [[ $filename == *Superstock.Race.Two* ]] && [[ $year == "2025" ]]; then
+        race_type="Superstock Race Two"
+        episode_num="9"
+    elif [[ $filename == *Supertwin.Race.Two* ]] && [[ $year == "2025" ]]; then
+        race_type="Supertwin Race Two"
+        episode_num="10"
+    elif [[ $filename == *Senior.TT.Race* ]] && [[ $year == "2025" ]]; then
+        race_type="Senior TT Race"
+        episode_num="11"
+    else
+        echo "Unknown race type in filename: $filename"
+        race_type="Unknown Race"
+        episode_num="0"
+    fi
+
+    # Format the output in a more readable way with clear sections
+    echo "----------------------------------------"
+    echo "🏍️ Isle of Man TT Processing Details:"
+    echo "----------------------------------------"
+    echo "📅 Year: $year"
+    echo "🏁 Race: $race_type"
+    echo "📺 Episode: $episode_num"
+    echo "----------------------------------------"
+
+    # Get file extension (check for common video extensions)
+    local extension=""
+    if [[ $filename =~ \.(mkv|mp4|avi|mov)$ ]]; then
+        extension="${BASH_REMATCH[1]}"
+    else
+        # Default to mp4 if no extension found
+        extension="mp4"
+    fi
+
+    # Create target directories
+    local season_dir="$DEST_DIR/Isle of Man TT/Season $year"
+    mkdir -p "$season_dir"
+
+    # Create the target filename
+    local target_file="$season_dir/Isle of Man TT - S${year}E${episode_num} - ${race_type}.${extension}"
+
+    # Check if file already exists
+    if [[ -f "$target_file" ]]; then
+        echo "File already exists at destination: $target_file - skipping"
+        ((skipped_count++))
+        return 0
+    fi
+
+    echo "🚚 Moving"
+    echo "From: $file" 
+    echo "To: $target_file"
+    # Create hardlink instead of moving
+    if ln "$file" "$target_file" 2>/dev/null || cp "$file" "$target_file"; then
+        echo "----------------------------------------"
+        echo "✅ Successfully processed file!"
+        echo "----------------------------------------"
+        if [ "$PUSHOVER_NOTIFICATION" = true ]; then
+            send_pushover_notification "<b>✅ Processed Isle of Man TT file</b><br><br>Year: ${year}<br>Race: ${race_type}<br>Episode: S${season}E${episode_num}" "Isle of Man TT Processing Complete"
+        fi
+        ((processed_count++))
+    else
+        echo "Error: Failed to create hardlink or copy file"
+        if [ "$PUSHOVER_NOTIFICATION" = true ]; then
+            send_pushover_error_notification "❌ Failed to create hardlink or copy file" "Hardlink/Copy Error"
         fi
         ((error_count++))
         return 1
