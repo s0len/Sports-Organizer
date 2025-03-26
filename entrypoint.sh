@@ -815,7 +815,7 @@ process_world_superbike() {
     echo "🏍️ ${championship_full} Processing Details:"
     echo "----------------------------------------"
     echo "📅 Year: $year"
-    echo "🔄 Round: $round - $location"
+    echo "🔄 Round: $round"
     echo "📺 Session: $session_type (${round}x${episode_num})"
     echo "----------------------------------------"
 
@@ -829,7 +829,7 @@ process_world_superbike() {
 
     # Create target directories
     local season_dir="$DEST_DIR/$championship_full $year"
-    local round_dir="$season_dir/Round $round - $location"
+    local round_dir="$season_dir/Round $round"
     mkdir -p "$round_dir"
 
     # Create the target filename
