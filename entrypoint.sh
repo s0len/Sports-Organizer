@@ -123,6 +123,11 @@ organize_sports() {
         # Process as motorcycle racing
         process_moto_racing "$file"
         return $?
+    # Check for World Superbike Championship and related series
+    elif [[ $filename =~ ^(WSBK|WorldSBK|WSSP300|WSSP)[\.\-] ]] && [[ $filename =~ \.(mkv|mp4)$ ]]; then
+        process_world_superbike "$file"
+        return $?
+    # Check for Formula racing
     elif [[ $filename =~ [Ff]ormula* ]] && [[ $filename =~ \.(mkv|mp4)$ ]]; then
         process_f1_racing "$file"
         return $?
@@ -681,6 +686,172 @@ process_isle_of_man_tt() {
         echo "----------------------------------------"
         if [ "$PUSHOVER_NOTIFICATION" = true ]; then
             send_pushover_notification "<b>✅ Processed Isle of Man TT file</b><br><br>Year: ${year}<br>Race: ${race_type}<br>Episode: S${season}E${episode_num}" "Isle of Man TT Processing Complete"
+        fi
+        ((processed_count++))
+    else
+        echo "Error: Failed to create hardlink or copy file"
+        if [ "$PUSHOVER_NOTIFICATION" = true ]; then
+            send_pushover_error_notification "❌ Failed to create hardlink or copy file" "Hardlink/Copy Error"
+        fi
+        ((error_count++))
+        return 1
+    fi
+
+    return 0
+}
+
+# Function to process World Superbike files
+process_world_superbike() {
+    local file="$1"
+    local filename=$(basename "$file")
+
+    # Skip sample files
+    if [[ $filename == *sample* ]]; then
+        echo "Skipping sample file: $filename"
+        ((skipped_count++))
+        return 0
+    fi
+
+    # Determine championship type and validate file
+    local championship=""
+    local championship_full=""
+    if [[ $filename =~ ^WSBK\. ]]; then
+        championship="WSBK"
+        championship_full="World Superbike"
+    elif [[ $filename =~ ^WSSP300\. ]]; then
+        championship="WSSP300"
+        championship_full="World Supersport 300"
+    elif [[ $filename =~ ^WSSP\. ]]; then
+        championship="WSSP"
+        championship_full="World Supersport"
+    else
+        echo "Not a World Superbike Championship file: $filename"
+        ((error_count++))
+        return 1
+    fi
+
+    # Extract year and round from filename
+    local year=""
+    local round=""
+    local location=""
+    if [[ $filename =~ ^${championship}\.([0-9]{4})\.Round([0-9]{2})\.(.+?)\. ]]; then
+        year="${BASH_REMATCH[1]}"
+        round="${BASH_REMATCH[2]}"
+        location="${BASH_REMATCH[3]}"
+        location="${location//./ }"  # Replace dots with spaces
+    else
+        echo "Could not parse year and round from filename: $filename"
+        ((error_count++))
+        return 1
+    fi
+
+    # Handle season preview for WSBK
+    if [[ $championship == "WSBK" && $filename == *Season.Preview* ]]; then
+        round="0"
+        location="Pre-Season Testing"
+    fi
+
+    # Determine session type and episode number
+    local session_type=""
+    local episode_num=""
+
+    # Different episode numbering based on championship
+    if [[ $championship == "WSBK" ]]; then
+        if [[ $filename == *Season.Preview* ]]; then
+            session_type="Season Preview"
+            episode_num="1"
+        elif [[ $filename == *FP1* ]]; then
+            session_type="Free Practice 1"
+            episode_num="1"
+        elif [[ $filename == *FP2* ]]; then
+            session_type="Free Practice 2"
+            episode_num="2"
+        elif [[ $filename == *FP3* ]]; then
+            session_type="Free Practice 3"
+            episode_num="3"
+        elif [[ $filename == *Superpole* && ! $filename == *Race* ]]; then
+            session_type="Superpole"
+            episode_num="4"
+        elif [[ $filename == *Race.One* ]]; then
+            session_type="Race One"
+            episode_num="5"
+        elif [[ $filename == *Warm.Up* ]]; then
+            session_type="Warm Up"
+            episode_num="6"
+        elif [[ $filename == *Superpole.Race* ]]; then
+            session_type="Superpole Race"
+            episode_num="7"
+        elif [[ $filename == *Race.Two* ]]; then
+            session_type="Race Two"
+            episode_num="8"
+        elif [[ $filename == *Weekend.Highlights* ]]; then
+            session_type="Weekend Highlights"
+            episode_num="9"
+        fi
+    else  # WSSP and WSSP300
+        if [[ $filename == *FP1* ]]; then
+            session_type="Free Practice"
+            episode_num="1"
+        elif [[ $filename == *Superpole* ]]; then
+            session_type="Superpole"
+            episode_num="2"
+        elif [[ $filename == *Warm.Up.One* ]]; then
+            session_type="Warm Up One"
+            episode_num="3"
+        elif [[ $filename == *Race.One* ]]; then
+            session_type="Race One"
+            episode_num="4"
+        elif [[ $filename == *Warm.Up.Two* ]]; then
+            session_type="Warm Up Two"
+            episode_num="5"
+        elif [[ $filename == *Race.Two* ]]; then
+            session_type="Race Two"
+            episode_num="6"
+        fi
+    fi
+
+    # Format the output
+    echo "----------------------------------------"
+    echo "🏍️ ${championship_full} Processing Details:"
+    echo "----------------------------------------"
+    echo "📅 Year: $year"
+    echo "🔄 Round: $round - $location"
+    echo "📺 Session: $session_type (${round}x${episode_num})"
+    echo "----------------------------------------"
+
+    # Get file extension
+    local extension=""
+    if [[ $filename =~ \.(mkv|mp4|avi|mov)$ ]]; then
+        extension="${BASH_REMATCH[1]}"
+    else
+        extension="mp4"
+    fi
+
+    # Create target directories
+    local season_dir="$DEST_DIR/$championship_full $year"
+    local round_dir="$season_dir/Round $round - $location"
+    mkdir -p "$round_dir"
+
+    # Create the target filename
+    local target_file="$round_dir/$championship_full $year - S${round}E${episode_num} - ${session_type}.${extension}"
+
+    # Check if file already exists
+    if [[ -f "$target_file" ]]; then
+        echo "File already exists at destination: $target_file - skipping"
+        ((skipped_count++))
+        return 0
+    fi
+
+    echo "🚚 Moving"
+    echo "From: $file" 
+    echo "To: $target_file"
+    # Create hardlink instead of moving
+    if ln "$file" "$target_file" 2>/dev/null || cp "$file" "$target_file"; then
+        echo "----------------------------------------"
+        echo "✅ Successfully processed file!"
+        echo "----------------------------------------"
+        if [ "$PUSHOVER_NOTIFICATION" = true ]; then
+            send_pushover_notification "<b>✅ Processed ${championship_full} file</b><br><br>Year: ${year}<br>Round: ${round} ${location}<br>Session: ${session_type} (${round}x${episode_num})" "${championship_full} Processing Complete"
         fi
         ((processed_count++))
     else
