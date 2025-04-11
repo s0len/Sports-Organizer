@@ -209,6 +209,46 @@ Common issues:
 - Unsupported file naming format
 - Insufficient disk space
 
+## Autobrr regex patterns
+
+The following regex patterns are used to identify racing releases that work with Sports Organizer.
+
+### Formula 1
+
+```regex
+(F1|Formula[[:space:]]*1|Formula1|F2|Formula[[:space:]]*2|Formula2|F3|Formula[[:space:]]*3|Formula3)\.\d{4}\.Round\d+\.[^.]+\.(Drivers.*Press.*Conference|Weekend.*Warm.*Up|FP\d?|Practice|Sprint.Qualifying|Sprint|Qualifying|Pre.Qualifying|Post.Qualifying|Race|Pre.Race|Post.Race|Sprint.Race|Feature.*Race)\..*1080p.*MWR
+```
+
+### MotoGP, Moto2, Moto3
+
+```regex
+([Mm][Oo][Tt][Oo][Gg][Pp]|[Mm][Oo][Tt][Oo]2|[Mm][Oo][Tt][Oo]3)\.\d{4}\.Round\d+\.[^.]+\.((FP\d?|[Pp][Rr][Aa][Cc][Tt][Ii][Cc][Ee]|[Ss][Pp][Rr][Ii][Nn][Tt]|[Qq][Uu][Aa][Ll][Ii][Ff][Yy][Ii][Nn][Gg]|Q1|Q2|[Rr][Aa][Cc][Ee]))\..*h264..*MWR
+```
+
+### World Superbike, World Supersport, World Supersport 300
+
+```regex
+([Ww][Ss][Bb][Kk]|[Ww][Ss][Ss][Pp]|[Ww][Ss][Ss][Pp]300)\.\d{4}\.Round\d+\.[^.]+\.(FP\d?|[Ss]eason\.[Pp]review|[Ss]uperpole|[Rr]ace\.[Oo]ne|[Rr]ace\.[Tt]wo|[Ww]arm\.[Uu]p(\.[Oo]ne|\.[Tt]wo)?|[Ww]eekend\.[Hh]ighlights)\..*h264..*MWR
+```
+
+### Isle of Man TT
+
+```regex
+[Ii]sle.[Oo]f.[Mm]an.[Tt][Tt].*MWR
+```
+
+### UFC
+
+```regex
+UFC.\d{3}.*(PPV|Early.Prelims|Prelims).*1080p.*WEB.*h264.*VERUM
+```
+
+### FormulaE
+
+```regex
+[Ff][Oo][Rr][Mm][Uu][Ll][Aa][Ee]\.\d{4}\.Round\d+\.(?:[A-Za-z]+(?:\.[A-Za-z]+)?)\.(?:Preview.Show|[Qq]ualifying|[Rr]ace)\..*h264.*-MWR
+```
+
 ## License
 
 GPL v3
