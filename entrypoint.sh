@@ -218,10 +218,10 @@ process_moto_racing() {
         fi
     # Check for Practice
     elif [[ $filename == *FP* ]] || [[ $filename == *Practice* ]]; then
-        if [[ $filename == *"FP1"* ]] || [[ $filename == *"Practice One"* ]]; then
+        if [[ $filename == *[Ff][Pp]1* ]] || [[ $filename == *"Practice One"* ]]; then
             session="Free Practice 1"
             episode="1"
-        elif [[ $filename == *"FP2"* ]] || [[ $filename == *"Practice Two"* ]]; then
+        elif [[ $filename == *[Ff][Pp]2* ]] || [[ $filename == *"Practice Two"* ]]; then
             session="Free Practice 2"
             episode="2"
         else
@@ -337,14 +337,14 @@ process_f1_racing() {
             episode="2"
         fi
     # Check for Practice
-    elif [[ $filename == *FP* ]] || [[ $filename == *Practice* ]]; then
-        if [[ ($filename == *"FP1"* || $filename == *"Practice One"*) && $sport_type == "Formula 1" ]]; then
+    elif [[ $filename == *[Ff][Pp]* ]] || [[ $filename == *Practice* ]]; then
+        if [[ ($filename == *[Ff][Pp]1* || $filename == *"Practice One"*) && $sport_type == "Formula 1" ]]; then
             session="Free Practice 1"
             episode="3"
-        elif [[ ($filename == *"FP2"* || $filename == *"Practice Two"*) && $sport_type == "Formula 1" ]]; then
+        elif [[ ($filename == *[Ff][Pp]2* || $filename == *"Practice Two"*) && $sport_type == "Formula 1" ]]; then
             session="Free Practice 2"
             episode="4"
-        elif [[ ($filename == *"FP3"* || $filename == *"Practice Three"*) && $sport_type == "Formula 1" ]]; then
+        elif [[ ($filename =~ [Ff][Pp]3 || $filename == *"Practice Three"*) && $sport_type == "Formula 1" ]]; then
             session="Free Practice 3"
             episode="5"
         else
@@ -760,13 +760,13 @@ process_world_superbike() {
         if [[ $filename == *Season.Preview* ]]; then
             session_type="Season Preview"
             episode_num="1"
-        elif [[ $filename == *FP1* ]]; then
+        elif [[ $filename == *[Ff][Pp]1* ]]; then
             session_type="Free Practice 1"
             episode_num="1"
-        elif [[ $filename == *FP2* ]]; then
+        elif [[ $filename == *[Ff][Pp]2* ]]; then
             session_type="Free Practice 2"
             episode_num="2"
-        elif [[ $filename == *FP3* ]]; then
+        elif [[ $filename == *[Ff][Pp]3* ]]; then
             session_type="Free Practice 3"
             episode_num="3"
         elif [[ $filename == *Superpole* && ! $filename == *Race* ]]; then
@@ -789,7 +789,7 @@ process_world_superbike() {
             episode_num="9"
         fi
     else  # WSSP and WSSP300
-        if [[ $filename == *FP1* ]]; then
+        if [[ $filename == *[Ff][Pp]1* ]]; then
             session_type="Free Practice"
             episode_num="1"
         elif [[ $filename == *Superpole* ]]; then
