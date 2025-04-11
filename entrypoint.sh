@@ -293,11 +293,13 @@ process_f1_racing() {
     local sport_type=""
     # Update regex to match "Formula" followed by a number and a dot or other delimiter
     if [[ $filename =~ [Ff]ormula1[\.\-] ]]; then
-        sport_type="Formula 1"
+        sport_type="Formula1"
     elif [[ $filename =~ [Ff]ormula2[\.\-] ]]; then
-        sport_type="Formula 2"
+        sport_type="Formula2"
     elif [[ $filename =~ [Ff]ormula3[\.\-] ]]; then
-        sport_type="Formula 3"
+        sport_type="Formula3"
+    elif [[ $filename =~ [Ff]ormula[Ee][\.\-] ]]; then
+        sport_type="FormulaE"
     else
         echo "Unknown Formula class in filename: $filename"
         ((error_count++))
@@ -327,24 +329,24 @@ process_f1_racing() {
     # Check for Drivers Press Conference
     if [[ $filename == *[Dd]rivers*[Pp]ress*[Cc]onference* ]]; then
         session="Drivers Press Conference"
-        if [[ $sport_type == "Formula 1" ]]; then
+        if [[ $sport_type == "Formula1" ]]; then
             episode="1"
         fi
     # Check for Weekend Warm Up
     elif [[ $filename == *[Ww]eekend*[Ww]arm* ]]; then
         session="Weekend Warm Up"
-        if [[ $sport_type == "Formula 1" ]]; then
+        if [[ $sport_type == "Formula1" ]]; then
             episode="2"
         fi
     # Check for Practice
     elif [[ $filename == *[Ff][Pp]* ]] || [[ $filename == *Practice* ]]; then
-        if [[ ($filename == *[Ff][Pp]1* || $filename == *"Practice One"*) && $sport_type == "Formula 1" ]]; then
+        if [[ ($filename == *[Ff][Pp]1* || $filename == *"Practice One"*) && $sport_type == "Formula1" ]]; then
             session="Free Practice 1"
             episode="3"
-        elif [[ ($filename == *[Ff][Pp]2* || $filename == *"Practice Two"*) && $sport_type == "Formula 1" ]]; then
+        elif [[ ($filename == *[Ff][Pp]2* || $filename == *"Practice Two"*) && $sport_type == "Formula1" ]]; then
             session="Free Practice 2"
             episode="4"
-        elif [[ ($filename =~ [Ff][Pp]3 || $filename == *"Practice Three"*) && $sport_type == "Formula 1" ]]; then
+        elif [[ ($filename =~ [Ff][Pp]3 || $filename == *"Practice Three"*) && $sport_type == "Formula1" ]]; then
             session="Free Practice 3"
             episode="5"
         else
@@ -353,10 +355,10 @@ process_f1_racing() {
         fi
     # Check for Sprint
     elif [[ $filename == *Sprint* ]]; then
-        if [[ $filename == *Qualifying* && $sport_type == "Formula 1" ]]; then
+        if [[ $filename == *Qualifying* && $sport_type == "Formula1" ]]; then
             session="Sprint Qualifying"
             episode="4"
-        elif [[ $filename == *Sprint* && $sport_type == "Formula 1" ]]; then
+        elif [[ $filename == *Sprint* && $sport_type == "Formula1" ]]; then
             session="Sprint"
             episode="5"
         else
@@ -375,7 +377,7 @@ process_f1_racing() {
             episode="8"
         else
             session="Qualifying"
-            if [[ $sport_type == "Formula 1" ]]; then
+            if [[ $sport_type == "Formula1" ]]; then
                 episode="7"
             else
                 episode="2"
@@ -397,7 +399,7 @@ process_f1_racing() {
             episode="4"
         else
             session="Race"
-            if [[ $sport_type == "Formula 1" ]]; then
+            if [[ $sport_type == "Formula1" ]]; then
                 episode="10"
             else
                 episode="3"
