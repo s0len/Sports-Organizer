@@ -299,7 +299,7 @@ process_f1_racing() {
     elif [[ $filename =~ [Ff]ormula3[\.\-] ]]; then
         sport_type="Formula3"
     elif [[ $filename =~ [Ff]ormula[Ee][\.\-] ]]; then
-        sport_type="FormulaE"
+        sport_type="Formula E"
     else
         echo "Unknown Formula class in filename: $filename"
         ((error_count++))
