@@ -1,6 +1,6 @@
 # Sports Media Organizer
 
-This container automatically organizes Formula and MotoGP racing media files into a structured Plex-friendly format. It monitors a source directory for new racing videos and organizes them by series, year, round, and session type.
+This container automatically organizes sports media files into a structured Plex-friendly format. It monitors a source directory for new racing videos and organizes them by series, year, round, and session type.
 
 ## Features
 
@@ -8,6 +8,10 @@ This container automatically organizes Formula and MotoGP racing media files int
 - **Series Support**:
   - Formula 1, Formula 2, Formula 3
   - MotoGP, Moto2, Moto3
+  - Formula E
+  - World Superbike, World Supersport, World Supersport 300
+  - Isle of Man TT
+  - UFC
 - **Session Detection**: Automatically identifies and labels different session types:
   - Practice sessions (FP1, FP2, FP3)
   - Qualifying sessions
@@ -47,8 +51,7 @@ docker run -d \
   -e DEST_DIR=/data/media/sport \
   -e PROCESS_INTERVAL=60 \
   -e PUSHOVER_NOTIFICATION=false \
-  -v /path/to/downloads:/data/torrents/sport \
-  -v /path/to/media:/data/media/sport \
+  -v /path/to/downloads:/data \
   --restart unless-stopped \
   ghcr.io/username/sports-organizer:latest
 ```
