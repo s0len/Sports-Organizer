@@ -186,7 +186,7 @@ process_moto_racing() {
     local episode=""
 
     # Check for Race
-    if [[ $filename == *Race* ]]; then
+    if [[ $filename == *[Rr][Aa][Cc][Ee]* ]]; then
         session="Race"
         if [[ $sport_type == "MotoGP" ]]; then
             episode="6" # MotoGP races are episode 6 (after Sprint)
@@ -194,7 +194,7 @@ process_moto_racing() {
             episode="5" # Moto2/3 races are episode 5 (no Sprint)
         fi
     # Check for Sprint - only for MotoGP class
-    elif [[ $filename == *Sprint* ]]; then
+    elif [[ $filename == *[Ss][Pp][Rr][Ii][Nn][Tt]* ]]; then
         if [[ $sport_type == "MotoGP" ]]; then
             session="Sprint"
             episode="5"
@@ -205,11 +205,11 @@ process_moto_racing() {
             echo "Warning: Sprint session found for $sport_type which shouldn't have sprints"
         fi
     # Check for Qualifying
-    elif [[ $filename == *Qualifying* ]]; then
-        if [[ $filename == *Q1* ]]; then
+    elif [[ $filename == *[Qq]ualifying* ]]; then
+        if [[ $filename == *[Qq]1* ]]; then
             session="Qualifying 1"
             episode="3"
-        elif [[ $filename == *Q2* ]]; then
+        elif [[ $filename == *[Qq]2* ]]; then
             session="Qualifying 2"
             episode="4"
         else
@@ -354,11 +354,11 @@ process_f1_racing() {
             episode="1"
         fi
     # Check for Sprint
-    elif [[ $filename == *Sprint* ]]; then
-        if [[ $filename == *Qualifying* && $sport_type == "Formula1" ]]; then
+    elif [[ $filename == *[Ss][Pp][Rr][Ii][Nn][Tt]* ]]; then
+        if [[ $filename == *[Qq]ualifying* && $sport_type == "Formula1" ]]; then
             session="Sprint Qualifying"
             episode="4"
-        elif [[ $filename == *Sprint* && $sport_type == "Formula1" ]]; then
+        elif [[ $filename == *[Ss][Pp][Rr][Ii][Nn][Tt]* && $sport_type == "Formula1" ]]; then
             session="Sprint"
             episode="5"
         else
@@ -368,11 +368,11 @@ process_f1_racing() {
             echo "Warning: Sprint session found for $sport_type which shouldn't have sprints"
         fi
     # Check for Qualifying
-    elif [[ $filename == *Qualifying* ]]; then
-        if [[ $filename == *Pre*Qualifying* ]]; then
+    elif [[ $filename == *[Qq]ualifying* ]]; then
+        if [[ $filename == *[Pp][Rr][Ee]*[Qq]ualifying* ]]; then
             session="Pre Qualifying Show"
             episode="6"
-        elif [[ $filename == *Post*Qualifying* ]]; then
+        elif [[ $filename == *[Pp][Oo][Ss][Tt]*[Qq]ualifying* ]]; then
             session="Post Qualifying Show"
             episode="8"
         else
@@ -385,16 +385,16 @@ process_f1_racing() {
         fi
     # Check for Race
     elif [[ $filename == *Race* ]]; then
-        if [[ $filename == *Pre*Race* ]]; then
+        if [[ $filename == *[Pp][Rr][Ee]*[Rr][Aa][Cc][Ee]* ]]; then
             session="Pre Race Show"
             episode="9"
-        elif [[ $filename == *Post*Race* ]]; then
+        elif [[ $filename == *[Pp][Oo][Ss][Tt]*[Rr][Aa][Cc][Ee]* ]]; then
             session="Post Race Show"
             episode="11"
-        elif [[ $filename == *Sprint*Race* ]]; then
+        elif [[ $filename == *[Ss][Pp][Rr][Ii][Nn][Tt]*[Rr][Aa][Cc][Ee]* ]]; then
             session="Sprint Race"
             episode="3"
-        elif [[ $filename == *Feature*Race* ]]; then
+        elif [[ $filename == *[Ff][Ee][Aa][Tt][Uu][Rr][Ee]*[Rr][Aa][Cc][Ee]* ]]; then
             session="Feature Race"
             episode="4"
         else
