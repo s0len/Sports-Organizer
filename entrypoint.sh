@@ -180,9 +180,9 @@ process_indycar_racing() {
     # Get round number and location using regex
     local round=""
     local location=""
-    if [[ $filename =~ [Rr]ound([0-9]{2})\.([^\.]+) ]]; then
+    if [[ $filename =~ [Rr]ound([0-9]{2})\.(.+?)\.(FP|Qualifying|Race|Practice|Sprint) ]]; then
         round="${BASH_REMATCH[1]}"
-        location="${BASH_REMATCH[2]//./ }" # Replace dots with spaces if any
+        location="${BASH_REMATCH[2]//./ }" # Replace dots with spaces
     else
         echo "Could not extract round and location from filename: $filename"
         ((error_count++))
@@ -861,7 +861,7 @@ process_world_superbike() {
     local year=""
     local round=""
     local location=""
-    if [[ $filename =~ ^${championship}\.([0-9]{4})\.Round([0-9]{2})\.(.+?)\. ]]; then
+    if [[ $filename =~ ^${championship}\.([0-9]{4})\.Round([0-9]{2})\.(.+?)\.(Race|FP|Superpole|Warm|Weekend) ]]; then
         year="${BASH_REMATCH[1]}"
         round="${BASH_REMATCH[2]}"
         location="${BASH_REMATCH[3]}"
@@ -942,7 +942,7 @@ process_world_superbike() {
     echo "🏍️ ${championship_full} Processing Details:"
     echo "----------------------------------------"
     echo "📅 Year: $year"
-    echo "🔄 Round: $round"
+    echo "🔄 Round: $round $location"
     echo "📺 Session: $session_type (${round}x${episode_num})"
     echo "----------------------------------------"
 
@@ -956,7 +956,7 @@ process_world_superbike() {
 
     # Create target directories
     local season_dir="$DEST_DIR/$championship_full $year"
-    local round_dir="$season_dir/Round $round"
+    local round_dir="$season_dir/Round $round - $location"
     mkdir -p "$round_dir"
 
     # Create the target filename
