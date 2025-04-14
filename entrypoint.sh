@@ -123,6 +123,11 @@ organize_sports() {
         # Process as motorcycle racing
         process_moto_racing "$file"
         return $?
+    # Check for IndyCar
+    elif [[ $filename == [Ii]ndy[Cc]ar* ]] && [[ $filename =~ \.(mkv|mp4)$ ]]; then
+        # Process as IndyCar racing
+        process_indycar_racing "$file"
+        return $?
     # Check for World Superbike Championship and related series
     elif [[ $filename =~ ^(WSBK|WorldSBK|WSSP300|WSSP)[\.\-] ]] && [[ $filename =~ \.(mkv|mp4)$ ]]; then
         process_world_superbike "$file"
@@ -144,6 +149,126 @@ organize_sports() {
         fi
         return 1
     fi
+}
+
+# Function to process IndyCar racing files
+process_indycar_racing() {
+    local file="$1"
+    local filename=$(basename "$file")
+
+    # Get class (IndyCar, Indy Lights, etc.)
+    local sport_type=""
+    if [[ $filename =~ [Ii]ndy[Cc]ar(\.[Ss]eries)?[\.\-] ]]; then
+        sport_type="IndyCar"
+    else
+        echo "Unknown IndyCar class in filename: $filename"
+        ((error_count++))
+        return 1
+    fi
+
+    # Extract year from the first four digits found in the filename
+    if [[ $filename =~ ([0-9]{4}) ]]; then
+        local year="${BASH_REMATCH[1]}"
+    else
+        echo "Could not find year (4 digits) in filename: $filename"
+        ((error_count++))
+        return 1
+    fi
+
+    echo "Year: $year"
+
+    # Get round number and location using regex
+    local round=""
+    local location=""
+    if [[ $filename =~ [Rr]ound([0-9]{2})\.([^\.]+) ]]; then
+        round="${BASH_REMATCH[1]}"
+        location="${BASH_REMATCH[2]//./ }" # Replace dots with spaces if any
+    else
+        echo "Could not extract round and location from filename: $filename"
+        ((error_count++))
+        return 1
+    fi
+    echo "Round: $round, Location: $location"
+
+    # Determine session and episode
+    local session=""
+    local episode=""
+
+    # Check for Race
+    if [[ $filename == *[Rr][Aa][Cc][Ee]* ]]; then
+        session="Race"
+        episode="4"
+    # Check for Qualifying
+    elif [[ $filename == *[Qq]ualifying* ]]; then
+      session="Qualifying"
+      episode="3"
+    # Check for Practice
+    elif [[ $filename == *FP* ]] || [[ $filename == *Practice* ]]; then
+        if [[ $filename == *[Ff][Pp]1* ]] || [[ $filename == *"Practice One"* ]]; then
+            session="Free Practice 1"
+            episode="1"
+        elif [[ $filename == *[Ff][Pp]2* ]] || [[ $filename == *"Practice Two"* ]]; then
+            session="Free Practice 2"
+            episode="2"
+        else
+            session="Free Practice"
+            episode="1"
+        fi
+    else
+        session="Unknown"
+        episode="0"
+    fi
+
+    # Format the output in a more readable way with clear sections
+    echo "----------------------------------------"
+    echo "🏍️ IndyCar Racing Processing Details:"
+    echo "----------------------------------------"
+    echo "🏁 Class: $sport_type"
+    echo "📅 Year: $year"
+    echo "🔄 Round: $round, Location: $location"
+    echo "📺 Session: $session (S${round}E${episode})"
+    echo "----------------------------------------"
+
+    # Get file extension
+    local extension="${filename##*.}"
+
+    # Create target directories
+    local season_dir="$DEST_DIR/$sport_type $year"
+    local round_dir="$season_dir/$round $location"
+    mkdir -p "$round_dir"
+
+    # Create the target filename
+    local target_file="$round_dir/${sport_type} ${year} - S${round}E${episode} - ${session}.${extension}"
+
+    # Check if file already exists
+    if [[ -f "$target_file" ]]; then
+        echo "File already exists at destination: $target_file - skipping"
+        ((skipped_count++))
+        return 0
+    fi
+
+    echo "🚚 Moving"
+    echo "From: $file" 
+    echo "To: $target_file"
+    # Create hardlink instead of moving
+    if ln "$file" "$target_file" 2>/dev/null || cp "$file" "$target_file"; then
+        echo "----------------------------------------"
+        echo "✅ Successfully processed file!"
+        echo "----------------------------------------"
+        if [ "$PUSHOVER_NOTIFICATION" = true ]; then
+            send_pushover_notification "<b>✅ Processed IndyCar Racing file</b><br><br>Class: ${sport_type}<br>Year: ${year}<br>Round: ${round} ${location}<br>Session: ${session} (S${round}E${episode})"
+        fi
+        ((processed_count++))
+    else
+        echo "Error: Failed to create hardlink or copy file"
+        if [ "$PUSHOVER_NOTIFICATION" = true ]; then
+            send_pushover_error_notification "❌ Failed to create hardlink or copy file" "Hardlink/Copy Error"
+        fi
+        ((error_count++))
+        return 1
+    fi
+
+    return 0
 }
 
 # Function to process motorcycle racing files
@@ -240,7 +365,7 @@ process_moto_racing() {
     echo "🏁 Class: $sport_type"
     echo "📅 Year: $year"
     echo "🔄 Round: $round, Location: $location"
-    echo "📺 Session: $session (${round}x${episode})"
+    echo "📺 Session: $session (S${round}E${episode})"
     echo "----------------------------------------"
 
     # Get file extension
@@ -417,7 +542,7 @@ process_f1_racing() {
     echo "🏁 Class: $sport_type"
     echo "📅 Year: $year"
     echo "🔄 Round: $round, Location: $location"
-    echo "📺 Session: $session (${round}x${episode})"
+    echo "📺 Session: $session (S${round}E${episode})"
     echo "----------------------------------------"
 
     # Get file extension
