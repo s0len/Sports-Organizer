@@ -1,0 +1,11 @@
+# Cursor files
+.cursor/mcp.json
+
+# General files to ignore
+.DS_Store
+node_modules/
+*.log
+
+# Environment files
+.env
+.env.local 
