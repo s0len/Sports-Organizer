@@ -219,7 +219,7 @@ The following regex patterns are used to identify racing releases that work with
 ### Formula 1
 
 ```regex
-(F1|Formula[[:space:]]*1|Formula1|F2|Formula[[:space:]]*2|Formula2|F3|Formula[[:space:]]*3|Formula3)\.\d{4}\.Round\d+\.[^.]+\.(Drivers.*Press.*Conference|Weekend.*Warm.*Up|FP\d?|Practice|Sprint.Qualifying|Sprint|Qualifying|Pre.Qualifying|Post.Qualifying|Race|Pre.Race|Post.Race|Sprint.Race|Feature.*Race)\..*1080p.*MWR
+(F1|Formula.*1|F2|Formula.*2|F3|Formula.*3)\.\d{4}\.Round\d+\.[^.]+\..*?(Drivers.*Press.*Conference|Weekend.*Warm.*Up|FP\d?|Practice|Sprint.Qualifying|Sprint|Qualifying|Pre.Qualifying|Post.Qualifying|Race|Pre.Race|Post.Race|Sprint.Race|Feature.*Race)\..*1080p.*MWR
 ```
 
 ### MotoGP, Moto2, Moto3
