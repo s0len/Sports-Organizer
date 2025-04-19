@@ -159,7 +159,7 @@ process_indycar_racing() {
     # Get class (IndyCar, Indy Lights, etc.)
     local sport_type=""
     if [[ $filename =~ [Ii]ndy[Cc]ar(\.[Ss]eries)?[\.\-] ]]; then
-        sport_type="IndyCar"
+        sport_type="NTT IndyCar Series"
     else
         echo "Unknown IndyCar class in filename: $filename"
         ((error_count++))
