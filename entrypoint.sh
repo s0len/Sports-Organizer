@@ -190,29 +190,156 @@ process_indycar_racing() {
     fi
     echo "Round: $round, Location: $location"
 
-    # Determine session and episode
+    # Special handling for different IndyCar rounds
     local session=""
     local episode=""
+    local round_num=$(echo "$round" | sed 's/^0*//')  # Remove leading zeros
+    
+    # Define episode mappings for special rounds
+    # Format: round_num:total_episodes:special_mapping (where special_mapping is a comma-separated list of session=episode_num pairs)
+    local special_rounds="6:10:Practice 1=1,Practice 2=2,Practice 3=3,Practice 4=4,Practice 5=5,Practice 6=6,Qualifying Day 1=7,Qualifying Day 2=8,Carb Day=9,Race=10
+8:3:Practice=1,Qualifying=2,Race=3
+11:3:Practice=1,Qualifying=2,Race=3
+12:1:Race=1
+16:3:Practice=1,Qualifying=2,Race=3
+17:3:Practice=1,Qualifying=2,Race=3"
 
+    # Default episode mapping (for most rounds with 4 episodes)
+    local default_mapping="Free Practice 1=1,Free Practice 2=2,Qualifying=3,Race=4"
+    
+    # Check if we have special handling for this round
+    local episode_mapping=""
+    local total_episodes=4  # Default value
+    
+    while IFS=: read -r special_round eps mapping; do
+        if [ "$special_round" = "$round_num" ]; then
+            episode_mapping="$mapping"
+            total_episodes="$eps"
+            break
+        fi
+    done < <(echo "$special_rounds" | tr '\n' '\r' | tr '\r' '\n')
+    
+    # If no special mapping found, use default
+    if [ -z "$episode_mapping" ]; then
+        episode_mapping="$default_mapping"
+    fi
+    
+    # Determine session and episode number
     # Check for Race
-    if [[ $filename == *[Rr][Aa][Cc][Ee]* ]]; then
+    if [[ $filename == *[Rr][Aa][Cc][Ee]* ]] && [[ ! $filename == *[Dd][Aa][Yy]* ]]; then
         session="Race"
-        episode="4"
+        # Look up episode number from mapping
+        if [[ "$episode_mapping" == *"Race="* ]]; then
+            episode=$(echo "$episode_mapping" | tr ',' '\n' | grep "Race=" | cut -d'=' -f2)
+        else
+            episode="4"  # Default if not found
+        fi
     # Check for Qualifying
     elif [[ $filename == *[Qq]ualifying* ]]; then
-      session="Qualifying"
-      episode="3"
+        # Special handling for Indy 500 qualifying days
+        if [[ $filename == *[Dd]ay[[:space:]]*1* ]] || [[ $filename == *[Dd]ay[[:space:]]*[Oo]ne* ]]; then
+            session="Qualifying Day 1"
+            # Look up episode number from mapping
+            if [[ "$episode_mapping" == *"Qualifying Day 1="* ]]; then
+                episode=$(echo "$episode_mapping" | tr ',' '\n' | grep "Qualifying Day 1=" | cut -d'=' -f2)
+            else
+                episode="7"
+            fi
+        elif [[ $filename == *[Dd]ay[[:space:]]*2* ]] || [[ $filename == *[Dd]ay[[:space:]]*[Tt]wo* ]]; then
+            session="Qualifying Day 2"
+            # Look up episode number from mapping
+            if [[ "$episode_mapping" == *"Qualifying Day 2="* ]]; then
+                episode=$(echo "$episode_mapping" | tr ',' '\n' | grep "Qualifying Day 2=" | cut -d'=' -f2)
+            else
+                episode="8"
+            fi
+        else
+            session="Qualifying"
+            # Look up episode number from mapping
+            if [[ "$episode_mapping" == *"Qualifying="* ]]; then
+                episode=$(echo "$episode_mapping" | tr ',' '\n' | grep "Qualifying=" | cut -d'=' -f2)
+            else
+                episode="3"
+            fi
+        fi
     # Check for Practice
     elif [[ $filename == *FP* ]] || [[ $filename == *Practice* ]]; then
-        if [[ $filename == *[Ff][Pp]1* ]] || [[ $filename == *"Practice One"* ]]; then
+        if [[ $filename == *[Cc]arb[[:space:]]*[Dd]ay* ]]; then
+            session="Carb Day"
+            # Look up episode number from mapping
+            if [[ "$episode_mapping" == *"Carb Day="* ]]; then
+                episode=$(echo "$episode_mapping" | tr ',' '\n' | grep "Carb Day=" | cut -d'=' -f2)
+            else
+                episode="9"
+            fi
+        elif [[ $filename == *[Ff][Pp]1* ]] || [[ $filename == *"Practice One"* ]] || [[ $filename == *"Practice 1"* ]]; then
             session="Free Practice 1"
-            episode="1"
-        elif [[ $filename == *[Ff][Pp]2* ]] || [[ $filename == *"Practice Two"* ]]; then
+            # Look up episode number from mapping
+            if [[ "$episode_mapping" == *"Practice 1="* ]]; then
+                episode=$(echo "$episode_mapping" | tr ',' '\n' | grep "Practice 1=" | cut -d'=' -f2)
+            elif [[ "$episode_mapping" == *"Free Practice 1="* ]]; then
+                episode=$(echo "$episode_mapping" | tr ',' '\n' | grep "Free Practice 1=" | cut -d'=' -f2)
+            else
+                episode="1"
+            fi
+        elif [[ $filename == *[Ff][Pp]2* ]] || [[ $filename == *"Practice Two"* ]] || [[ $filename == *"Practice 2"* ]]; then
             session="Free Practice 2"
-            episode="2"
+            # Look up episode number from mapping
+            if [[ "$episode_mapping" == *"Practice 2="* ]]; then
+                episode=$(echo "$episode_mapping" | tr ',' '\n' | grep "Practice 2=" | cut -d'=' -f2)
+            elif [[ "$episode_mapping" == *"Free Practice 2="* ]]; then
+                episode=$(echo "$episode_mapping" | tr ',' '\n' | grep "Free Practice 2=" | cut -d'=' -f2)
+            else
+                episode="2"
+            fi
+        elif [[ $filename == *[Ff][Pp]3* ]] || [[ $filename == *"Practice Three"* ]] || [[ $filename == *"Practice 3"* ]]; then
+            session="Free Practice 3"
+            # Look up episode number from mapping
+            if [[ "$episode_mapping" == *"Practice 3="* ]]; then
+                episode=$(echo "$episode_mapping" | tr ',' '\n' | grep "Practice 3=" | cut -d'=' -f2)
+            elif [[ "$episode_mapping" == *"Free Practice 3="* ]]; then
+                episode=$(echo "$episode_mapping" | tr ',' '\n' | grep "Free Practice 3=" | cut -d'=' -f2)
+            else
+                episode="3"
+            fi
+        elif [[ $filename == *[Ff][Pp]4* ]] || [[ $filename == *"Practice Four"* ]] || [[ $filename == *"Practice 4"* ]]; then
+            session="Free Practice 4"
+            # Look up episode number from mapping
+            if [[ "$episode_mapping" == *"Practice 4="* ]]; then
+                episode=$(echo "$episode_mapping" | tr ',' '\n' | grep "Practice 4=" | cut -d'=' -f2)
+            elif [[ "$episode_mapping" == *"Free Practice 4="* ]]; then
+                episode=$(echo "$episode_mapping" | tr ',' '\n' | grep "Free Practice 4=" | cut -d'=' -f2)
+            else
+                episode="4"
+            fi
+        elif [[ $filename == *[Ff][Pp]5* ]] || [[ $filename == *"Practice Five"* ]] || [[ $filename == *"Practice 5"* ]]; then
+            session="Free Practice 5"
+            # Look up episode number from mapping
+            if [[ "$episode_mapping" == *"Practice 5="* ]]; then
+                episode=$(echo "$episode_mapping" | tr ',' '\n' | grep "Practice 5=" | cut -d'=' -f2)
+            elif [[ "$episode_mapping" == *"Free Practice 5="* ]]; then
+                episode=$(echo "$episode_mapping" | tr ',' '\n' | grep "Free Practice 5=" | cut -d'=' -f2)
+            else
+                episode="5"
+            fi
+        elif [[ $filename == *[Ff][Pp]6* ]] || [[ $filename == *"Practice Six"* ]] || [[ $filename == *"Practice 6"* ]]; then
+            session="Free Practice 6"
+            # Look up episode number from mapping
+            if [[ "$episode_mapping" == *"Practice 6="* ]]; then
+                episode=$(echo "$episode_mapping" | tr ',' '\n' | grep "Practice 6=" | cut -d'=' -f2)
+            elif [[ "$episode_mapping" == *"Free Practice 6="* ]]; then
+                episode=$(echo "$episode_mapping" | tr ',' '\n' | grep "Free Practice 6=" | cut -d'=' -f2)
+            else
+                episode="6"
+            fi
         else
-            session="Free Practice"
-            episode="1"
+            session="Practice"
+            # Look up episode number from mapping
+            if [[ "$episode_mapping" == *"Practice="* ]]; then
+                episode=$(echo "$episode_mapping" | tr ',' '\n' | grep "Practice=" | cut -d'=' -f2)
+            else
+                episode="1"
+            fi
         fi
     else
         session="Unknown"
