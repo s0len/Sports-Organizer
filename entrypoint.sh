@@ -457,7 +457,7 @@ process_moto_racing() {
             echo "Warning: Sprint session found for $sport_type which shouldn't have sprints"
         fi
     # Check for Qualifying
-    elif [[ $filename == *[Qq]ualifying* ]]; then
+    elif [[ $filename == *[Qq]ualifying* ]] || [[ $filename == *[Qq]1* ]] || [[ $filename == *[Qq]2* ]]; then
         if [[ $filename == *[Qq]1* ]]; then
             session="Qualifying 1"
             episode="3"
