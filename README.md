@@ -225,7 +225,7 @@ The following regex patterns are used to identify racing releases that work with
 ### MotoGP, Moto2, Moto3
 
 ```regex
-([Mm][Oo][Tt][Oo][Gg][Pp]|[Mm][Oo][Tt][Oo]2|[Mm][Oo][Tt][Oo]3)\.\d{4}\.Round\d+\.[^.]+\.((FP\d?|[Pp][Rr][Aa][Cc][Tt][Ii][Cc][Ee]|[Ss][Pp][Rr][Ii][Nn][Tt]|[Qq][Uu][Aa][Ll][Ii][Ff][Yy][Ii][Nn][Gg]|Q1|Q2|[Rr][Aa][Cc][Ee]))\..*h264..*MWR
+([Mm][Oo][Tt][Oo][Gg][Pp]|[Mm][Oo][Tt][Oo]2|[Mm][Oo][Tt][Oo]3)\.\d{4}\.Round\d+\.([^.]+\.)+((FP\d?|[Pp][Rr][Aa][Cc][Tt][Ii][Cc][Ee]|[Ss][Pp][Rr][Ii][Nn][Tt]|[Qq][Uu][Aa][Ll][Ii][Ff][Yy][Ii][Nn][Gg]|Q1|Q2|[Rr][Aa][Cc][Ee]))\..*h264.*MWR
 ```
 
 ### World Superbike, World Supersport, World Supersport 300
