@@ -591,25 +591,54 @@ process_f1_racing() {
             episode="2"
         fi
     # Check for Practice
-    elif [[ $filename == *[Ff][Pp]* ]] || [[ $filename == *Practice* ]]; then
-        if [[ ($filename == *[Ff][Pp]1* || $filename == *"Practice One"*) && $sport_type == "Formula1" ]]; then
+    elif [[ $filename =~ .*\.[Ff][Pp]1\. ]] || [[ $filename =~ .*\.[Ff][Pp]2\. ]] || [[ $filename =~ .*\.[Ff][Pp]3\. ]] || [[ $filename == *Practice* ]]; then
+        if [[ ($filename =~ .*\.[Ff][Pp]1\. || $filename == *"Practice One"*) && $sport_type == "Formula1" ]]; then
             session="Free Practice 1"
             episode="3"
-        elif [[ ($filename == *[Ff][Pp]2* || $filename == *"Practice Two"*) && $sport_type == "Formula1" ]]; then
+        elif [[ ($filename =~ .*\.[Ff][Pp]2\. || $filename == *"Practice Two"*) && $sport_type == "Formula1" ]]; then
             session="Free Practice 2"
-            episode="4"
-        elif [[ ($filename =~ [Ff][Pp]3 || $filename == *"Practice Three"*) && $sport_type == "Formula1" ]]; then
+            # For sprint weekends, FP2 is after the sprint qualifying
+            if [[ $round == "06" || $round == "12" || $round == "18" || $round == "24" ]]; then  # 2025 Sprint rounds
+                episode="4"
+            else
+                episode="4"
+            fi
+        elif [[ ($filename =~ .*\.[Ff][Pp]3\. || $filename == *"Practice Three"*) && $sport_type == "Formula1" ]]; then
             session="Free Practice 3"
-            episode="5"
+            # For non-sprint weekends, FP3 is episode 5
+            if [[ $round == "06" || $round == "12" || $round == "18" || $round == "24" ]]; then  # 2025 Sprint rounds
+                episode="0" # Not used in sprint weekends
+                echo "Warning: FP3 doesn't exist in sprint weekends for $sport_type"
+            else
+                episode="5"
+            fi
         else
             session="Free Practice"
             episode="1"
         fi
     # Check for Sprint
     elif [[ $filename == *[Ss][Pp][Rr][Ii][Nn][Tt]* ]]; then
-        if [[ $filename == *[Qq]ualifying* && $sport_type == "Formula1" ]]; then
-            session="Sprint Qualifying"
+        # F1 Sprint Weekend Episode Order (2025):
+        # E1: Drivers Press Conference
+        # E2: Weekend Warm Up
+        # E3: Sprint Qualifying (Previously known as Sprint Shootout)
+        # E4: Pre Sprint Show
+        # E5: Sprint
+        # E6: Post Sprint Show
+        # E7: Qualifying 
+        # E8: Post Qualifying Show
+        # E9: Pre Race Show
+        # E10: Race
+        # E11: Post Race Show
+        if [[ $filename == *[Pp][Rr][Ee]*[Ss][Pp][Rr][Ii][Nn][Tt]* ]]; then
+            session="Pre Sprint Show"
             episode="4"
+        elif [[ $filename == *[Pp][Oo][Ss][Tt]*[Ss][Pp][Rr][Ii][Nn][Tt]* ]]; then
+            session="Post Sprint Show"
+            episode="6"
+        elif [[ $filename == *[Ss][Pp][Rr][Ii][Nn][Tt]*[Qq]ualifying* ]]; then
+            session="Sprint Qualifying"
+            episode="3"
         elif [[ $filename == *[Ss][Pp][Rr][Ii][Nn][Tt]* && $sport_type == "Formula1" ]]; then
             session="Sprint"
             episode="5"
@@ -637,10 +666,10 @@ process_f1_racing() {
         fi
     # Check for Race
     elif [[ $filename == *Race* ]]; then
-        if [[ $filename == *[Pp][Rr][Ee]*[Rr][Aa][Cc][Ee]* ]]; then
+        if [[ $filename == *[Pp][Rr][Ee]*[Rr][Aa][Cc][Ee]* && ! $filename == *[Ss][Pp][Rr][Ii][Nn][Tt]* ]]; then
             session="Pre Race Show"
             episode="9"
-        elif [[ $filename == *[Pp][Oo][Ss][Tt]*[Rr][Aa][Cc][Ee]* ]]; then
+        elif [[ $filename == *[Pp][Oo][Ss][Tt]*[Rr][Aa][Cc][Ee]* && ! $filename == *[Ss][Pp][Rr][Ii][Nn][Tt]* ]]; then
             session="Post Race Show"
             episode="11"
         elif [[ $filename == *[Ss][Pp][Rr][Ii][Nn][Tt]*[Rr][Aa][Cc][Ee]* ]]; then
