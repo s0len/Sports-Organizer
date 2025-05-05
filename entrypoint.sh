@@ -541,6 +541,19 @@ process_moto_racing() {
 process_f1_racing() {
     local file="$1"
     local filename=$(basename "$file")
+    
+    # F1 Regular (Non-Sprint) Weekend Episode Order (2025):
+    # E1: Drivers Press Conference
+    # E2: Weekend Warm Up
+    # E3: Free Practice 1
+    # E4: Free Practice 2
+    # E5: Free Practice 3
+    # E6: Pre Qualifying Show
+    # E7: Qualifying
+    # E8: Post Qualifying Show
+    # E9: Pre Race Show
+    # E10: Race
+    # E11: Post Race Show
 
     local sport_type=""
     # Update regex to match "Formula" followed by a number and a dot or other delimiter
@@ -574,6 +587,20 @@ process_f1_racing() {
     local location="${PARTS[3]}"
     echo "Round: $round, Location: $location"
 
+    # Determine if this is a sprint weekend by checking if there's "Sprint" in the filename or location
+    local is_sprint_weekend=false
+    if [[ $filename == *[Ss][Pp][Rr][Ii][Nn][Tt]* ]]; then
+        is_sprint_weekend=true
+        echo "Detected Sprint weekend format"
+    fi
+    
+    # Specific sprint weekend locations - 2025 Sprint locations
+    if [[ $location == "USA" || $location == "Miami" || $location == "China" || $location == "Austin" || 
+          $location == "Qatar" || $location == "Belgium" || $location == "Brazil" ]]; then
+        is_sprint_weekend=true
+        echo "Detected Sprint weekend location: $location"
+    fi
+
     # Determine session and episode
     local session=""
     local episode=""
@@ -597,91 +624,113 @@ process_f1_racing() {
             episode="3"
         elif [[ ($filename =~ .*\.[Ff][Pp]2\. || $filename == *"Practice Two"*) && $sport_type == "Formula1" ]]; then
             session="Free Practice 2"
-            # For sprint weekends, FP2 is after the sprint qualifying
-            if [[ $round == "06" || $round == "12" || $round == "18" || $round == "24" ]]; then  # 2025 Sprint rounds
-                episode="4"
-            else
-                episode="4"
-            fi
+            episode="4"
         elif [[ ($filename =~ .*\.[Ff][Pp]3\. || $filename == *"Practice Three"*) && $sport_type == "Formula1" ]]; then
             session="Free Practice 3"
-            # For non-sprint weekends, FP3 is episode 5
-            if [[ $round == "06" || $round == "12" || $round == "18" || $round == "24" ]]; then  # 2025 Sprint rounds
-                episode="0" # Not used in sprint weekends
-                echo "Warning: FP3 doesn't exist in sprint weekends for $sport_type"
-            else
-                episode="5"
-            fi
+            episode="5"
         else
             session="Free Practice"
-            episode="1"
+            episode="3"
         fi
     # Check for Sprint
     elif [[ $filename == *[Ss][Pp][Rr][Ii][Nn][Tt]* ]]; then
         # F1 Sprint Weekend Episode Order (2025):
         # E1: Drivers Press Conference
         # E2: Weekend Warm Up
-        # E3: Sprint Qualifying (Previously known as Sprint Shootout)
-        # E4: Pre Sprint Show
-        # E5: Sprint
-        # E6: Post Sprint Show
-        # E7: Qualifying 
-        # E8: Post Qualifying Show
-        # E9: Pre Race Show
-        # E10: Race
-        # E11: Post Race Show
-        if [[ $filename == *[Pp][Rr][Ee]*[Ss][Pp][Rr][Ii][Nn][Tt]* ]]; then
+        # E3: Free Practice 1
+        # E4: Sprint Qualifying (Previously known as Sprint Shootout)
+        # E5: Pre Sprint Show
+        # E6: Sprint
+        # E7: Post Sprint Show
+        # E8: Pre Qualifying Show
+        # E9: Qualifying
+        # E10: Post Qualifying Show
+        # E11: Pre Race Show
+        # E12: Race
+        # E13: Post Race Show
+        if [[ $filename == *[Pp][Rr][Ee]*[Ss][Pp][Rr][Ii][Nn][Tt]* && ! $filename == *[Qq]ualifying* ]]; then
             session="Pre Sprint Show"
-            episode="4"
-        elif [[ $filename == *[Pp][Oo][Ss][Tt]*[Ss][Pp][Rr][Ii][Nn][Tt]* ]]; then
+            episode="5"
+        elif [[ $filename == *[Pp][Oo][Ss][Tt]*[Ss][Pp][Rr][Ii][Nn][Tt]* && ! $filename == *[Qq]ualifying* ]]; then
             session="Post Sprint Show"
-            episode="6"
+            episode="7"
         elif [[ $filename == *[Ss][Pp][Rr][Ii][Nn][Tt]*[Qq]ualifying* ]]; then
             session="Sprint Qualifying"
-            episode="3"
-        elif [[ $filename == *[Ss][Pp][Rr][Ii][Nn][Tt]* && $sport_type == "Formula1" ]]; then
+            episode="4"
+        elif [[ $filename == *[Ss][Pp][Rr][Ii][Nn][Tt]* && ! $filename == *[Qq]ualifying* && ! $filename == *[Ss][Hh][Oo][Ww]* && $sport_type == "Formula1" ]]; then
             session="Sprint"
-            episode="5"
+            episode="6" 
         else
             # For Formula classes that don't have Sprint races
-            session="Unknown"
+            session="Unknown" 
             episode="0"
             echo "Warning: Sprint session found for $sport_type which shouldn't have sprints"
         fi
     # Check for Qualifying
     elif [[ $filename == *[Qq]ualifying* ]]; then
-        if [[ $filename == *[Pp][Rr][Ee]*[Qq]ualifying* ]]; then
+        # Make sure we're not processing a file that has already been handled in the Sprint section
+        if [[ $filename == *[Ss][Pp][Rr][Ii][Nn][Tt]*[Qq]ualifying* ]]; then
+            # Skip if already processed as Sprint Qualifying
+            :
+        elif [[ $filename == *[Pp][Rr][Ee]*[Qq]ualifying* ]]; then
             session="Pre Qualifying Show"
-            episode="6"
+            if [[ $is_sprint_weekend == true ]]; then
+                episode="8"  # Sprint weekend
+            else
+                episode="6"  # Regular weekend
+            fi
         elif [[ $filename == *[Pp][Oo][Ss][Tt]*[Qq]ualifying* ]]; then
             session="Post Qualifying Show"
-            episode="8"
+            if [[ $is_sprint_weekend == true ]]; then
+                episode="10"  # Sprint weekend
+            else
+                episode="8"  # Regular weekend
+            fi
         else
             session="Qualifying"
             if [[ $sport_type == "Formula1" ]]; then
-                episode="7"
+                if [[ $is_sprint_weekend == true ]]; then
+                    episode="9"  # Sprint weekend
+                else
+                    episode="7"  # Regular weekend
+                fi
             else
                 episode="2"
             fi
         fi
     # Check for Race
     elif [[ $filename == *Race* ]]; then
-        if [[ $filename == *[Pp][Rr][Ee]*[Rr][Aa][Cc][Ee]* && ! $filename == *[Ss][Pp][Rr][Ii][Nn][Tt]* ]]; then
+        # First, handle sprint-related race files, which should take precedence
+        if [[ $filename == *[Ss][Pp][Rr][Ii][Nn][Tt]*[Rr][Aa][Cc][Ee]* ]]; then
+            session="Sprint Race"
+            episode="6"
+        # Then handle pre/post race show files, excluding sprint-related ones
+        elif [[ $filename == *[Pp][Rr][Ee]*[Rr][Aa][Cc][Ee]* && ! $filename == *[Ss][Pp][Rr][Ii][Nn][Tt]* ]]; then
             session="Pre Race Show"
-            episode="9"
+            if [[ $is_sprint_weekend == true ]]; then
+                episode="11"  # Sprint weekend
+            else
+                episode="9"  # Regular weekend
+            fi
         elif [[ $filename == *[Pp][Oo][Ss][Tt]*[Rr][Aa][Cc][Ee]* && ! $filename == *[Ss][Pp][Rr][Ii][Nn][Tt]* ]]; then
             session="Post Race Show"
-            episode="11"
-        elif [[ $filename == *[Ss][Pp][Rr][Ii][Nn][Tt]*[Rr][Aa][Cc][Ee]* ]]; then
-            session="Sprint Race"
-            episode="3"
+            if [[ $is_sprint_weekend == true ]]; then
+                episode="13"  # Sprint weekend
+            else
+                episode="11"  # Regular weekend
+            fi
         elif [[ $filename == *[Ff][Ee][Aa][Tt][Uu][Rr][Ee]*[Rr][Aa][Cc][Ee]* ]]; then
             session="Feature Race"
             episode="4"
+        # Finally handle the main race
         else
             session="Race"
             if [[ $sport_type == "Formula1" ]]; then
-                episode="10"
+                if [[ $is_sprint_weekend == true ]]; then
+                    episode="12"  # Sprint weekend
+                else
+                    episode="10"  # Regular weekend
+                fi
             else
                 episode="3"
             fi
@@ -724,7 +773,9 @@ process_f1_racing() {
     echo "To: $target_file"
     # Create hardlink instead of moving
     if ln "$file" "$target_file" 2>/dev/null || cp "$file" "$target_file"; then
-        echo "Successfully processed file!"
+        echo "----------------------------------------"
+        echo "✅ Successfully processed file!"
+        echo "----------------------------------------"
         if [ "$PUSHOVER_NOTIFICATION" = true ]; then
             send_pushover_notification "<b>✅ Processed Formula Racing file</b><br><br>Class: ${sport_type}<br>Year: ${year}<br>Round: ${round} ${location}<br>Session: ${session} (S${round}E${episode})" "Formula Racing Processing Complete"
         fi
