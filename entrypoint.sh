@@ -589,7 +589,7 @@ process_f1_racing() {
 
     # Determine if this is a sprint weekend by checking if there's "Sprint" in the filename or location
     local is_sprint_weekend=false
-    if [[ $filename == *[Ss][Pp][Rr][Ii][Nn][Tt]* ]] ]]; then
+    if [[ $filename == *[Ss][Pp][Rr][Ii][Nn][Tt]* ]]; then
         is_sprint_weekend=true
         echo "Detected Sprint weekend format"
     fi
