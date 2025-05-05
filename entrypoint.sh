@@ -593,6 +593,13 @@ process_f1_racing() {
         is_sprint_weekend=true
         echo "Detected Sprint weekend format"
     fi
+    
+    # Specific sprint weekend locations - 2025 Sprint locations
+    if [[ $location == "USA" || $location == "Miami" || $location == "Shanghai" || $location == "Austin" || 
+          $location == "Imola" || $location == "Spa" || $location == "Sao Paulo" ]]; then
+        is_sprint_weekend=true
+        echo "Detected Sprint weekend location: $location"
+    fi
 
     # Determine session and episode
     local session=""
