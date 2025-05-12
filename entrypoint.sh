@@ -587,9 +587,46 @@ process_f1_racing() {
     local location="${PARTS[3]}"
     echo "Round: $round, Location: $location"
 
+    # Determine session and episode
+    local session=""
+    local episode=""
+
+    if [[ $sport_type == "Formula E" ]]; then
+        # Debug output for Formula E files
+        echo "DEBUG: Formula E file detected with filename: $filename"
+        
+        # Check which type of race it is
+        if [[ $filename =~ ([Ff][Pp]1|[Ff]ree[\.\ ][Pp]ractice[\.\ ]1) ]]; then
+            session="Free Practice 1"
+            episode="1"
+        elif [[ $filename =~ ([Ff][Pp]2|[Ff]ree[\.\ ][Pp]ractice[\.\ ]2) ]]; then
+            session="Free Practice 2"
+            episode="2"
+        elif [[ $filename =~ ([Ff][Pp]3|[Ff]ree[\.\ ][Pp]ractice[\.\ ]3) ]]; then
+            session="Free Practice 3"
+            episode="1"
+        elif [[ $filename =~ ([Ff][Pp]4|[Ff]ree[\.\ ][Pp]ractice[\.\ ]4) ]]; then
+            session="Free Practice 4"
+            episode="2"
+        elif [[ $filename =~ [Qq]ualifying ]]; then
+            session="Qualifying"
+            episode="3"
+        elif [[ $filename =~ [Rr]ace ]]; then
+            session="Race"
+            episode="4"
+        else
+            # Default case if no session type is detected
+            echo "WARNING: Unable to determine session type for Formula E file: $filename"
+            session="Unknown"
+            episode="0"
+        fi
+        
+        echo "DEBUG: Assigned session=$session and episode=$episode"
+    fi
+
     # Determine if this is a sprint weekend by checking if there's "Sprint" in the filename or location
     local is_sprint_weekend=false
-    if [[ $filename == *[Ss][Pp][Rr][Ii][Nn][Tt]* ]]; then
+    if [[ $filename == *[Ss][Pp][Rr][Ii][Nn][Tt]* && $sport_type == "Formula1" ]]; then
         is_sprint_weekend=true
         echo "Detected Sprint weekend format"
     fi
@@ -600,10 +637,6 @@ process_f1_racing() {
         is_sprint_weekend=true
         echo "Detected Sprint weekend location: $location"
     fi
-
-    # Determine session and episode
-    local session=""
-    local episode=""
 
     # Check for Drivers Press Conference
     if [[ $filename == *[Dd]rivers*[Pp]ress*[Cc]onference* ]]; then
@@ -618,7 +651,7 @@ process_f1_racing() {
             episode="2"
         fi
     # Check for Practice
-    elif [[ $filename =~ .*\.[Ff][Pp]1\. ]] || [[ $filename =~ .*\.[Ff][Pp]2\. ]] || [[ $filename =~ .*\.[Ff][Pp]3\. ]] || [[ $filename == *Practice* ]]; then
+    elif [[ $filename =~ .*\.[Ff][Pp]1\. && $sport_type != "Formula E" ]] || [[ $filename =~ .*\.[Ff][Pp]2\. && $sport_type != "Formula E" ]] || [[ $filename =~ .*\.[Ff][Pp]3\. && $sport_type != "Formula E" ]] || [[ $filename == *Practice* ]]; then
         if [[ ($filename =~ .*\.[Ff][Pp]1\. || $filename == *"Practice One"*) && $sport_type == "Formula1" ]]; then
             session="Free Practice 1"
             episode="3"
@@ -633,7 +666,7 @@ process_f1_racing() {
             episode="3"
         fi
     # Check for Sprint
-    elif [[ $filename == *[Ss][Pp][Rr][Ii][Nn][Tt]* ]]; then
+    elif [[ $filename == *[Ss][Pp][Rr][Ii][Nn][Tt]* && $sport_type != "Formula E" ]]; then
         # F1 Sprint Weekend Episode Order (2025):
         # E1: Drivers Press Conference
         # E2: Weekend Warm Up
@@ -667,7 +700,7 @@ process_f1_racing() {
             echo "Warning: Sprint session found for $sport_type which shouldn't have sprints"
         fi
     # Check for Qualifying
-    elif [[ $filename == *[Qq]ualifying* ]]; then
+    elif [[ $filename == *[Qq]ualifying* && $sport_type != "Formula E" ]]; then
         # Make sure we're not processing a file that has already been handled in the Sprint section
         if [[ $filename == *[Ss][Pp][Rr][Ii][Nn][Tt]*[Qq]ualifying* ]]; then
             # Skip if already processed as Sprint Qualifying
@@ -699,7 +732,7 @@ process_f1_racing() {
             fi
         fi
     # Check for Race
-    elif [[ $filename == *Race* ]]; then
+    elif [[ $filename == *Race* && $sport_type != "Formula E" ]]; then
         # First, handle sprint-related race files, which should take precedence
         if [[ $filename == *[Ss][Pp][Rr][Ii][Nn][Tt]*[Rr][Aa][Cc][Ee]* ]]; then
             session="Sprint Race"
@@ -735,9 +768,6 @@ process_f1_racing() {
                 episode="3"
             fi
         fi
-    else
-        session="Unknown"
-        episode="0"
     fi
 
     # Format the output in a more readable way with clear sections
