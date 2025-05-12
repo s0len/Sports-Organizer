@@ -656,7 +656,7 @@ process_f1_racing() {
             episode="3"
         fi
     # Check for Sprint
-    elif [[ $filename == *[Ss][Pp][Rr][Ii][Nn][Tt]* && $sport_type != "Formula E"]]; then
+    elif [[ $filename == *[Ss][Pp][Rr][Ii][Nn][Tt]* && $sport_type != "Formula E" ]]; then
         # F1 Sprint Weekend Episode Order (2025):
         # E1: Drivers Press Conference
         # E2: Weekend Warm Up
@@ -690,7 +690,7 @@ process_f1_racing() {
             echo "Warning: Sprint session found for $sport_type which shouldn't have sprints"
         fi
     # Check for Qualifying
-    elif [[ $filename == *[Qq]ualifying* && $sport_type != "Formula E"]]; then
+    elif [[ $filename == *[Qq]ualifying* && $sport_type != "Formula E" ]]; then
         # Make sure we're not processing a file that has already been handled in the Sprint section
         if [[ $filename == *[Ss][Pp][Rr][Ii][Nn][Tt]*[Qq]ualifying* ]]; then
             # Skip if already processed as Sprint Qualifying
