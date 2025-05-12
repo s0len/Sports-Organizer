@@ -758,9 +758,6 @@ process_f1_racing() {
                 episode="3"
             fi
         fi
-    else
-        session="Unknown"
-        episode="0"
     fi
 
     # Format the output in a more readable way with clear sections
