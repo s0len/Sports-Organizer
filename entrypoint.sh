@@ -589,22 +589,22 @@ process_f1_racing() {
 
     if [[ $sport_type == "Formula E" ]]; then
         # Check which type of race it is
-        if [[ $filename =~ .*\.[Ff][Pp]1\. ]]; then
+        if [[ $filename =~ .*[Ff][Pp]1.* ]]; then
             session="Free Practice 1"
             episode="1"
-        elif [[ $filename =~ .*\.[Ff][Pp]2\. ]]; then
+        elif [[ $filename =~ .*[Ff][Pp]2.* ]]; then
             session="Free Practice 2"
             episode="2"
-        elif [[ $filename =~ .*\.[Ff][Pp]3\. ]]; then
+        elif [[ $filename =~ .*[Ff][Pp]3.* ]]; then
             session="Free Practice 3"
             episode="1"
-        elif [[ $filename =~ .*\.[Ff][Pp]4\. ]]; then
+        elif [[ $filename =~ .*[Ff][Pp]4.* ]]; then
             session="Free Practice 4"
             episode="2"
-        elif [[ $filename =~ .*\.[Qq]ualifying\. ]]; then
+        elif [[ $filename =~ .*[Qq]ualifying.* ]]; then
             session="Qualifying"
             episode="3"
-        elif [[ $filename =~ .*\.[Rr][Aa][Cc][Ee]\. ]]; then
+        elif [[ $filename =~ .*[Rr][Aa][Cc][Ee].* ]]; then
             session="Race"
             episode="4"
         fi
