@@ -587,6 +587,10 @@ process_f1_racing() {
     local location="${PARTS[3]}"
     echo "Round: $round, Location: $location"
 
+    # Determine session and episode
+    local session=""
+    local episode=""
+
     if [[ $sport_type == "Formula E" ]]; then
         # Debug output for Formula E files
         echo "DEBUG: Formula E file detected with filename: $filename"
@@ -633,10 +637,6 @@ process_f1_racing() {
         is_sprint_weekend=true
         echo "Detected Sprint weekend location: $location"
     fi
-
-    # Determine session and episode
-    local session=""
-    local episode=""
 
     # Check for Drivers Press Conference
     if [[ $filename == *[Dd]rivers*[Pp]ress*[Cc]onference* ]]; then
