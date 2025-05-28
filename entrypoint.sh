@@ -593,7 +593,9 @@ process_f1_racing() {
 
     if [[ $sport_type == "Formula E" ]]; then
         # Debug output for Formula E files
-        echo "DEBUG: Formula E file detected with filename: $filename"
+        if [ "$DEBUG" = "true" ]; then
+            echo "DEBUG: Formula E file detected with filename: $filename"
+        fi
         
         # Check which type of race it is
         if [[ $filename =~ ([Ff][Pp]1|[Ff]ree[\.\ ][Pp]ractice[\.\ ]1) ]]; then
@@ -621,7 +623,9 @@ process_f1_racing() {
             episode="0"
         fi
         
-        echo "DEBUG: Assigned session=$session and episode=$episode"
+        if [ "$DEBUG" = "true" ]; then
+            echo "DEBUG: Assigned session=$session and episode=$episode"
+        fi
     fi
 
     # Determine if this is a sprint weekend by checking if there's "Sprint" in the filename or location
@@ -1300,10 +1304,12 @@ echo "Starting continuous monitoring (interval: ${PROCESS_INTERVAL}s)..."
 
 # Monitor for new files and directories
 while true; do
-    echo "$(date): Checking for new files..."
     
     # Debug output for monitoring loop
-    echo "DEBUG: Running find command for new MKV and MP4 files..."
+    if [ "$DEBUG" = "true" ]; then
+        echo "$(date): Checking for new files..."
+        echo "DEBUG: Running find command for new MKV and MP4 files..."
+    fi
     
     # Check for new files periodically - only files modified in the last interval
     find_output=$(find "$SRC_DIR" \( -type f \( -name "*.mkv" -o -name "*.mp4" \) -o -type d \) -mmin -$((PROCESS_INTERVAL/60+1)) 2>&1)
@@ -1315,7 +1321,9 @@ while true; do
             send_pushover_error_notification "<b>❌ Find Command Failed</b><br><br>Status: $find_status<br>Error: $find_output" "Sports Organizer Error"
         fi
     else
-        echo "DEBUG: Find command completed successfully"
+        if [ "$DEBUG" = "true" ]; then
+            echo "DEBUG: Find command completed successfully"
+        fi
     fi
     
     echo "$find_output" | while read file; do
@@ -1352,10 +1360,16 @@ while true; do
         skipped_count=0
         error_count=0
     else
-        echo "DEBUG: No files processed in this cycle"
+        if [ "$DEBUG" = "true" ]; then
+            echo "DEBUG: No files processed in this cycle"
+        fi
     fi
     
-    echo "DEBUG: Sleeping for $PROCESS_INTERVAL seconds..."
+    if [ "$DEBUG" = "true" ]; then
+        echo "DEBUG: Sleeping for $PROCESS_INTERVAL seconds..."
+    fi
     sleep $PROCESS_INTERVAL
-    echo "DEBUG: Woke up from sleep"
+    if [ "$DEBUG" = "true" ]; then
+        echo "DEBUG: Woke up from sleep"
+    fi
 done
