@@ -593,7 +593,9 @@ process_f1_racing() {
 
     if [[ $sport_type == "Formula E" ]]; then
         # Debug output for Formula E files
-        echo "DEBUG: Formula E file detected with filename: $filename"
+        if [ "$DEBUG" = "true" ]; then
+            echo "DEBUG: Formula E file detected with filename: $filename"
+        fi
         
         # Check which type of race it is
         if [[ $filename =~ ([Ff][Pp]1|[Ff]ree[\.\ ][Pp]ractice[\.\ ]1) ]]; then
@@ -621,7 +623,9 @@ process_f1_racing() {
             episode="0"
         fi
         
-        echo "DEBUG: Assigned session=$session and episode=$episode"
+        if [ "$DEBUG" = "true" ]; then
+            echo "DEBUG: Assigned session=$session and episode=$episode"
+        fi
     fi
 
     # Determine if this is a sprint weekend by checking if there's "Sprint" in the filename or location
@@ -963,30 +967,36 @@ process_isle_of_man_tt() {
     local season="1" # Isle of Man TT is typically one season per year
 
     # Map race types to episode numbers
-    if [[ $filename == *Qualifying.Highlights* ]]; then
-        race_type="Qualifying Highlights"
-        episode_num="1"
-    elif [[ $filename == *Superbike.Race* ]]; then
-        race_type="Superbike Race"
+    if [[ $filename == *Qualifying.Highlights.Part.Two* ]]; then
+        race_type="Qualifying Highlights Part Two"
         episode_num="2"
-    elif [[ $filename == *Supersport.Race.One* ]]; then
-        race_type="Supersport Race One"
+    elif [[ $filename == *Qualifying.Highlights.Part.Three* ]]; then
+        race_type="Qualifying Highlights Part Three"
         episode_num="3"
+    elif [[ $filename == *Qualifying.Highlights* ]]; then
+        race_type="Qualifying Highlights Part One"
+        episode_num="1"
+    elif [[ $filename == *Superbike.Race.Highlights* && $filename != *Two* ]]; then
+        race_type="Superbike Race One Highlights"
+        episode_num="4"
+    elif [[ $filename == *Supersport.Race.One* ]]; then
+        race_type="Supersport Race One Highlights"
+        episode_num="5"
     elif [[ $filename == *Sidecar.Race.One* ]]; then
         race_type="Sidecar Race One"
-        episode_num="4"
+        episode_num="6"
     elif [[ $filename == *Supertwin.Race.One* ]]; then
         race_type="Supertwin Race One"
-        episode_num="5"
+        episode_num="7"
     elif [[ $filename == *Superstock.Race.One* ]]; then
         race_type="Superstock Race One"
-        episode_num="6"
+        episode_num="8"
     elif [[ $filename == *Supersport.Race.Two* ]]; then
         race_type="Supersport Race Two"
-        episode_num="7"
+        episode_num="9"
     elif [[ $filename == *Sidecar.Race.Two* ]]; then
         race_type="Sidecar Race Two"
-        episode_num="8"
+        episode_num="10"
     elif [[ $filename == *Supertwin.Race.Two* ]] && [[ $year == "2024" ]]; then
         race_type="Supertwin Race Two"
         episode_num="9"
@@ -995,13 +1005,13 @@ process_isle_of_man_tt() {
         episode_num="10"
     elif [[ $filename == *Superstock.Race.Two* ]] && [[ $year == "2025" ]]; then
         race_type="Superstock Race Two"
-        episode_num="9"
+        episode_num="11"
     elif [[ $filename == *Supertwin.Race.Two* ]] && [[ $year == "2025" ]]; then
         race_type="Supertwin Race Two"
-        episode_num="10"
+        episode_num="12"
     elif [[ $filename == *Senior.TT.Race* ]] && [[ $year == "2025" ]]; then
         race_type="Senior TT Race"
-        episode_num="11"
+        episode_num="13"
     else
         echo "Unknown race type in filename: $filename"
         race_type="Unknown Race"
@@ -1300,10 +1310,12 @@ echo "Starting continuous monitoring (interval: ${PROCESS_INTERVAL}s)..."
 
 # Monitor for new files and directories
 while true; do
-    echo "$(date): Checking for new files..."
     
     # Debug output for monitoring loop
-    echo "DEBUG: Running find command for new MKV and MP4 files..."
+    if [ "$DEBUG" = "true" ]; then
+        echo "$(date): Checking for new files..."
+        echo "DEBUG: Running find command for new MKV and MP4 files..."
+    fi
     
     # Check for new files periodically - only files modified in the last interval
     find_output=$(find "$SRC_DIR" \( -type f \( -name "*.mkv" -o -name "*.mp4" \) -o -type d \) -mmin -$((PROCESS_INTERVAL/60+1)) 2>&1)
@@ -1315,7 +1327,9 @@ while true; do
             send_pushover_error_notification "<b>❌ Find Command Failed</b><br><br>Status: $find_status<br>Error: $find_output" "Sports Organizer Error"
         fi
     else
-        echo "DEBUG: Find command completed successfully"
+        if [ "$DEBUG" = "true" ]; then
+            echo "DEBUG: Find command completed successfully"
+        fi
     fi
     
     echo "$find_output" | while read file; do
@@ -1352,10 +1366,16 @@ while true; do
         skipped_count=0
         error_count=0
     else
-        echo "DEBUG: No files processed in this cycle"
+        if [ "$DEBUG" = "true" ]; then
+            echo "DEBUG: No files processed in this cycle"
+        fi
     fi
     
-    echo "DEBUG: Sleeping for $PROCESS_INTERVAL seconds..."
+    if [ "$DEBUG" = "true" ]; then
+        echo "DEBUG: Sleeping for $PROCESS_INTERVAL seconds..."
+    fi
     sleep $PROCESS_INTERVAL
-    echo "DEBUG: Woke up from sleep"
+    if [ "$DEBUG" = "true" ]; then
+        echo "DEBUG: Woke up from sleep"
+    fi
 done
