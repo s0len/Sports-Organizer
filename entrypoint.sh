@@ -976,11 +976,11 @@ process_isle_of_man_tt() {
     elif [[ $filename == *Qualifying.Highlights* ]]; then
         race_type="Qualifying Highlights Part One"
         episode_num="1"
-    elif [[ $filename == *Superbike.Race* ]]; then
-        race_type="Superbike Race"
+    elif [[ $filename == *Superbike.Race.Highlights* && $filename != *Two* ]]; then
+        race_type="Superbike Race One Highlights"
         episode_num="4"
     elif [[ $filename == *Supersport.Race.One* ]]; then
-        race_type="Supersport Race One"
+        race_type="Supersport Race One Highlights"
         episode_num="5"
     elif [[ $filename == *Sidecar.Race.One* ]]; then
         race_type="Sidecar Race One"
