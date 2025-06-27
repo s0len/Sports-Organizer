@@ -976,42 +976,27 @@ process_isle_of_man_tt() {
     elif [[ $filename == *Qualifying.Highlights* ]]; then
         race_type="Qualifying Highlights Part One"
         episode_num="1"
-    elif [[ $filename == *Superbike.Race.Highlights* && $filename != *Two* ]]; then
+    elif [[ $filename == *Superbike.Race.Highlights* ]]; then
         race_type="Superbike Race One Highlights"
         episode_num="4"
-    elif [[ $filename == *Supersport.Race.One* ]]; then
+    elif [[ $filename == *Supersport.Race.One.Highlights* ]]; then
         race_type="Supersport Race One Highlights"
         episode_num="5"
-    elif [[ $filename == *Sidecar.Race.One* ]]; then
-        race_type="Sidecar Race One"
+    elif [[ $filename == *Supersport.Race.Two.Highlights* ]]; then
+        race_type="Supersport Race Two Highlights"
         episode_num="6"
-    elif [[ $filename == *Supertwin.Race.One* ]]; then
-        race_type="Supertwin Race One"
+    elif [[ $filename == *Superstock.Race.Two.Highlights* ]]; then
+        race_type="Superstock Race Two Highlights"
         episode_num="7"
-    elif [[ $filename == *Superstock.Race.One* ]]; then
-        race_type="Superstock Race One"
+    elif [[ $filename == *Supertwin.Race.Two.Highlights* ]]; then
+        race_type="Supertwin Race Two Highlights"
         episode_num="8"
-    elif [[ $filename == *Supersport.Race.Two* ]]; then
-        race_type="Supersport Race Two"
+    elif [[ $filename == *Review.Show.One* ]]; then
+        race_type="Review Show One"
         episode_num="9"
-    elif [[ $filename == *Sidecar.Race.Two* ]]; then
-        race_type="Sidecar Race Two"
+    elif [[ $filename == *Review.Show.Two* ]]; then
+        race_type="Review Show Two"
         episode_num="10"
-    elif [[ $filename == *Supertwin.Race.Two* ]] && [[ $year == "2024" ]]; then
-        race_type="Supertwin Race Two"
-        episode_num="9"
-    elif [[ $filename == *Senior.TT.Race* ]] && [[ $year == "2024" ]]; then
-        race_type="Senior TT Race"
-        episode_num="10"
-    elif [[ $filename == *Superstock.Race.Two* ]] && [[ $year == "2025" ]]; then
-        race_type="Superstock Race Two"
-        episode_num="11"
-    elif [[ $filename == *Supertwin.Race.Two* ]] && [[ $year == "2025" ]]; then
-        race_type="Supertwin Race Two"
-        episode_num="12"
-    elif [[ $filename == *Senior.TT.Race* ]] && [[ $year == "2025" ]]; then
-        race_type="Senior TT Race"
-        episode_num="13"
     else
         echo "Unknown race type in filename: $filename"
         race_type="Unknown Race"
