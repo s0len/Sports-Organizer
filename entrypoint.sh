@@ -132,6 +132,10 @@ organize_sports() {
     elif [[ $filename =~ ^(WSBK|WorldSBK|WSSP300|WSSP)[\.\-] ]] && [[ $filename =~ \.(mkv|mp4)$ ]]; then
         process_world_superbike "$file"
         return $?
+    # Check for Women's UEFA Euro
+    elif [[ $filename =~ ^Womens\.UEFA\.Euro\. ]] && [[ $filename =~ \.(mkv|mp4)$ ]]; then
+        process_womens_uefa_euro "$file"
+        return $?
     # Check for Formula racing
     elif [[ $filename =~ [Ff]ormula* ]] && [[ $filename =~ \.(mkv|mp4)$ ]]; then
         process_f1_racing "$file"
@@ -571,20 +575,45 @@ process_f1_racing() {
         return 1
     fi
 
-    # Get year (next part after the first dot)
+    # Parse filename based on format detected
+    local year=""
+    local round=""
+    local location=""
+    local is_f1carreras=false
+    
+    # Split filename into parts
     IFS='.' read -ra PARTS <<<"$filename"
-    if [[ ${#PARTS[@]} -lt 4 ]]; then
-        echo "Not enough parts in filename: $filename"
-        ((error_count++))
-        return 1
+    
+    # Check if this is F1Carreras format (has S20XXE pattern)
+    if [[ ${PARTS[1]} =~ ^S([0-9]{4})E[0-9]+ ]]; then
+        is_f1carreras=true
+        year="${BASH_REMATCH[1]}"
+        
+        # F1Carreras format: Formula1.S2025E66.Round12.UnitedKingdom.Race.F1TV...
+        if [[ ${#PARTS[@]} -lt 5 ]]; then
+            echo "Not enough parts in F1Carreras filename: $filename"
+            ((error_count++))
+            return 1
+        fi
+        
+        round="${PARTS[2]#Round}" # Remove 'Round' prefix  
+        location="${PARTS[3]}"
+        echo "F1Carreras format detected"
+    else
+        # Original MWR format: Formula1.YEAR.RoundXX.Location.Session
+        if [[ ${#PARTS[@]} -lt 4 ]]; then
+            echo "Not enough parts in MWR filename: $filename"
+            ((error_count++))
+            return 1
+        fi
+        
+        year="${PARTS[1]}"
+        round="${PARTS[2]#Round}" # Remove 'Round' prefix
+        location="${PARTS[3]}"
+        echo "MWR format detected"
     fi
-
-    local year="${PARTS[1]}"
+    
     echo "Year: $year"
-
-    # Get round number and location
-    local round="${PARTS[2]#Round}" # Remove 'Round' prefix
-    local location="${PARTS[3]}"
     echo "Round: $round, Location: $location"
 
     # Determine session and episode
@@ -642,6 +671,13 @@ process_f1_racing() {
         echo "Detected Sprint weekend location: $location"
     fi
 
+    # For F1Carreras format, get session from specific part position
+    local session_part=""
+    if [[ $is_f1carreras == true ]]; then
+        session_part="${PARTS[4]}"
+        echo "F1Carreras session part: $session_part"
+    fi
+
     # Check for Drivers Press Conference
     if [[ $filename == *[Dd]rivers*[Pp]ress*[Cc]onference* ]]; then
         session="Drivers Press Conference"
@@ -655,7 +691,7 @@ process_f1_racing() {
             episode="2"
         fi
     # Check for Practice
-    elif [[ $filename =~ .*\.[Ff][Pp]1\. && $sport_type != "Formula E" ]] || [[ $filename =~ .*\.[Ff][Pp]2\. && $sport_type != "Formula E" ]] || [[ $filename =~ .*\.[Ff][Pp]3\. && $sport_type != "Formula E" ]] || [[ $filename == *Practice* ]]; then
+    elif [[ $filename =~ .*\.[Ff][Pp]1\. && $sport_type != "Formula E" ]] || [[ $filename =~ .*\.[Ff][Pp]2\. && $sport_type != "Formula E" ]] || [[ $filename =~ .*\.[Ff][Pp]3\. && $sport_type != "Formula E" ]] || [[ $filename == *Practice* ]] || [[ $session_part == *Practice* ]]; then
         if [[ ($filename =~ .*\.[Ff][Pp]1\. || $filename == *"Practice One"*) && $sport_type == "Formula1" ]]; then
             session="Free Practice 1"
             episode="3"
@@ -670,7 +706,7 @@ process_f1_racing() {
             episode="3"
         fi
     # Check for Sprint
-    elif [[ $filename == *[Ss][Pp][Rr][Ii][Nn][Tt]* && $sport_type != "Formula E" ]]; then
+    elif [[ ($filename == *[Ss][Pp][Rr][Ii][Nn][Tt]* || $session_part == *[Ss][Pp][Rr][Ii][Nn][Tt]*) && $sport_type != "Formula E" ]]; then
         # F1 Sprint Weekend Episode Order (2025):
         # E1: Drivers Press Conference
         # E2: Weekend Warm Up
@@ -685,16 +721,16 @@ process_f1_racing() {
         # E11: Pre Race Show
         # E12: Race
         # E13: Post Race Show
-        if [[ $filename == *[Pp][Rr][Ee]*[Ss][Pp][Rr][Ii][Nn][Tt]* && ! $filename == *[Qq]ualifying* ]]; then
+        if [[ ($filename == *[Pp][Rr][Ee]*[Ss][Pp][Rr][Ii][Nn][Tt]* || $session_part == *[Pp][Rr][Ee]*[Ss][Pp][Rr][Ii][Nn][Tt]*) && ! $filename == *[Qq]ualifying* && ! $session_part == *[Qq]ualifying* ]]; then
             session="Pre Sprint Show"
             episode="5"
-        elif [[ $filename == *[Pp][Oo][Ss][Tt]*[Ss][Pp][Rr][Ii][Nn][Tt]* && ! $filename == *[Qq]ualifying* ]]; then
+        elif [[ ($filename == *[Pp][Oo][Ss][Tt]*[Ss][Pp][Rr][Ii][Nn][Tt]* || $session_part == *[Pp][Oo][Ss][Tt]*[Ss][Pp][Rr][Ii][Nn][Tt]*) && ! $filename == *[Qq]ualifying* && ! $session_part == *[Qq]ualifying* ]]; then
             session="Post Sprint Show"
             episode="7"
-        elif [[ $filename == *[Ss][Pp][Rr][Ii][Nn][Tt]*[Qq]ualifying* ]]; then
+        elif [[ $filename == *[Ss][Pp][Rr][Ii][Nn][Tt]*[Qq]ualifying* || $session_part == *[Ss][Pp][Rr][Ii][Nn][Tt]*[Qq]ualifying* ]]; then
             session="Sprint Qualifying"
             episode="4"
-        elif [[ $filename == *[Ss][Pp][Rr][Ii][Nn][Tt]* && ! $filename == *[Qq]ualifying* && ! $filename == *[Ss][Hh][Oo][Ww]* && $sport_type == "Formula1" ]]; then
+        elif [[ ($filename == *[Ss][Pp][Rr][Ii][Nn][Tt]* || $session_part == *[Ss][Pp][Rr][Ii][Nn][Tt]*) && ! $filename == *[Qq]ualifying* && ! $session_part == *[Qq]ualifying* && ! $filename == *[Ss][Hh][Oo][Ww]* && ! $session_part == *[Ss][Hh][Oo][Ww]* && $sport_type == "Formula1" ]]; then
             session="Sprint"
             episode="6" 
         else
@@ -704,19 +740,19 @@ process_f1_racing() {
             echo "Warning: Sprint session found for $sport_type which shouldn't have sprints"
         fi
     # Check for Qualifying
-    elif [[ $filename == *[Qq]ualifying* && $sport_type != "Formula E" ]]; then
+    elif [[ ($filename == *[Qq]ualifying* || $session_part == *[Qq]ualifying*) && $sport_type != "Formula E" ]]; then
         # Make sure we're not processing a file that has already been handled in the Sprint section
-        if [[ $filename == *[Ss][Pp][Rr][Ii][Nn][Tt]*[Qq]ualifying* ]]; then
+        if [[ $filename == *[Ss][Pp][Rr][Ii][Nn][Tt]*[Qq]ualifying* || $session_part == *[Ss][Pp][Rr][Ii][Nn][Tt]*[Qq]ualifying* ]]; then
             # Skip if already processed as Sprint Qualifying
             :
-        elif [[ $filename == *[Pp][Rr][Ee]*[Qq]ualifying* ]]; then
+        elif [[ $filename == *[Pp][Rr][Ee]*[Qq]ualifying* || $session_part == *[Pp][Rr][Ee]*[Qq]ualifying* ]]; then
             session="Pre Qualifying Show"
             if [[ $is_sprint_weekend == true ]]; then
                 episode="8"  # Sprint weekend
             else
                 episode="6"  # Regular weekend
             fi
-        elif [[ $filename == *[Pp][Oo][Ss][Tt]*[Qq]ualifying* ]]; then
+        elif [[ $filename == *[Pp][Oo][Ss][Tt]*[Qq]ualifying* || $session_part == *[Pp][Oo][Ss][Tt]*[Qq]ualifying* ]]; then
             session="Post Qualifying Show"
             if [[ $is_sprint_weekend == true ]]; then
                 episode="10"  # Sprint weekend
@@ -736,27 +772,27 @@ process_f1_racing() {
             fi
         fi
     # Check for Race
-    elif [[ $filename == *Race* && $sport_type != "Formula E" ]]; then
+    elif [[ ($filename == *Race* || $session_part == *Race*) && $sport_type != "Formula E" ]]; then
         # First, handle sprint-related race files, which should take precedence
-        if [[ $filename == *[Ss][Pp][Rr][Ii][Nn][Tt]*[Rr][Aa][Cc][Ee]* ]]; then
+        if [[ $filename == *[Ss][Pp][Rr][Ii][Nn][Tt]*[Rr][Aa][Cc][Ee]* || $session_part == *[Ss][Pp][Rr][Ii][Nn][Tt]*[Rr][Aa][Cc][Ee]* ]]; then
             session="Sprint Race"
             episode="6"
         # Then handle pre/post race show files, excluding sprint-related ones
-        elif [[ $filename == *[Pp][Rr][Ee]*[Rr][Aa][Cc][Ee]* && ! $filename == *[Ss][Pp][Rr][Ii][Nn][Tt]* ]]; then
+        elif [[ ($filename == *[Pp][Rr][Ee]*[Rr][Aa][Cc][Ee]* || $session_part == *[Pp][Rr][Ee]*[Rr][Aa][Cc][Ee]*) && ! $filename == *[Ss][Pp][Rr][Ii][Nn][Tt]* && ! $session_part == *[Ss][Pp][Rr][Ii][Nn][Tt]* ]]; then
             session="Pre Race Show"
             if [[ $is_sprint_weekend == true ]]; then
                 episode="11"  # Sprint weekend
             else
                 episode="9"  # Regular weekend
             fi
-        elif [[ $filename == *[Pp][Oo][Ss][Tt]*[Rr][Aa][Cc][Ee]* && ! $filename == *[Ss][Pp][Rr][Ii][Nn][Tt]* ]]; then
+        elif [[ ($filename == *[Pp][Oo][Ss][Tt]*[Rr][Aa][Cc][Ee]* || $session_part == *[Pp][Oo][Ss][Tt]*[Rr][Aa][Cc][Ee]*) && ! $filename == *[Ss][Pp][Rr][Ii][Nn][Tt]* && ! $session_part == *[Ss][Pp][Rr][Ii][Nn][Tt]* ]]; then
             session="Post Race Show"
             if [[ $is_sprint_weekend == true ]]; then
                 episode="13"  # Sprint weekend
             else
                 episode="11"  # Regular weekend
             fi
-        elif [[ $filename == *[Ff][Ee][Aa][Tt][Uu][Rr][Ee]*[Rr][Aa][Cc][Ee]* ]]; then
+        elif [[ $filename == *[Ff][Ee][Aa][Tt][Uu][Rr][Ee]*[Rr][Aa][Cc][Ee]* || $session_part == *[Ff][Ee][Aa][Tt][Uu][Rr][Ee]*[Rr][Aa][Cc][Ee]* ]]; then
             session="Feature Race"
             episode="4"
         # Finally handle the main race
@@ -1211,6 +1247,223 @@ process_world_superbike() {
         echo "----------------------------------------"
         if [ "$PUSHOVER_NOTIFICATION" = true ]; then
             send_pushover_notification "<b>✅ Processed ${championship_full} file</b><br><br>Year: ${year}<br>Round: ${round} ${location}<br>Session: ${session_type} (${round}x${episode_num})" "${championship_full} Processing Complete"
+        fi
+        ((processed_count++))
+    else
+        echo "Error: Failed to create hardlink or copy file"
+        if [ "$PUSHOVER_NOTIFICATION" = true ]; then
+            send_pushover_error_notification "❌ Failed to create hardlink or copy file" "Hardlink/Copy Error"
+        fi
+        ((error_count++))
+        return 1
+    fi
+
+    return 0
+}
+
+# Function to process Women's UEFA Euro files
+process_womens_uefa_euro() {
+    local file="$1"
+    local filename=$(basename "$file")
+
+    # Skip sample files
+    if [[ $filename == *sample* ]]; then
+        echo "Skipping sample file: $filename"
+        ((skipped_count++))
+        return 0
+    fi
+
+    # Check if it's a Women's UEFA Euro file
+    if [[ ! $filename =~ ^Womens\.UEFA\.Euro\. ]]; then
+        echo "Not a Women's UEFA Euro file: $filename"
+        ((error_count++))
+        return 1
+    fi
+
+    # Parse the filename: Womens.UEFA.Euro.YYYY.MM.DD.Group.X.Team1.Vs.Team2.quality...
+    local year=""
+    local month=""
+    local day=""
+    local stage=""
+    local team1=""
+    local team2=""
+    
+    # Extract year, date, and match details
+    if [[ $filename =~ ^Womens\.UEFA\.Euro\.([0-9]{4})\.([0-9]{2})\.([0-9]{2})\.(.+?)\.([^.]+)\.Vs\.([^.]+)\.[0-9]+p ]]; then
+        year="${BASH_REMATCH[1]}"
+        month="${BASH_REMATCH[2]}"
+        day="${BASH_REMATCH[3]}"
+        stage="${BASH_REMATCH[4]}"
+        team1="${BASH_REMATCH[5]}"
+        team2="${BASH_REMATCH[6]}"
+    else
+        echo "Could not parse Women's UEFA Euro filename: $filename"
+        ((error_count++))
+        return 1
+    fi
+
+    # Format team names (replace dots with spaces, capitalize)
+    team1="${team1//./ }"
+    team2="${team2//./ }"
+    
+    # Format stage (replace dots with spaces)
+    stage="${stage//./ }"
+    
+    # Create a date string for sorting
+    local date_string="${year}-${month}-${day}"
+    
+    # Determine episode number based on actual match schedule
+    # Women's UEFA Euro 2025: 31 total matches (24 group stage + 4 QF + 2 SF + 1 Final)
+    local episode_num=""
+    local season="$year"
+    
+    # Group stage matches (Episodes 1-24)
+    # Based on UEFA Euro 2025 official schedule
+    case "$date_string" in
+        "2025-07-02")
+            if [[ $stage == *"Group A"* && $team1 == "Iceland" ]]; then
+                episode_num="01"
+            elif [[ $stage == *"Group A"* && $team1 == "Switzerland" ]]; then
+                episode_num="02"
+            fi
+            ;;
+        "2025-07-03")
+            if [[ $stage == *"Group B"* && $team1 == "Belgium" ]]; then
+                episode_num="03"
+            elif [[ $stage == *"Group B"* && $team1 == "Spain" ]]; then
+                episode_num="04"
+            fi
+            ;;
+        "2025-07-04")
+            if [[ $stage == *"Group C"* && $team1 == "Denmark" ]]; then
+                episode_num="05"
+            elif [[ $stage == *"Group C"* && $team1 == "Germany" ]]; then
+                episode_num="06"
+            fi
+            ;;
+        "2025-07-05")
+            if [[ $stage == *"Group D"* && $team1 == "Wales" ]]; then
+                episode_num="07"
+            elif [[ $stage == *"Group D"* && $team1 == "France" ]]; then
+                episode_num="08"
+            fi
+            ;;
+        "2025-07-06")
+            if [[ $stage == *"Group A"* && $team1 == "Norway" ]]; then
+                episode_num="09"
+            elif [[ $stage == *"Group A"* && $team1 == "Switzerland" ]]; then
+                episode_num="10"
+            fi
+            ;;
+        "2025-07-07")
+            if [[ $stage == *"Group B"* && $team1 == "Spain" ]]; then
+                episode_num="11"
+            elif [[ $stage == *"Group B"* && $team1 == "Portugal" ]]; then
+                episode_num="12"
+            fi
+            ;;
+        "2025-07-08")
+            if [[ $stage == *"Group C"* && $team1 == "Germany" ]]; then
+                episode_num="13"
+            elif [[ $stage == *"Group C"* && $team1 == "Poland" ]]; then
+                episode_num="14"
+            fi
+            ;;
+        "2025-07-09")
+            if [[ $stage == *"Group D"* && $team1 == "England" ]]; then
+                episode_num="15"
+            elif [[ $stage == *"Group D"* && $team1 == "France" ]]; then
+                episode_num="16"
+            fi
+            ;;
+        "2025-07-10")
+            if [[ $stage == *"Group A"* && $team1 == "Finland" ]]; then
+                episode_num="17"
+            elif [[ $stage == *"Group A"* && $team1 == "Norway" ]]; then
+                episode_num="18"
+            fi
+            ;;
+        "2025-07-11")
+            if [[ $stage == *"Group B"* && $team1 == "Italy" ]]; then
+                episode_num="19"
+            elif [[ $stage == *"Group B"* && $team1 == "Portugal" ]]; then
+                episode_num="20"
+            fi
+            ;;
+        "2025-07-12")
+            if [[ $stage == *"Group C"* && $team1 == "Sweden" ]]; then
+                episode_num="21"
+            elif [[ $stage == *"Group C"* && $team1 == "Poland" ]]; then
+                episode_num="22"
+            fi
+            ;;
+        "2025-07-13")
+            if [[ $stage == *"Group D"* && $team1 == "Netherlands" ]]; then
+                episode_num="23"
+            elif [[ $stage == *"Group D"* && $team1 == "England" ]]; then
+                episode_num="24"
+            fi
+            ;;
+        # Knockout stage
+        "2025-07-16") episode_num="25" ;;  # QF1
+        "2025-07-17") episode_num="26" ;;  # QF3
+        "2025-07-18") episode_num="27" ;;  # QF2
+        "2025-07-19") episode_num="28" ;;  # QF4
+        "2025-07-22") episode_num="29" ;;  # SF1
+        "2025-07-23") episode_num="30" ;;  # SF2
+        "2025-07-27") episode_num="31" ;;  # Final
+        *)
+            # Fallback for any unmatched dates - use simple date-based numbering
+            local days_since_start=$(( ($(date -d "$date_string" +%s) - $(date -d "2025-07-02" +%s)) / 86400 + 1 ))
+            episode_num=$(printf "%02d" $days_since_start)
+            ;;
+    esac
+    
+    # Ensure episode number is formatted correctly
+    episode_num=$(printf "%02d" $((10#$episode_num)))
+
+    # Create match description
+    local match_desc="$stage - $team1 vs $team2"
+
+    # Format the output
+    echo "----------------------------------------"
+    echo "⚽ Women's UEFA Euro Processing Details:"
+    echo "----------------------------------------"
+    echo "📅 Year: $year"
+    echo "📅 Date: $date_string"
+    echo "🏆 Stage: $stage"
+    echo "⚽ Match: $team1 vs $team2"
+    echo "📺 Episode: S${year}E${episode_num}"
+    echo "----------------------------------------"
+
+    # Get file extension
+    local extension="${filename##*.}"
+
+    # Create target directories
+    local tournament_dir="$DEST_DIR/Women's UEFA Euro $year"
+    local season_dir="$tournament_dir/Season $year"
+    mkdir -p "$season_dir"
+
+    # Create the target filename
+    local target_file="$season_dir/Women's UEFA Euro - S${year}E${episode_num} - ${match_desc}.${extension}"
+
+    # Check if file already exists
+    if [[ -f "$target_file" ]]; then
+        echo "File already exists at destination: $target_file - skipping"
+        ((skipped_count++))
+        return 0
+    fi
+
+    echo "🚚 Moving"
+    echo "From: $file" 
+    echo "To: $target_file"
+    # Create hardlink instead of moving
+    if ln "$file" "$target_file" 2>/dev/null || cp "$file" "$target_file"; then
+        echo "----------------------------------------"
+        echo "✅ Successfully processed file!"
+        echo "----------------------------------------"
+        if [ "$PUSHOVER_NOTIFICATION" = true ]; then
+            send_pushover_notification "<b>⚽ Processed Women's UEFA Euro file</b><br><br>Year: ${year}<br>Date: ${date_string}<br>Stage: ${stage}<br>Match: ${team1} vs ${team2}<br>Episode: S${year}E${episode_num}" "Women's UEFA Euro Processing Complete"
         fi
         ((processed_count++))
     else
