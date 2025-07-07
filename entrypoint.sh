@@ -132,6 +132,10 @@ organize_sports() {
     elif [[ $filename =~ ^(WSBK|WorldSBK|WSSP300|WSSP)[\.\-] ]] && [[ $filename =~ \.(mkv|mp4)$ ]]; then
         process_world_superbike "$file"
         return $?
+    # Check for Women's UEFA Euro
+    elif [[ $filename =~ ^Womens\.UEFA\.Euro\. ]] && [[ $filename =~ \.(mkv|mp4)$ ]]; then
+        process_womens_uefa_euro "$file"
+        return $?
     # Check for Formula racing
     elif [[ $filename =~ [Ff]ormula* ]] && [[ $filename =~ \.(mkv|mp4)$ ]]; then
         process_f1_racing "$file"
@@ -1211,6 +1215,223 @@ process_world_superbike() {
         echo "----------------------------------------"
         if [ "$PUSHOVER_NOTIFICATION" = true ]; then
             send_pushover_notification "<b>✅ Processed ${championship_full} file</b><br><br>Year: ${year}<br>Round: ${round} ${location}<br>Session: ${session_type} (${round}x${episode_num})" "${championship_full} Processing Complete"
+        fi
+        ((processed_count++))
+    else
+        echo "Error: Failed to create hardlink or copy file"
+        if [ "$PUSHOVER_NOTIFICATION" = true ]; then
+            send_pushover_error_notification "❌ Failed to create hardlink or copy file" "Hardlink/Copy Error"
+        fi
+        ((error_count++))
+        return 1
+    fi
+
+    return 0
+}
+
+# Function to process Women's UEFA Euro files
+process_womens_uefa_euro() {
+    local file="$1"
+    local filename=$(basename "$file")
+
+    # Skip sample files
+    if [[ $filename == *sample* ]]; then
+        echo "Skipping sample file: $filename"
+        ((skipped_count++))
+        return 0
+    fi
+
+    # Check if it's a Women's UEFA Euro file
+    if [[ ! $filename =~ ^Womens\.UEFA\.Euro\. ]]; then
+        echo "Not a Women's UEFA Euro file: $filename"
+        ((error_count++))
+        return 1
+    fi
+
+    # Parse the filename: Womens.UEFA.Euro.YYYY.MM.DD.Group.X.Team1.Vs.Team2.quality...
+    local year=""
+    local month=""
+    local day=""
+    local stage=""
+    local team1=""
+    local team2=""
+    
+    # Extract year, date, and match details
+    if [[ $filename =~ ^Womens\.UEFA\.Euro\.([0-9]{4})\.([0-9]{2})\.([0-9]{2})\.(.+?)\.([^.]+)\.Vs\.([^.]+)\.[0-9]+p ]]; then
+        year="${BASH_REMATCH[1]}"
+        month="${BASH_REMATCH[2]}"
+        day="${BASH_REMATCH[3]}"
+        stage="${BASH_REMATCH[4]}"
+        team1="${BASH_REMATCH[5]}"
+        team2="${BASH_REMATCH[6]}"
+    else
+        echo "Could not parse Women's UEFA Euro filename: $filename"
+        ((error_count++))
+        return 1
+    fi
+
+    # Format team names (replace dots with spaces, capitalize)
+    team1="${team1//./ }"
+    team2="${team2//./ }"
+    
+    # Format stage (replace dots with spaces)
+    stage="${stage//./ }"
+    
+    # Create a date string for sorting
+    local date_string="${year}-${month}-${day}"
+    
+    # Determine episode number based on actual match schedule
+    # Women's UEFA Euro 2025: 31 total matches (24 group stage + 4 QF + 2 SF + 1 Final)
+    local episode_num=""
+    local season="$year"
+    
+    # Group stage matches (Episodes 1-24)
+    # Based on UEFA Euro 2025 official schedule
+    case "$date_string" in
+        "2025-07-02")
+            if [[ $stage == *"Group A"* && $team1 == "Iceland" ]]; then
+                episode_num="01"
+            elif [[ $stage == *"Group A"* && $team1 == "Switzerland" ]]; then
+                episode_num="02"
+            fi
+            ;;
+        "2025-07-03")
+            if [[ $stage == *"Group B"* && $team1 == "Belgium" ]]; then
+                episode_num="03"
+            elif [[ $stage == *"Group B"* && $team1 == "Spain" ]]; then
+                episode_num="04"
+            fi
+            ;;
+        "2025-07-04")
+            if [[ $stage == *"Group C"* && $team1 == "Denmark" ]]; then
+                episode_num="05"
+            elif [[ $stage == *"Group C"* && $team1 == "Germany" ]]; then
+                episode_num="06"
+            fi
+            ;;
+        "2025-07-05")
+            if [[ $stage == *"Group D"* && $team1 == "Wales" ]]; then
+                episode_num="07"
+            elif [[ $stage == *"Group D"* && $team1 == "France" ]]; then
+                episode_num="08"
+            fi
+            ;;
+        "2025-07-06")
+            if [[ $stage == *"Group A"* && $team1 == "Norway" ]]; then
+                episode_num="09"
+            elif [[ $stage == *"Group A"* && $team1 == "Switzerland" ]]; then
+                episode_num="10"
+            fi
+            ;;
+        "2025-07-07")
+            if [[ $stage == *"Group B"* && $team1 == "Spain" ]]; then
+                episode_num="11"
+            elif [[ $stage == *"Group B"* && $team1 == "Portugal" ]]; then
+                episode_num="12"
+            fi
+            ;;
+        "2025-07-08")
+            if [[ $stage == *"Group C"* && $team1 == "Germany" ]]; then
+                episode_num="13"
+            elif [[ $stage == *"Group C"* && $team1 == "Poland" ]]; then
+                episode_num="14"
+            fi
+            ;;
+        "2025-07-09")
+            if [[ $stage == *"Group D"* && $team1 == "England" ]]; then
+                episode_num="15"
+            elif [[ $stage == *"Group D"* && $team1 == "France" ]]; then
+                episode_num="16"
+            fi
+            ;;
+        "2025-07-10")
+            if [[ $stage == *"Group A"* && $team1 == "Finland" ]]; then
+                episode_num="17"
+            elif [[ $stage == *"Group A"* && $team1 == "Norway" ]]; then
+                episode_num="18"
+            fi
+            ;;
+        "2025-07-11")
+            if [[ $stage == *"Group B"* && $team1 == "Italy" ]]; then
+                episode_num="19"
+            elif [[ $stage == *"Group B"* && $team1 == "Portugal" ]]; then
+                episode_num="20"
+            fi
+            ;;
+        "2025-07-12")
+            if [[ $stage == *"Group C"* && $team1 == "Sweden" ]]; then
+                episode_num="21"
+            elif [[ $stage == *"Group C"* && $team1 == "Poland" ]]; then
+                episode_num="22"
+            fi
+            ;;
+        "2025-07-13")
+            if [[ $stage == *"Group D"* && $team1 == "Netherlands" ]]; then
+                episode_num="23"
+            elif [[ $stage == *"Group D"* && $team1 == "England" ]]; then
+                episode_num="24"
+            fi
+            ;;
+        # Knockout stage
+        "2025-07-16") episode_num="25" ;;  # QF1
+        "2025-07-17") episode_num="26" ;;  # QF3
+        "2025-07-18") episode_num="27" ;;  # QF2
+        "2025-07-19") episode_num="28" ;;  # QF4
+        "2025-07-22") episode_num="29" ;;  # SF1
+        "2025-07-23") episode_num="30" ;;  # SF2
+        "2025-07-27") episode_num="31" ;;  # Final
+        *)
+            # Fallback for any unmatched dates - use simple date-based numbering
+            local days_since_start=$(( ($(date -d "$date_string" +%s) - $(date -d "2025-07-02" +%s)) / 86400 + 1 ))
+            episode_num=$(printf "%02d" $days_since_start)
+            ;;
+    esac
+    
+    # Ensure episode number is formatted correctly
+    episode_num=$(printf "%02d" $((10#$episode_num)))
+
+    # Create match description
+    local match_desc="$stage - $team1 vs $team2"
+
+    # Format the output
+    echo "----------------------------------------"
+    echo "⚽ Women's UEFA Euro Processing Details:"
+    echo "----------------------------------------"
+    echo "📅 Year: $year"
+    echo "📅 Date: $date_string"
+    echo "🏆 Stage: $stage"
+    echo "⚽ Match: $team1 vs $team2"
+    echo "📺 Episode: S${year}E${episode_num}"
+    echo "----------------------------------------"
+
+    # Get file extension
+    local extension="${filename##*.}"
+
+    # Create target directories
+    local tournament_dir="$DEST_DIR/Women's UEFA Euro $year"
+    local season_dir="$tournament_dir/Season $year"
+    mkdir -p "$season_dir"
+
+    # Create the target filename
+    local target_file="$season_dir/Women's UEFA Euro - S${year}E${episode_num} - ${match_desc}.${extension}"
+
+    # Check if file already exists
+    if [[ -f "$target_file" ]]; then
+        echo "File already exists at destination: $target_file - skipping"
+        ((skipped_count++))
+        return 0
+    fi
+
+    echo "🚚 Moving"
+    echo "From: $file" 
+    echo "To: $target_file"
+    # Create hardlink instead of moving
+    if ln "$file" "$target_file" 2>/dev/null || cp "$file" "$target_file"; then
+        echo "----------------------------------------"
+        echo "✅ Successfully processed file!"
+        echo "----------------------------------------"
+        if [ "$PUSHOVER_NOTIFICATION" = true ]; then
+            send_pushover_notification "<b>⚽ Processed Women's UEFA Euro file</b><br><br>Year: ${year}<br>Date: ${date_string}<br>Stage: ${stage}<br>Match: ${team1} vs ${team2}<br>Episode: S${year}E${episode_num}" "Women's UEFA Euro Processing Complete"
         fi
         ((processed_count++))
     else
