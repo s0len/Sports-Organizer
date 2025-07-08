@@ -406,6 +406,7 @@ process_indycar_racing() {
 process_moto_racing() {
     local file="$1"
     local filename=$(basename "$file")
+    local dirname=$(dirname "$file")
 
     # Get class (MotoGP, Moto2, Moto3)
     local sport_type=""
@@ -421,28 +422,76 @@ process_moto_racing() {
         return 1
     fi
 
-    # Get year (next part after the first dot)
+    # Parse filename - detect format type
     IFS='.' read -ra PARTS <<<"$filename"
-    if [[ ${#PARTS[@]} -lt 4 ]]; then
-        echo "Not enough parts in filename: $filename"
-        ((error_count++))
-        return 1
+    local year=""
+    local round=""
+    local location=""
+    
+    # Check if this is the old format: MotoGP.YEAR.RoundXX.Location.Session
+    if [[ ${PARTS[2]} =~ ^[Rr]ound[0-9]+ ]]; then
+        # Old format
+        if [[ ${#PARTS[@]} -lt 4 ]]; then
+            echo "Not enough parts in old format filename: $filename"
+            ((error_count++))
+            return 1
+        fi
+        
+        year="${PARTS[1]}"
+        round="${PARTS[2]#Round}" # Remove 'Round' prefix
+        round="${round#round}"    # Remove lowercase 'round' prefix too
+        location="${PARTS[3]}"
+        echo "Detected old format"
+    else
+        # New format: motogp.YEAR.location.session.details...
+        if [[ ${#PARTS[@]} -lt 4 ]]; then
+            echo "Not enough parts in new format filename: $filename"
+            ((error_count++))
+            return 1
+        fi
+        
+        year="${PARTS[1]}"
+        location="${PARTS[2]}"
+        
+        # Try to extract round number from directory name
+        local dir_basename=$(basename "$dirname")
+        if [[ $dir_basename =~ [Rr]ound([0-9]+) ]]; then
+            round="${BASH_REMATCH[1]}"
+            echo "Extracted round from directory: $round"
+        else
+            # Fallback: use location as round identifier
+            round="$(echo "$location" | tr '[:lower:]' '[:upper:]')"
+            echo "Using location as round identifier: $round"
+        fi
+        
+        # Capitalize location for consistency
+        location="$(echo "$location" | sed 's/\b\w/\U&/g')"
+        echo "Detected new format"
     fi
 
-    local year="${PARTS[1]}"
     echo "Year: $year"
-
-    # Get round number and location
-    local round="${PARTS[2]#Round}" # Remove 'Round' prefix
-    local location="${PARTS[3]}"
     echo "Round: $round, Location: $location"
 
     # Determine session and episode
     local session=""
     local episode=""
 
+    # For new format, session info is in PARTS[3] and details in PARTS[4]
+    local session_part=""
+    local session_detail=""
+    if [[ ${PARTS[2]} =~ ^[Rr]ound[0-9]+ ]]; then
+        # Old format - session info throughout filename
+        session_part="$filename"
+    else
+        # New format - session info in specific parts
+        session_part="${PARTS[3]}"
+        if [[ ${#PARTS[@]} -gt 4 ]]; then
+            session_detail="${PARTS[4]}"
+        fi
+    fi
+
     # Check for Race
-    if [[ $filename == *[Rr][Aa][Cc][Ee]* ]]; then
+    if [[ $session_part == *[Rr][Aa][Cc][Ee]* ]]; then
         session="Race"
         if [[ $sport_type == "MotoGP" ]]; then
             episode="6" # MotoGP races are episode 6 (after Sprint)
@@ -450,7 +499,7 @@ process_moto_racing() {
             episode="5" # Moto2/3 races are episode 5 (no Sprint)
         fi
     # Check for Sprint - only for MotoGP class
-    elif [[ $filename == *[Ss][Pp][Rr][Ii][Nn][Tt]* ]]; then
+    elif [[ $session_part == *[Ss][Pp][Rr][Ii][Nn][Tt]* ]]; then
         if [[ $sport_type == "MotoGP" ]]; then
             session="Sprint"
             episode="5"
@@ -461,11 +510,12 @@ process_moto_racing() {
             echo "Warning: Sprint session found for $sport_type which shouldn't have sprints"
         fi
     # Check for Qualifying
-    elif [[ $filename == *[Qq]ualifying* ]] || [[ $filename == *[Qq]1* ]] || [[ $filename == *[Qq]2* ]]; then
-        if [[ $filename == *[Qq]1* ]]; then
+    elif [[ $session_part == *[Qq]ualifying* ]] || [[ $session_part == *[Qq]1* ]] || [[ $session_part == *[Qq]2* ]]; then
+        # Check session detail for specific qualifying number
+        if [[ $session_detail == *[Oo]ne* ]] || [[ $session_detail == *1* ]] || [[ $session_part == *[Qq]1* ]]; then
             session="Qualifying 1"
             episode="3"
-        elif [[ $filename == *[Qq]2* ]]; then
+        elif [[ $session_detail == *[Tt]wo* ]] || [[ $session_detail == *2* ]] || [[ $session_part == *[Qq]2* ]]; then
             session="Qualifying 2"
             episode="4"
         else
@@ -473,11 +523,12 @@ process_moto_racing() {
             episode="3"
         fi
     # Check for Practice
-    elif [[ $filename == *FP* ]] || [[ $filename == *Practice* ]]; then
-        if [[ $filename == *[Ff][Pp]1* ]] || [[ $filename == *"Practice One"* ]]; then
+    elif [[ $session_part == *[Ff][Pp]* ]] || [[ $session_part == *[Pp]ractice* ]]; then
+        # Check session detail for specific practice number
+        if [[ $session_detail == *[Oo]ne* ]] || [[ $session_detail == *1* ]] || [[ $session_part == *[Ff][Pp]1* ]] || [[ $session_part == *"Practice One"* ]]; then
             session="Free Practice 1"
             episode="1"
-        elif [[ $filename == *[Ff][Pp]2* ]] || [[ $filename == *"Practice Two"* ]]; then
+        elif [[ $session_detail == *[Tt]wo* ]] || [[ $session_detail == *2* ]] || [[ $session_part == *[Ff][Pp]2* ]] || [[ $session_part == *"Practice Two"* ]]; then
             session="Free Practice 2"
             episode="2"
         else
