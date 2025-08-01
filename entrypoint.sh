@@ -674,8 +674,8 @@ process_f1_racing() {
             "Canadian") round="10" ;;
             "Austrian") round="11" ;;
             "British") round="12" ;;
-            "Hungarian") round="13" ;;
-            "Belgian") round="14"; location="Belgium" ;;
+            "Hungarian") round="14" ;;
+            "Belgian") round="13"; location="Belgium" ;;
             "Dutch") round="15" ;;
             "Italian") round="16" ;;
             "Azerbaijan") round="17" ;;
