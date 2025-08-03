@@ -611,8 +611,17 @@ process_f1_racing() {
     # E11: Post Race Show
 
     local sport_type=""
-    # Update regex to match "Formula" followed by a number and a dot or other delimiter
-    if [[ $filename =~ [Ff]ormula1[\.\-] ]]; then
+    # Check for MWR space-separated format first (e.g. "Formula1 2025 Round14...")
+    if [[ $filename =~ ^[Ff]ormula1\ [0-9] ]]; then
+        sport_type="Formula1"
+    elif [[ $filename =~ ^[Ff]ormula2\ [0-9] ]]; then
+        sport_type="Formula2"
+    elif [[ $filename =~ ^[Ff]ormula3\ [0-9] ]]; then
+        sport_type="Formula3"
+    elif [[ $filename =~ ^[Ff]ormula[Ee]\ [0-9] ]]; then
+        sport_type="Formula E"
+    # Standard dot/dash separated format (e.g. "Formula1.2024.Round01...")
+    elif [[ $filename =~ [Ff]ormula1[\.\-] ]]; then
         sport_type="Formula1"
     elif [[ $filename =~ [Ff]ormula2[\.\-] ]]; then
         sport_type="Formula2"
@@ -631,9 +640,21 @@ process_f1_racing() {
     local round=""
     local location=""
     local is_f1carreras=false
+    local is_verum_format=false
     
-    # Split filename into parts
-    IFS='.' read -ra PARTS <<<"$filename"
+    # Split filename into parts - check if it uses spaces or dots
+    local PARTS=()
+    local is_space_format=false
+    
+    # Check if this is new MWR format with spaces (Formula1 2025 Round14 Hungary...)
+    if [[ $filename =~ ^[Ff]ormula[1-3Ee]\ [0-9]{4}\ Round[0-9]+ ]]; then
+        is_space_format=true
+        # Split on spaces for new MWR format
+        IFS=' ' read -ra PARTS <<<"$filename"
+    else
+        # Split on dots for traditional format
+        IFS='.' read -ra PARTS <<<"$filename"
+    fi
     
     # Check if this is F1Carreras format (has S20XXE pattern)
     if [[ ${PARTS[1]} =~ ^S([0-9]{4})E[0-9]+ ]]; then
@@ -650,6 +671,61 @@ process_f1_racing() {
         round="${PARTS[2]#Round}" # Remove 'Round' prefix  
         location="${PARTS[3]}"
         echo "F1Carreras format detected"
+    # Check if this is VERUM format (lowercase formula1.year.location.grand.prix[.session])
+    elif [[ ${PARTS[0]} == "formula1" && ${PARTS[1]} =~ ^[0-9]{4}$ && ${PARTS[3]} == "grand" && ${PARTS[4]} == "prix" ]]; then
+        is_verum_format=true
+        year="${PARTS[1]}"
+        location="${PARTS[2]}"
+        
+        # Capitalize location for consistency
+        location="$(echo "$location" | sed 's/\b\w/\U&/g')"
+        
+        # Map location to round number (2025 F1 calendar)
+        case "$location" in
+            "Australian") round="01" ;;
+            "Chinese") round="02"; location="China" ;;
+            "Japanese") round="03" ;;
+            "Bahrain") round="04" ;;
+            "Saudi") round="05" ;;
+            "Miami") round="06" ;;
+            "Emilia") round="07" ;;
+            "Monaco") round="08" ;;
+            "Spanish") round="09" ;;
+            "Canadian") round="10" ;;
+            "Austrian") round="11" ;;
+            "British") round="12" ;;
+            "Hungarian") round="14" ;;
+            "Belgian") round="13"; location="Belgium" ;;
+            "Dutch") round="15" ;;
+            "Italian") round="16" ;;
+            "Azerbaijan") round="17" ;;
+            "Singapore") round="18" ;;
+            "United") round="19" ;;  # United States (Austin)
+            "Mexican") round="20" ;;
+            "Brazilian") round="21"; location="Brazil" ;;
+            "Las") round="22" ;;     # Las Vegas
+            "Qatar") round="23" ;;
+            "Abu") round="24" ;;     # Abu Dhabi
+            *)
+                # Fallback: use a sequential number or location as round
+                round="$(echo "$location" | tr '[:lower:]' '[:upper:]')"
+                echo "Warning: Unknown location '$location', using location as round identifier"
+                ;;
+        esac
+        
+        echo "VERUM format detected"
+    elif [[ $is_space_format == true ]]; then
+        # New MWR format with spaces: Formula1 2025 Round14 Hungary Qualifying...
+        if [[ ${#PARTS[@]} -lt 4 ]]; then
+            echo "Not enough parts in new MWR space format filename: $filename"
+            ((error_count++))
+            return 1
+        fi
+        
+        year="${PARTS[1]}"
+        round="${PARTS[2]#Round}" # Remove 'Round' prefix
+        location="${PARTS[3]}"
+        echo "New MWR space format detected"
     else
         # Original MWR format: Formula1.YEAR.RoundXX.Location.Session
         if [[ ${#PARTS[@]} -lt 4 ]]; then
@@ -727,6 +803,25 @@ process_f1_racing() {
     if [[ $is_f1carreras == true ]]; then
         session_part="${PARTS[4]}"
         echo "F1Carreras session part: $session_part"
+    elif [[ $is_verum_format == true ]]; then
+        # For VERUM format, session info is in PARTS[5] and potentially PARTS[6]
+        if [[ ${#PARTS[@]} -gt 5 && ${PARTS[5]} != "1080p" && ${PARTS[5]} != "720p" ]]; then
+            session_part="${PARTS[5]}"
+            # Check if there's a continuation (like "sprint race")
+            if [[ ${#PARTS[@]} -gt 6 && ${PARTS[6]} == "race" ]]; then
+                session_part="${PARTS[5]}.${PARTS[6]}"
+            fi
+        else
+            # No session part means it's the main race
+            session_part="race"
+        fi
+        echo "VERUM session part: $session_part"
+    elif [[ $is_space_format == true ]]; then
+        # For new MWR space format, session info is in PARTS[4]
+        if [[ ${#PARTS[@]} -gt 4 ]]; then
+            session_part="${PARTS[4]}"
+            echo "New MWR space format session part: $session_part"
+        fi
     fi
 
     # Check for Drivers Press Conference
@@ -741,15 +836,15 @@ process_f1_racing() {
         if [[ $sport_type == "Formula1" ]]; then
             episode="2"
         fi
-    # Check for Practice
-    elif [[ $filename =~ .*\.[Ff][Pp]1\. && $sport_type != "Formula E" ]] || [[ $filename =~ .*\.[Ff][Pp]2\. && $sport_type != "Formula E" ]] || [[ $filename =~ .*\.[Ff][Pp]3\. && $sport_type != "Formula E" ]] || [[ $filename == *Practice* ]] || [[ $session_part == *Practice* ]]; then
-        if [[ ($filename =~ .*\.[Ff][Pp]1\. || $filename == *"Practice One"*) && $sport_type == "Formula1" ]]; then
+    # Check for Practice sessions (handle both dot format ".FP1." and space format " FP1 ")
+    elif [[ $sport_type != "Formula E" ]] && ([[ $filename == *Practice* ]] || [[ $session_part == *Practice* ]] || [[ $session_part == *practice* ]] || [[ $filename == *FP1* ]] || [[ $filename == *FP2* ]] || [[ $filename == *FP3* ]]); then
+        if [[ ($filename == *FP1* || $filename == *"Practice One"*) && $sport_type == "Formula1" ]]; then
             session="Free Practice 1"
             episode="3"
-        elif [[ ($filename =~ .*\.[Ff][Pp]2\. || $filename == *"Practice Two"*) && $sport_type == "Formula1" ]]; then
+        elif [[ ($filename == *FP2* || $filename == *"Practice Two"*) && $sport_type == "Formula1" ]]; then
             session="Free Practice 2"
             episode="4"
-        elif [[ ($filename =~ .*\.[Ff][Pp]3\. || $filename == *"Practice Three"*) && $sport_type == "Formula1" ]]; then
+        elif [[ ($filename == *FP3* || $filename == *"Practice Three"*) && $sport_type == "Formula1" ]]; then
             session="Free Practice 3"
             episode="5"
         else
@@ -757,7 +852,7 @@ process_f1_racing() {
             episode="3"
         fi
     # Check for Sprint
-    elif [[ ($filename == *[Ss][Pp][Rr][Ii][Nn][Tt]* || $session_part == *[Ss][Pp][Rr][Ii][Nn][Tt]*) && $sport_type != "Formula E" ]]; then
+    elif [[ ($filename == *[Ss][Pp][Rr][Ii][Nn][Tt]* || $session_part == *[Ss][Pp][Rr][Ii][Nn][Tt]* || $session_part == *sprint*) && $sport_type != "Formula E" ]]; then
         # F1 Sprint Weekend Episode Order (2025):
         # E1: Drivers Press Conference
         # E2: Weekend Warm Up
@@ -778,10 +873,10 @@ process_f1_racing() {
         elif [[ ($filename == *[Pp][Oo][Ss][Tt]*[Ss][Pp][Rr][Ii][Nn][Tt]* || $session_part == *[Pp][Oo][Ss][Tt]*[Ss][Pp][Rr][Ii][Nn][Tt]*) && ! $filename == *[Qq]ualifying* && ! $session_part == *[Qq]ualifying* ]]; then
             session="Post Sprint Show"
             episode="7"
-        elif [[ $filename == *[Ss][Pp][Rr][Ii][Nn][Tt]*[Qq]ualifying* || $session_part == *[Ss][Pp][Rr][Ii][Nn][Tt]*[Qq]ualifying* ]]; then
+        elif [[ $filename == *[Ss][Pp][Rr][Ii][Nn][Tt]*[Qq]ualifying* || $session_part == *[Ss][Pp][Rr][Ii][Nn][Tt]*[Qq]ualifying* || $session_part == *sprint*qualifying* ]]; then
             session="Sprint Qualifying"
             episode="4"
-        elif [[ ($filename == *[Ss][Pp][Rr][Ii][Nn][Tt]* || $session_part == *[Ss][Pp][Rr][Ii][Nn][Tt]*) && ! $filename == *[Qq]ualifying* && ! $session_part == *[Qq]ualifying* && ! $filename == *[Ss][Hh][Oo][Ww]* && ! $session_part == *[Ss][Hh][Oo][Ww]* && $sport_type == "Formula1" ]]; then
+        elif [[ ($filename == *[Ss][Pp][Rr][Ii][Nn][Tt]* || $session_part == *[Ss][Pp][Rr][Ii][Nn][Tt]* || $session_part == *sprint.race* || $session_part == *sprint*) && ! $filename == *[Qq]ualifying* && ! $session_part == *[Qq]ualifying* && ! $filename == *[Ss][Hh][Oo][Ww]* && ! $session_part == *[Ss][Hh][Oo][Ww]* && $sport_type == "Formula1" ]]; then
             session="Sprint"
             episode="6" 
         else
@@ -791,9 +886,9 @@ process_f1_racing() {
             echo "Warning: Sprint session found for $sport_type which shouldn't have sprints"
         fi
     # Check for Qualifying
-    elif [[ ($filename == *[Qq]ualifying* || $session_part == *[Qq]ualifying*) && $sport_type != "Formula E" ]]; then
+    elif [[ ($filename == *[Qq]ualifying* || $session_part == *[Qq]ualifying* || $session_part == *qualifying*) && $sport_type != "Formula E" ]]; then
         # Make sure we're not processing a file that has already been handled in the Sprint section
-        if [[ $filename == *[Ss][Pp][Rr][Ii][Nn][Tt]*[Qq]ualifying* || $session_part == *[Ss][Pp][Rr][Ii][Nn][Tt]*[Qq]ualifying* ]]; then
+        if [[ $filename == *[Ss][Pp][Rr][Ii][Nn][Tt]*[Qq]ualifying* || $session_part == *[Ss][Pp][Rr][Ii][Nn][Tt]*[Qq]ualifying* || $session_part == *sprint*qualifying* ]]; then
             # Skip if already processed as Sprint Qualifying
             :
         elif [[ $filename == *[Pp][Rr][Ee]*[Qq]ualifying* || $session_part == *[Pp][Rr][Ee]*[Qq]ualifying* ]]; then
@@ -823,20 +918,20 @@ process_f1_racing() {
             fi
         fi
     # Check for Race
-    elif [[ ($filename == *Race* || $session_part == *Race*) && $sport_type != "Formula E" ]]; then
+    elif [[ ($filename == *Race* || $session_part == *Race* || $session_part == *race* || $session_part == "race") && $sport_type != "Formula E" ]]; then
         # First, handle sprint-related race files, which should take precedence
-        if [[ $filename == *[Ss][Pp][Rr][Ii][Nn][Tt]*[Rr][Aa][Cc][Ee]* || $session_part == *[Ss][Pp][Rr][Ii][Nn][Tt]*[Rr][Aa][Cc][Ee]* ]]; then
-            session="Sprint Race"
+        if [[ $filename == *[Ss][Pp][Rr][Ii][Nn][Tt]*[Rr][Aa][Cc][Ee]* || $session_part == *[Ss][Pp][Rr][Ii][Nn][Tt]*[Rr][Aa][Cc][Ee]* || $session_part == *sprint.race* ]]; then
+            session="Sprint"
             episode="6"
         # Then handle pre/post race show files, excluding sprint-related ones
-        elif [[ ($filename == *[Pp][Rr][Ee]*[Rr][Aa][Cc][Ee]* || $session_part == *[Pp][Rr][Ee]*[Rr][Aa][Cc][Ee]*) && ! $filename == *[Ss][Pp][Rr][Ii][Nn][Tt]* && ! $session_part == *[Ss][Pp][Rr][Ii][Nn][Tt]* ]]; then
+        elif [[ ($filename == *[Pp][Rr][Ee]*[Rr][Aa][Cc][Ee]* || $session_part == *[Pp][Rr][Ee]*[Rr][Aa][Cc][Ee]*) && ! $filename == *[Ss][Pp][Rr][Ii][Nn][Tt]* && ! $session_part == *[Ss][Pp][Rr][Ii][Nn][Tt]* && ! $session_part == *sprint* ]]; then
             session="Pre Race Show"
             if [[ $is_sprint_weekend == true ]]; then
                 episode="11"  # Sprint weekend
             else
                 episode="9"  # Regular weekend
             fi
-        elif [[ ($filename == *[Pp][Oo][Ss][Tt]*[Rr][Aa][Cc][Ee]* || $session_part == *[Pp][Oo][Ss][Tt]*[Rr][Aa][Cc][Ee]*) && ! $filename == *[Ss][Pp][Rr][Ii][Nn][Tt]* && ! $session_part == *[Ss][Pp][Rr][Ii][Nn][Tt]* ]]; then
+        elif [[ ($filename == *[Pp][Oo][Ss][Tt]*[Rr][Aa][Cc][Ee]* || $session_part == *[Pp][Oo][Ss][Tt]*[Rr][Aa][Cc][Ee]*) && ! $filename == *[Ss][Pp][Rr][Ii][Nn][Tt]* && ! $session_part == *[Ss][Pp][Rr][Ii][Nn][Tt]* && ! $session_part == *sprint* ]]; then
             session="Post Race Show"
             if [[ $is_sprint_weekend == true ]]; then
                 episode="13"  # Sprint weekend
