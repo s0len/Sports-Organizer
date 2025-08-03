@@ -611,14 +611,14 @@ process_f1_racing() {
     # E11: Post Race Show
 
     local sport_type=""
-    # Update regex to match "Formula" followed by a number and a dot or other delimiter
-    if [[ $filename =~ [Ff]ormula1[\.\-] ]]; then
+    # Update regex to match "Formula" followed by a number and a dot, dash, or space delimiter
+    if [[ $filename =~ [Ff]ormula1[\.\-\ ] ]]; then
         sport_type="Formula1"
-    elif [[ $filename =~ [Ff]ormula2[\.\-] ]]; then
+    elif [[ $filename =~ [Ff]ormula2[\.\-\ ] ]]; then
         sport_type="Formula2"
-    elif [[ $filename =~ [Ff]ormula3[\.\-] ]]; then
+    elif [[ $filename =~ [Ff]ormula3[\.\-\ ] ]]; then
         sport_type="Formula3"
-    elif [[ $filename =~ [Ff]ormula[Ee][\.\-] ]]; then
+    elif [[ $filename =~ [Ff]ormula[Ee][\.\-\ ] ]]; then
         sport_type="Formula E"
     else
         echo "Unknown Formula class in filename: $filename"
@@ -633,8 +633,19 @@ process_f1_racing() {
     local is_f1carreras=false
     local is_verum_format=false
     
-    # Split filename into parts
-    IFS='.' read -ra PARTS <<<"$filename"
+    # Split filename into parts - check if it uses spaces or dots
+    local PARTS=()
+    local is_space_format=false
+    
+    # Check if this is new MWR format with spaces (Formula1 2025 Round14 Hungary...)
+    if [[ $filename =~ ^[Ff]ormula[1-3Ee]\ [0-9]{4}\ Round[0-9]+ ]]; then
+        is_space_format=true
+        # Split on spaces for new MWR format
+        IFS=' ' read -ra PARTS <<<"$filename"
+    else
+        # Split on dots for traditional format
+        IFS='.' read -ra PARTS <<<"$filename"
+    fi
     
     # Check if this is F1Carreras format (has S20XXE pattern)
     if [[ ${PARTS[1]} =~ ^S([0-9]{4})E[0-9]+ ]]; then
@@ -694,6 +705,18 @@ process_f1_racing() {
         esac
         
         echo "VERUM format detected"
+    elif [[ $is_space_format == true ]]; then
+        # New MWR format with spaces: Formula1 2025 Round14 Hungary Qualifying...
+        if [[ ${#PARTS[@]} -lt 4 ]]; then
+            echo "Not enough parts in new MWR space format filename: $filename"
+            ((error_count++))
+            return 1
+        fi
+        
+        year="${PARTS[1]}"
+        round="${PARTS[2]#Round}" # Remove 'Round' prefix
+        location="${PARTS[3]}"
+        echo "New MWR space format detected"
     else
         # Original MWR format: Formula1.YEAR.RoundXX.Location.Session
         if [[ ${#PARTS[@]} -lt 4 ]]; then
@@ -784,6 +807,12 @@ process_f1_racing() {
             session_part="race"
         fi
         echo "VERUM session part: $session_part"
+    elif [[ $is_space_format == true ]]; then
+        # For new MWR space format, session info is in PARTS[4]
+        if [[ ${#PARTS[@]} -gt 4 ]]; then
+            session_part="${PARTS[4]}"
+            echo "New MWR space format session part: $session_part"
+        fi
     fi
 
     # Check for Drivers Press Conference
@@ -798,15 +827,15 @@ process_f1_racing() {
         if [[ $sport_type == "Formula1" ]]; then
             episode="2"
         fi
-    # Check for Practice
-    elif [[ $filename =~ .*\.[Ff][Pp]1\. && $sport_type != "Formula E" ]] || [[ $filename =~ .*\.[Ff][Pp]2\. && $sport_type != "Formula E" ]] || [[ $filename =~ .*\.[Ff][Pp]3\. && $sport_type != "Formula E" ]] || [[ $filename == *Practice* ]] || [[ $session_part == *Practice* ]] || [[ $session_part == *practice* ]]; then
-        if [[ ($filename =~ .*\.[Ff][Pp]1\. || $filename == *"Practice One"*) && $sport_type == "Formula1" ]]; then
+    # Check for Practice (handle both dot format ".FP1." and space format "FP1")
+    elif [[ ($filename =~ .*\.[Ff][Pp]1\. || $filename =~ .*\ [Ff][Pp]1\ || $filename =~ [Ff][Pp]1$) && $sport_type != "Formula E" ]] || [[ ($filename =~ .*\.[Ff][Pp]2\. || $filename =~ .*\ [Ff][Pp]2\ || $filename =~ [Ff][Pp]2$) && $sport_type != "Formula E" ]] || [[ ($filename =~ .*\.[Ff][Pp]3\. || $filename =~ .*\ [Ff][Pp]3\ || $filename =~ [Ff][Pp]3$) && $sport_type != "Formula E" ]] || [[ $filename == *Practice* ]] || [[ $session_part == *Practice* ]] || [[ $session_part == *practice* ]]; then
+        if [[ ($filename =~ .*\.[Ff][Pp]1\. || $filename =~ .*\ [Ff][Pp]1\ || $filename =~ [Ff][Pp]1$ || $filename == *"Practice One"*) && $sport_type == "Formula1" ]]; then
             session="Free Practice 1"
             episode="3"
-        elif [[ ($filename =~ .*\.[Ff][Pp]2\. || $filename == *"Practice Two"*) && $sport_type == "Formula1" ]]; then
+        elif [[ ($filename =~ .*\.[Ff][Pp]2\. || $filename =~ .*\ [Ff][Pp]2\ || $filename =~ [Ff][Pp]2$ || $filename == *"Practice Two"*) && $sport_type == "Formula1" ]]; then
             session="Free Practice 2"
             episode="4"
-        elif [[ ($filename =~ .*\.[Ff][Pp]3\. || $filename == *"Practice Three"*) && $sport_type == "Formula1" ]]; then
+        elif [[ ($filename =~ .*\.[Ff][Pp]3\. || $filename =~ .*\ [Ff][Pp]3\ || $filename =~ [Ff][Pp]3$ || $filename == *"Practice Three"*) && $sport_type == "Formula1" ]]; then
             session="Free Practice 3"
             episode="5"
         else
