@@ -611,14 +611,23 @@ process_f1_racing() {
     # E11: Post Race Show
 
     local sport_type=""
-    # Update regex to match "Formula" followed by a number and a dot, dash, or space delimiter
-    if [[ $filename =~ [Ff]ormula1[\.\-\ ] ]]; then
+    # Check for MWR space-separated format first (e.g. "Formula1 2025 Round14...")
+    if [[ $filename =~ ^[Ff]ormula1\ [0-9] ]]; then
         sport_type="Formula1"
-    elif [[ $filename =~ [Ff]ormula2[\.\-\ ] ]]; then
+    elif [[ $filename =~ ^[Ff]ormula2\ [0-9] ]]; then
         sport_type="Formula2"
-    elif [[ $filename =~ [Ff]ormula3[\.\-\ ] ]]; then
+    elif [[ $filename =~ ^[Ff]ormula3\ [0-9] ]]; then
         sport_type="Formula3"
-    elif [[ $filename =~ [Ff]ormula[Ee][\.\-\ ] ]]; then
+    elif [[ $filename =~ ^[Ff]ormula[Ee]\ [0-9] ]]; then
+        sport_type="Formula E"
+    # Standard dot/dash separated format (e.g. "Formula1.2024.Round01...")
+    elif [[ $filename =~ [Ff]ormula1[\.\-] ]]; then
+        sport_type="Formula1"
+    elif [[ $filename =~ [Ff]ormula2[\.\-] ]]; then
+        sport_type="Formula2"
+    elif [[ $filename =~ [Ff]ormula3[\.\-] ]]; then
+        sport_type="Formula3"
+    elif [[ $filename =~ [Ff]ormula[Ee][\.\-] ]]; then
         sport_type="Formula E"
     else
         echo "Unknown Formula class in filename: $filename"
