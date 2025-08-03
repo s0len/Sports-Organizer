@@ -827,15 +827,15 @@ process_f1_racing() {
         if [[ $sport_type == "Formula1" ]]; then
             episode="2"
         fi
-    # Check for Practice (handle both dot format ".FP1." and space format "FP1")
-    elif [[ ($filename =~ .*\.[Ff][Pp]1\. || $filename =~ .*\ [Ff][Pp]1\ || $filename =~ [Ff][Pp]1$) && $sport_type != "Formula E" ]] || [[ ($filename =~ .*\.[Ff][Pp]2\. || $filename =~ .*\ [Ff][Pp]2\ || $filename =~ [Ff][Pp]2$) && $sport_type != "Formula E" ]] || [[ ($filename =~ .*\.[Ff][Pp]3\. || $filename =~ .*\ [Ff][Pp]3\ || $filename =~ [Ff][Pp]3$) && $sport_type != "Formula E" ]] || [[ $filename == *Practice* ]] || [[ $session_part == *Practice* ]] || [[ $session_part == *practice* ]]; then
-        if [[ ($filename =~ .*\.[Ff][Pp]1\. || $filename =~ .*\ [Ff][Pp]1\ || $filename =~ [Ff][Pp]1$ || $filename == *"Practice One"*) && $sport_type == "Formula1" ]]; then
+    # Check for Practice sessions (handle both dot format ".FP1." and space format " FP1 ")
+    elif [[ $sport_type != "Formula E" ]] && ([[ $filename == *Practice* ]] || [[ $session_part == *Practice* ]] || [[ $session_part == *practice* ]] || [[ $filename == *FP1* ]] || [[ $filename == *FP2* ]] || [[ $filename == *FP3* ]]); then
+        if [[ ($filename == *FP1* || $filename == *"Practice One"*) && $sport_type == "Formula1" ]]; then
             session="Free Practice 1"
             episode="3"
-        elif [[ ($filename =~ .*\.[Ff][Pp]2\. || $filename =~ .*\ [Ff][Pp]2\ || $filename =~ [Ff][Pp]2$ || $filename == *"Practice Two"*) && $sport_type == "Formula1" ]]; then
+        elif [[ ($filename == *FP2* || $filename == *"Practice Two"*) && $sport_type == "Formula1" ]]; then
             session="Free Practice 2"
             episode="4"
-        elif [[ ($filename =~ .*\.[Ff][Pp]3\. || $filename =~ .*\ [Ff][Pp]3\ || $filename =~ [Ff][Pp]3$ || $filename == *"Practice Three"*) && $sport_type == "Formula1" ]]; then
+        elif [[ ($filename == *FP3* || $filename == *"Practice Three"*) && $sport_type == "Formula1" ]]; then
             session="Free Practice 3"
             episode="5"
         else
