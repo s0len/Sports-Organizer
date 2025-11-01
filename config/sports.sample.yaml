@@ -1,0 +1,77 @@
+settings:
+  source_dir: ${SPORTS_ORGANIZER_SOURCE:-/data/source}
+  destination_dir: ${SPORTS_ORGANIZER_DESTINATION:-/data/destination}
+  cache_dir: ${SPORTS_ORGANIZER_CACHE:-/data/cache}
+  dry_run: false
+  skip_existing: true
+  poll_interval: 0
+  link_mode: hardlink
+  destination:
+    root_template: "{show_title}"
+    season_dir_template: "{season_number:02d} {season_title}"
+    episode_template: "{show_title} - S{season_number:02d}E{episode_number:02d} - {episode_title}.{extension}"
+
+sports:
+  - id: formula1_2025
+    name: Formula 1 2025
+    enabled: true
+    metadata:
+      url: https://raw.githubusercontent.com/s0len/meta-manager-config/refs/heads/main/metadata-files/formula1-2025.yaml
+      show_key: Formula1 2025
+      ttl_hours: 12
+      season_overrides:
+        Pre-Season Testing:
+          season_number: 0
+          round: 0
+    source_globs:
+      - "Formula.1.*"
+    file_patterns:
+      - description: Formula 1 MWR releases
+        regex: "(?i)^Formula\.1\.(?P<year>\d{4})\.Round(?P<round>\d{2})\.(?P<location>[^.]+)\.(?P<session>[^.]+)"
+        season_selector:
+          mode: round
+          group: round
+          offset: 0
+        episode_selector:
+          group: session
+        session_aliases:
+          Drivers Press Conference:
+            - Drivers.Press.Conference
+            - Press.Conference
+          Weekend Warm Up:
+            - Weekend.Warm.Up
+          Free Practice 1:
+            - FP1
+            - Free.Practice.1
+          Free Practice 2:
+            - FP2
+            - Free.Practice.2
+          Free Practice 3:
+            - FP3
+            - Free.Practice.3
+          Sprint Qualifying:
+            - Sprint.Qualifying
+            - Sprint.Shootout
+          Sprint:
+            - Sprint.Race
+            - Sprint
+          Qualifying:
+            - Qualifying
+            - Quali
+          Race:
+            - Race
+          Pre Qualifying Show:
+            - Pre.Qualifying
+          Post Qualifying Show:
+            - Post.Qualifying
+          Pre Race Show:
+            - Pre.Race
+          Post Race Show:
+            - Post.Race
+          Post Sprint Show:
+            - Post.Sprint
+          Pre Sprint Show:
+            - Pre.Sprint
+        destination_root_template: "{show_title}"
+        season_dir_template: "{season_round:02d} {season_title}"
+        filename_template: "{show_title} - S{season_number:02d}E{episode_number:02d} - {episode_title}.{extension}"

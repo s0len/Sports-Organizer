@@ -1,261 +1,155 @@
-# Sports Media Organizer
+# Sports Organizer 2.0
 
-This container automatically organizes sports media files into a structured Plex-friendly format. It monitors a source directory for new racing videos and organizes them by series, year, round, and session type.
+A metadata-driven pipeline that normalizes sports releases from multiple publishers into pristine, Plex-friendly TV libraries. Every decision—season numbering, episode ordering, filenames, folder structure—comes from authoritative metadata, so you can switch sports or release groups with a simple config change.
 
-## Features
+This release rebuilds the project around remote YAML metadata (the same feeds used for Plex enrichment) and a declarative configuration file. No brittle regex trees, no per-sport shell scripts—just fetch metadata, map releases, and render the correct filenames.
 
-- **Automatic Organization**: Monitors for new media files and organizes them into a proper structure
-- **Series Support**:
-  - Formula 1, Formula 2, Formula 3
-  - MotoGP, Moto2, Moto3
-  - Formula E
-  - World Superbike, World Supersport, World Supersport 300
-  - Isle of Man TT
-  - UFC
-- **Session Detection**: Automatically identifies and labels different session types:
-  - Practice sessions (FP1, FP2, FP3)
-  - Qualifying sessions
-  - Sprint races
-  - Main races
-  - Pre/Post shows
-- **Proper Naming**: Renames files with season and episode numbering for better Plex integration
-- **Notification Support**: Optional Pushover notifications when files are processed
+## Highlights
 
-## Requirements
+- **Metadata first** – Pulls remote YAML (e.g. Formula 1 2025 feed) and converts it into normalized `Show → Season → Episode` objects, honoring official episode order, titles, and air dates.
+- **Configurable per sport** – Each sport is defined in `sports.yaml`: metadata URL, matching rules, numbering overrides, and filename templates. Add or adjust sports without touching code.
+- **Smart episode matching** – Regex capture groups + alias tables map release filenames to the right season and episode. Handles sprint weekends, pre/post shows, weekly sports, and more.
+- **Deterministic filenames** – Render paths with templates like `{show_title} - S{season_number:02d}E{episode_number:02d} - {episode_title}` and auto-sanitize for the filesystem.
+- **Caching & retries** – Metadata fetched once and cached with TTL (configurable per sport). Subsequent runs hit the cache unless expired.
+- **Dry-run & polling modes** – Run once, run on a schedule, or use `--dry-run` to preview all moves before committing.
+- **Docker-ready** – Ships with a lightweight Python 3.12 image. Mount `/config`, `/data/source`, `/data/destination`, `/data/cache` and go.
 
-- Docker and Docker Compose
-- MWR releases for Formula 1-3 or MotoGP/Moto2/Moto3 content
-- Storage volumes for source and destination directories
-  - Prefferably you mount the top directory and then provide source and dest from within that directory. That way we can use hardlinks which saves space and is superfast.
-- Plex library requires to have the Agent set as "Personal Media"
+## Quick Start
 
-## Recommended Workflow
+1. **Create the config directory** on the host and copy the sample file:
 
-For the best experience, we recommend setting up an automated workflow:
+   ```bash
+   mkdir -p /path/to/config
+   cp config/sports.sample.yaml /path/to/config/sports.yaml
+   ```
 
-1. **autobrr**: Configure to monitor for specific MWR racing releases
-2. **qBittorrent**: Set up to receive downloads from autobrr with a dedicated "sports" category
-3. **Sports-Organizer**: Monitors the qBittorrent download directory and processes files
-4. **Kometa**: Use for metadata enrichment, posters, and proper Plex integration
+2. **Adjust `sports.yaml`** for your environment—update `source_dir`, `destination_dir`, and add or tweak sports entries.
 
-This workflow creates a fully automated pipeline from release detection to properly organized and metadata-enriched media in your Plex library.
+3. **Run via Docker**:
 
-## Installation
+   ```bash
+   docker run -d \
+     --name sports-organizer \
+     -v /path/to/config:/config \
+     -v /path/to/downloads:/data/source \
+     -v /path/to/library:/data/destination \
+     -v /path/to/cache:/data/cache \
+     ghcr.io/s0len/sports-organizer:latest
+   ```
 
-### Docker
+   Environment variables exposed by the container entrypoint:
+
+   | Variable | Default | Purpose |
+   |----------|---------|---------|
+   | `SPORTS_ORGANIZER_CONFIG` | `/config/sports.yaml` | Config file path |
+   | `SPORTS_ORGANIZER_SOURCE` | `/data/source` | Source directory to scan |
+   | `SPORTS_ORGANIZER_DESTINATION` | `/data/destination` | Destination library root |
+   | `SPORTS_ORGANIZER_CACHE` | `/data/cache` | Metadata + state cache |
+   | `SPORTS_ORGANIZER_PROCESS_INTERVAL` | `0` | Poll interval seconds (0 = run once) |
+   | `SPORTS_ORGANIZER_RUN_ONCE` | `true` | Set to `false` to loop |
+   | `SPORTS_ORGANIZER_DRY_RUN` | `false` | Force dry-run |
+
+4. **Preview without writing**:
+
+   ```bash
+   docker run --rm -it \
+     -e SPORTS_ORGANIZER_DRY_RUN=true \
+     -v /path/to/config:/config \
+     -v /path/to/downloads:/data/source \
+     -v /path/to/library:/data/destination \
+     -v /path/to/cache:/data/cache \
+     ghcr.io/s0len/sports-organizer:latest --dry-run --verbose
+   ```
+
+## Configuration Schema
+
+`settings` apply globally, while each entry in `sports` customizes a league or release group.
+
+```yaml
+settings:
+  source_dir: /data/source
+  destination_dir: /data/destination
+  cache_dir: /data/cache
+  dry_run: false
+  skip_existing: true
+  poll_interval: 0
+  link_mode: hardlink
+  destination:
+    root_template: "{show_title}"
+    season_dir_template: "{season_number:02d} {season_title}"
+    episode_template: "{show_title} - S{season_number:02d}E{episode_number:02d} - {episode_title}.{extension}"
+
+sports:
+  - id: formula1_2025
+    name: Formula 1 2025
+    metadata:
+      url: https://raw.githubusercontent.com/s0len/meta-manager-config/refs/heads/main/metadata-files/formula1-2025.yaml
+      show_key: Formula1 2025
+      ttl_hours: 12
+      season_overrides:
+        Pre-Season Testing:
+          season_number: 0
+          round: 0
+    source_globs:
+      - "Formula.1.*"
+    file_patterns:
+      - regex: "(?i)^Formula\.1\.(?P<year>\d{4})\.Round(?P<round>\d{2})\.(?P<location>[^.]+)\.(?P<session>[^.]+)"
+        season_selector:
+          mode: round
+          group: round
+        episode_selector:
+          group: session
+        session_aliases:
+          Race: ["Race"]
+          Sprint: ["Sprint.Race", "Sprint"]
+          Qualifying: ["Qualifying", "Quali"]
+          Free Practice 1: ["FP1", "Free.Practice.1"]
+          # ... more aliases
+```
+
+### Key Fields
+
+- **`metadata.url`** – Remote YAML source. Sports that share metadata (e.g. separate seasons) just swap the URL.
+- **`metadata.show_key`** – Which top-level show to load when the file contains more than one.
+- **`season_overrides`** – Force season numbers or round mapping when metadata uses special titles (e.g. Pre-season Testing → round 0).
+- **`file_patterns[].regex`** – Regex applied to filenames; capture groups become context variables (e.g. `{round}`, `{session}`) and drive season/episode selection.
+- **`season_selector`** – How to map regex captures to seasons: by round number, metadata key, title, or sequence.
+- **`session_aliases`** – Maps release session tokens to metadata episode titles. Add synonyms like `Sprint.Shootout`, `Weekend.Warm.Up`, `FP1`, etc.
+- **Destination templates** – Optional overrides per sport or per pattern. Use any context key (`season_round`, `episode_title`, `originally_available`, etc.).
+
+## How It Works
+
+1. **Fetch metadata** – Download and cache the YAML (e.g. Formula 1 2025 feed[^1]). Parse into normalized objects with inferred season/round numbers.
+2. **Scan downloads** – Walk the configured `source_dir`, filter by extensions/globs.
+3. **Match releases** – Apply regex patterns to filenames. Season/episode selection uses capture groups plus metadata-driven alias tables.
+4. **Render paths** – Build `{show}/{season}/{filename}` using templates, sanitize components, and enforce deterministic numbering.
+5. **Link/copy** – Hardlink by default (configurable to copy or symlink). Skips already-processed files unless `skip_existing: false`.
+
+## CLI Usage
 
 ```bash
-docker run -d \
-  --name=sports-organizer \
-  -e SRC_DIR=/data/torrents/sport \
-  -e DEST_DIR=/data/media/sport \
-  -e PROCESS_INTERVAL=60 \
-  -e PUSHOVER_NOTIFICATION=false \
-  -v /path/to/downloads:/data \
-  --restart unless-stopped \
-  ghcr.io/username/sports-organizer:latest
+python -m sports_organizer.cli --config /config/sports.yaml --dry-run --verbose
 ```
 
-### Docker Compose
+Flags:
+- `--dry-run` – Preview actions without creating files.
+- `--once` – Force a single pass even if `poll_interval` > 0.
+- `--interval` – Override the poll interval.
+- `--verbose` – Enable debug logging to inspect matching decisions.
 
-```yaml
-services:
-  sports-organizer:
-    image: ghcr.io/s0len/sports-organizer:latest
-    container_name: sports-organizer
-    environment:
-      - PUID=568 # Replace with the user owner
-      - PGID=568 # Replace with the group owner
-      - TZ=Europe/London
-      - SRC_DIR=/data/torrents/sport
-      - DEST_DIR=/data/media/sport
-      - PROCESS_INTERVAL=60
-      - PUSHOVER_NOTIFICATION=false
-      # Optional Pushover notification settings
-      # - PUSHOVER_USER_KEY=your_user_key
-      # - PUSHOVER_API_TOKEN=your_api_token
-      - DEBUG=false
-    volumes:
-      - /path/to/actual/data:/data
-    restart: unless-stopped
-```
+## Tips
 
-### HelmRelease in Kubernetes
+- **Multiple metadata feeds**: Add additional `sports` entries referencing different URLs (MotoGP, WEC, NBA, etc.).
+- **Complex numbering**: Combine `season_overrides` and custom templates to produce formats like `S2024E2024-03-10` for weekly leagues.
+- **Testing**: Use `--dry-run --verbose` to confirm every release hits the correct episode before enabling writes.
+- **Caching**: The cache directory stores metadata JSON. Delete it to force a refetch when remote YAML changes.
 
-```yaml
+## Roadmap
+
+- Additional built-in pattern packs (MotoGP, IndyCar, NBA, NFL).
+- Optional webhook/websocket triggers for continuous operation.
+- Strategy plugins for bespoke numbering edge cases.
+
 ---
-# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/main/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
-apiVersion: helm.toolkit.fluxcd.io/v2
-kind: HelmRelease
-metadata:
-  name: &app sports-organizer
-  namespace: media
-spec:
-  interval: 15m
-  chart:
-    spec:
-      chart: app-template
-      version: 3.7.2
-      sourceRef:
-        kind: HelmRepository
-        name: bjw-s
-        namespace: flux-system
-  maxHistory: 3
-  install:
-    remediation:
-      retries: 3
-  upgrade:
-    cleanupOnFail: true
-    remediation:
-      strategy: rollback
-      retries: 3
 
-  values:
-    controllers:
-      main:
-        type: deployment
-        containers:
-          app:
-            image:
-              repository: ghcr.io/s0len/sports-organizer
-              tag: develop
-            env:
-              SRC_DIR: /data/torrents/sport
-              DEST_DIR: /data/media/sport
-              PROCESS_INTERVAL: 60
-              PUSHOVER_NOTIFICATION: true
-            envFrom:
-              - secretRef:
-                  name: sports-organizer-secret
-            securityContext:
-              privileged: false
-
-    defaultPodOptions:
-      automountServiceAccountToken: false
-      enableServiceLinks: false
-      securityContext:
-        runAsUser: 568
-        runAsGroup: 568
-        runAsNonRoot: true
-        fsGroup: 568
-
-    persistence:
-      data:
-        type: nfs
-        server: "${TRUENAS_IP}"
-        path: /mnt/rust/data
-        globalMounts:
-          - path: /data
-            readOnly: false
-
-      tmp:
-        type: emptyDir
-        medium: Memory
-```
-
-## Configuration
-
-### Environment Variables
-
-| Variable | Description | Default | Required |
-|----------|-------------|---------|----------|
-| SRC_DIR | Source directory to monitor for new files | /data/torrents/sport | Yes |
-| DEST_DIR | Destination directory for organized files | /data/media/sport | Yes |
-| PROCESS_INTERVAL | How often to check for new files (in seconds) | 60 | No |
-| PUSHOVER_NOTIFICATION | Enable Pushover notifications | false | No |
-| PUSHOVER_USER_KEY | Pushover user key | - | Only if notifications enabled |
-| PUSHOVER_API_TOKEN | Pushover API token | - | Only if notifications enabled |
-| DEBUG | Enable debug logging | false | No |
-
-## File Organization Structure
-
-Files are organized in the following structure:
-
-```
-/data/media/sport/
-├── Formula 1 2023/
-│   ├── 1 Bahrain/
-│   │   ├── 1x3 Formula 1 Free Practice 1.mkv
-│   │   ├── 1x4 Formula 1 Free Practice 2.mkv
-│   │   ├── 1x5 Formula 1 Free Practice 3.mkv
-│   │   ├── 1x7 Formula 1 Qualifying.mkv
-│   │   └── 1x10 Formula 1 Race.mkv
-│   └── 2 Saudi Arabia/
-│       └── ...
-├── MotoGP 2023/
-│   ├── 1 Qatar/
-│   │   ├── 1x1 MotoGP Free Practice 1.mkv
-│   │   ├── 1x3 MotoGP Qualifying 1.mkv
-│   │   ├── 1x5 MotoGP Sprint.mkv
-│   │   └── 1x6 MotoGP Race.mkv
-│   └── ...
-└── ...
-```
-
-## Usage
-
-1. Mount your download directory to the container's `/data/torrents/sport` path
-2. Mount your media directory to the container's `/data/media/sport` path
-3. The container will automatically scan for new files and organize them
-4. Add your organized media directory to Plex as a TV Show library
-
-## Troubleshooting
-
-Check the container logs for any errors:
-
-```bash
-docker logs sports-organizer
-```
-
-Common issues:
-- Incorrect permissions on source or destination directories
-- Unsupported file naming format
-- Insufficient disk space
-
-## Autobrr regex patterns
-
-The following regex patterns are used to identify racing releases that work with Sports Organizer.
-
-### Formula 1
-
-```regex
-(F1|Formula.*1|F2|Formula.*2|F3|Formula.*3)\.\d{4}\.Round\d+\.[^.]+\..*?(Drivers.*Press.*Conference|Weekend.*Warm.*Up|FP\d?|Practice|Sprint.Qualifying|Sprint|Qualifying|Pre.Qualifying|Post.Qualifying|Race|Pre.Race|Post.Race|Sprint.Race|Feature.*Race)\..*1080p.*MWR
-```
-
-### MotoGP, Moto2, Moto3
-
-```regex
-([Mm][Oo][Tt][Oo][Gg][Pp]|[Mm][Oo][Tt][Oo]2|[Mm][Oo][Tt][Oo]3)\.\d{4}\.Round\d+\.([^.]+\.)+((FP\d?|[Pp][Rr][Aa][Cc][Tt][Ii][Cc][Ee]|[Ss][Pp][Rr][Ii][Nn][Tt]|[Qq][Uu][Aa][Ll][Ii][Ff][Yy][Ii][Nn][Gg]|Q1|Q2|[Rr][Aa][Cc][Ee]))\..*h264.*MWR
-```
-
-### World Superbike, World Supersport, World Supersport 300
-
-```regex
-([Ww][Ss][Bb][Kk]|[Ww][Ss][Ss][Pp]|[Ww][Ss][Ss][Pp]300)\.\d{4}\.Round\d+\.[^.]+\.(FP\d?|[Ss]eason\.[Pp]review|[Ss]uperpole|[Rr]ace\.[Oo]ne|[Rr]ace\.[Tt]wo|[Ww]arm\.[Uu]p(\.[Oo]ne|\.[Tt]wo)?|[Ww]eekend\.[Hh]ighlights)\..*h264..*MWR
-```
-
-### Isle of Man TT
-
-```regex
-[Ii]sle.[Oo]f.[Mm]an.[Tt][Tt].*MWR
-```
-
-### UFC
-
-```regex
-UFC.\d{3}.*(PPV|Early.Prelims|Prelims).*1080p.*WEB.*h264.*VERUM
-```
-
-### FormulaE
-
-```regex
-[Ff][Oo][Rr][Mm][Uu][Ll][Aa][Ee]\.\d{4}\.Round\d+\.(?:[A-Za-z]+(?:\.[A-Za-z]+)?)\.(?:Preview.Show|[Qq]ualifying|[Rr]ace)\..*h264.*-MWR
-```
-
-## License
-
-GPL v3
-
-## Support
-
-For issues, feature requests, or contributions, please visit the GitHub repository.
+[^1]: Formula 1 2025 metadata feed – https://raw.githubusercontent.com/s0len/meta-manager-config/refs/heads/main/metadata-files/formula1-2025.yaml
