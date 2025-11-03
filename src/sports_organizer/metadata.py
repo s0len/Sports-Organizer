@@ -17,6 +17,14 @@ from .utils import ensure_directory, sha1_of_text
 LOGGER = logging.getLogger(__name__)
 
 
+def _json_default(obj: Any) -> Any:
+    if isinstance(obj, dt.datetime):
+        return obj.isoformat(timespec="seconds")
+    if isinstance(obj, dt.date):
+        return obj.isoformat()
+    raise TypeError(f"Object of type {obj.__class__.__name__} is not JSON serializable")
+
+
 def _cache_path(cache_dir: Path, url: str) -> Path:
     digest = sha1_of_text(url)
     return cache_dir / "metadata" / f"{digest}.json"
@@ -48,7 +56,7 @@ def _store_cache(cache_file: Path, content: Dict[str, Any]) -> None:
         "content": content,
     }
     with cache_file.open("w", encoding="utf-8") as handle:
-        json.dump(payload, handle, ensure_ascii=False, indent=2)
+        json.dump(payload, handle, ensure_ascii=False, indent=2, default=_json_default)
 
 
 def fetch_metadata(metadata: MetadataConfig, settings: Settings) -> Dict[str, Any]:
@@ -94,8 +102,12 @@ def _season_round_from_title(title: str) -> Optional[int]:
 def _parse_originally_available(value: Optional[str]) -> Optional[dt.date]:
     if not value:
         return None
+    if isinstance(value, dt.datetime):
+        return value.date()
+    if isinstance(value, dt.date):
+        return value
     try:
-        return dt.date.fromisoformat(value.split(" ")[0])
+        return dt.date.fromisoformat(str(value).split(" ")[0])
     except ValueError:
         return None
 
@@ -204,7 +216,7 @@ class MetadataNormalizer:
 
     def _parse_episodes(self, episodes_raw: Any) -> List[Episode]:
         if isinstance(episodes_raw, dict):
-            episodes_items = sorted(episodes_raw.items(), key=lambda item: str(item[0]))
+            episodes_items = sorted(episodes_raw.items(), key=lambda item: _season_sort_value(item[0]))
         else:
             episodes_items = list(enumerate(episodes_raw))
 

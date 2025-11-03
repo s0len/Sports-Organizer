@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import dataclasses
+from copy import deepcopy
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional
@@ -169,6 +170,70 @@ def _build_sport_config(data: Dict[str, Any], defaults: DestinationTemplates, gl
     )
 
 
+def _deep_update(target: Dict[str, Any], updates: Dict[str, Any]) -> Dict[str, Any]:
+    for key, value in updates.items():
+        if isinstance(value, dict):
+            existing = target.get(key)
+            if isinstance(existing, dict):
+                _deep_update(existing, value)
+            else:
+                target[key] = deepcopy(value)
+        elif isinstance(value, list):
+            target[key] = deepcopy(value)
+        else:
+            target[key] = value
+    return target
+
+
+def _expand_sport_variants(sport_data: Dict[str, Any]) -> List[Dict[str, Any]]:
+    variants: List[Dict[str, Any]] = sport_data.get("variants", [])
+    if not variants:
+        return [sport_data]
+
+    base = {key: deepcopy(value) for key, value in sport_data.items() if key != "variants"}
+    expanded: List[Dict[str, Any]] = []
+
+    base_id = base.get("id")
+    if not base_id:
+        raise ValueError("Sport entries with variants must define a base 'id'")
+
+    for variant in variants:
+        combined = deepcopy(base)
+        _deep_update(combined, {key: value for key, value in variant.items() if key not in {"id_suffix", "year"}})
+
+        variant_id = variant.get("id")
+        variant_year = variant.get("year")
+        variant_suffix = variant.get("id_suffix") or variant_year
+
+        if variant_id:
+            combined_id = variant_id
+        elif variant_suffix:
+            combined_id = f"{base_id}_{variant_suffix}"
+        else:
+            raise ValueError(f"Variant for sport '{base_id}' must define 'id', 'id_suffix', or 'year'")
+
+        combined["id"] = combined_id
+
+        if "name" not in combined:
+            base_name = base.get("name", base_id)
+            if "name" in variant:
+                combined["name"] = variant["name"]
+            elif variant_year is not None:
+                combined["name"] = f"{base_name} {variant_year}"
+            elif variant_suffix:
+                combined["name"] = f"{base_name} {variant_suffix}"
+            else:
+                combined["name"] = base_name
+
+        combined.pop("year", None)
+        combined.pop("id_suffix", None)
+        combined.pop("variants", None)
+
+        expanded.append(combined)
+
+    return expanded
+
+
 def _build_settings(data: Dict[str, Any]) -> Settings:
     destination_defaults = DestinationTemplates(
         root_template=data.get("destination", {}).get("root_template", "{show_title}"),
@@ -197,9 +262,16 @@ def load_config(path: Path) -> AppConfig:
     settings = _build_settings(data.get("settings", {}))
     defaults = settings.default_destination
     sports_raw: Iterable[Dict[str, Any]] = data.get("sports", [])
-    sports = [
-        _build_sport_config(sport_data, defaults, settings.link_mode)
-        for sport_data in sports_raw
-    ]
+
+    expanded_sports: List[Dict[str, Any]] = []
+    for sport_data in sports_raw:
+        for variant_data in _expand_sport_variants(sport_data):
+            expanded_sports.append(variant_data)
+
+    sports = []
+    for sport_data in expanded_sports:
+        if "metadata" not in sport_data:
+            raise ValueError(f"Sport '{sport_data.get('id')}' is missing required 'metadata' section")
+        sports.append(_build_sport_config(sport_data, defaults, settings.link_mode))
 
     return AppConfig(settings=settings, sports=sports)

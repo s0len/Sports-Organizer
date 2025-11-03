@@ -9,20 +9,14 @@ if [ "${DEBUG:-false}" = "true" ]; then
 fi
 
 : "${CONFIG_PATH:=/config/sports.yaml}"
-: "${SRC_DIR:=/data/source}"
-: "${DEST_DIR:=/data/destination}"
+: "${SOURCE_DIR:=/data/source}"
+: "${DESTINATION_DIR:=/data/destination}"
 : "${CACHE_DIR:=/data/cache}"
 : "${PROCESS_INTERVAL:=0}"
 : "${RUN_ONCE:=true}"
 : "${DRY_RUN:=false}"
 
-export SPORTS_ORGANIZER_CONFIG="$CONFIG_PATH"
-export SPORTS_ORGANIZER_SOURCE="$SRC_DIR"
-export SPORTS_ORGANIZER_DESTINATION="$DEST_DIR"
-export SPORTS_ORGANIZER_CACHE="$CACHE_DIR"
-export SPORTS_ORGANIZER_PROCESS_INTERVAL="$PROCESS_INTERVAL"
-export SPORTS_ORGANIZER_RUN_ONCE="$RUN_ONCE"
-export SPORTS_ORGANIZER_DRY_RUN="$DRY_RUN"
+export CONFIG_PATH SOURCE_DIR DESTINATION_DIR CACHE_DIR PROCESS_INTERVAL RUN_ONCE DRY_RUN
 
 if ! command -v python3 >/dev/null 2>&1; then
   echo "Python 3 is required but not found on PATH" >&2

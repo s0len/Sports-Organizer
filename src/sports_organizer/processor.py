@@ -5,7 +5,7 @@ import re
 from dataclasses import dataclass
 from fnmatch import fnmatch
 from pathlib import Path
-from typing import Iterable, List, Set
+from typing import Iterable, List, Optional, Set, Tuple
 
 from rich.progress import Progress
 
@@ -14,7 +14,7 @@ from .matcher import PatternRuntime, compile_patterns, match_file_to_episode
 from .metadata import load_show
 from .models import ProcessingStats, Show, SportFileMatch
 from .templating import render_template
-from .utils import ensure_directory, link_file, sanitize_component, slugify
+from .utils import ensure_directory, link_file, sanitize_component, slugify, normalize_token
 
 LOGGER = logging.getLogger(__name__)
 
@@ -37,9 +37,9 @@ class Processor:
         runtimes: List[SportRuntime] = []
         for sport in self.config.sports:
             if not sport.enabled:
-                LOGGER.info("Skipping disabled sport %s", sport.id)
+                LOGGER.debug("Skipping disabled sport %s", sport.id)
                 continue
-            LOGGER.info("Loading metadata for %s", sport.name)
+            LOGGER.debug("Loading metadata for %s", sport.name)
             show = load_show(self.config.settings, sport.metadata)
             patterns = compile_patterns(sport)
             extensions = {ext.lower() for ext in sport.source_extensions}
@@ -50,29 +50,45 @@ class Processor:
         runtimes = self._load_sports()
         stats = ProcessingStats()
 
-        source_files = list(self._gather_source_files())
-        LOGGER.info("Discovered %d candidate files", len(source_files))
+        source_files = list(self._gather_source_files(stats))
+        file_count = len(source_files)
+        if LOGGER.isEnabledFor(logging.DEBUG):
+            LOGGER.debug("Discovered %d candidate files", file_count)
 
         with Progress() as progress:
             task_id = progress.add_task("Processing", total=len(source_files))
             for source_path in source_files:
-                handled = self._process_single_file(source_path, runtimes, stats)
+                handled, diagnostics = self._process_single_file(source_path, runtimes, stats)
                 if not handled:
-                    stats.register_ignored()
+                    detail = self._format_ignored_detail(source_path, diagnostics)
+                    stats.register_ignored(detail)
                 progress.advance(task_id, 1)
 
-        LOGGER.info(
-            "Summary: %d processed, %d skipped, %d ignored", stats.processed, stats.skipped, stats.ignored
-        )
+        should_log_summary = LOGGER.isEnabledFor(logging.DEBUG) or self._has_activity(stats)
+        if should_log_summary:
+            LOGGER.info(
+                "Summary: %d processed, %d skipped, %d ignored", stats.processed, stats.skipped, stats.ignored
+            )
         if stats.errors:
             for error in stats.errors:
                 LOGGER.error(error)
+
+        has_details = self._has_detailed_activity(stats)
+        has_issues = bool(stats.errors or stats.warnings)
+        if LOGGER.isEnabledFor(logging.DEBUG):
+            if has_details or has_issues:
+                level = logging.INFO if has_issues else logging.DEBUG
+                self._log_detailed_summary(stats, level=level)
+        elif has_issues:
+            self._log_detailed_summary(stats)
         return stats
 
-    def _gather_source_files(self) -> Iterable[Path]:
+    def _gather_source_files(self, stats: Optional[ProcessingStats] = None) -> Iterable[Path]:
         root = self.config.settings.source_dir
         if not root.exists():
             LOGGER.warning("Source directory %s does not exist", root)
+            if stats is not None:
+                stats.register_warning(f"Source directory missing: {root}")
             return []
 
         for path in root.rglob("*"):
@@ -90,38 +106,124 @@ class Processor:
         source_path: Path,
         runtimes: List[SportRuntime],
         stats: ProcessingStats,
-    ) -> bool:
-        for runtime in runtimes:
-            if source_path.suffix.lower() not in runtime.extensions:
-                continue
+    ) -> Tuple[bool, List[Tuple[str, str]]]:
+        suffix = source_path.suffix.lower()
+        matching_runtimes = [runtime for runtime in runtimes if suffix in runtime.extensions]
+        ignored_reasons: List[Tuple[str, str]] = []
+
+        if not matching_runtimes:
+            message = f"No configured sport accepts extension '{suffix or '<no extension>'}'"
+            ignored_reasons.append(("ignored", message))
+            LOGGER.debug("Ignoring %s: %s", source_path, message)
+            return False, ignored_reasons
+
+        for runtime in matching_runtimes:
             if not self._matches_globs(source_path, runtime.sport):
+                patterns = runtime.sport.source_globs or ["*"]
+                message = f"Excluded by source_globs {patterns}"
+                tagged_message = f"{runtime.sport.id}: {message}"
+                ignored_reasons.append(("ignored", tagged_message))
+                LOGGER.debug("Ignoring %s for sport %s: %s", source_path.name, runtime.sport.id, message)
                 continue
 
-            detection = match_file_to_episode(source_path.name, runtime.sport, runtime.show, runtime.patterns)
-            if not detection:
-                continue
-
-            season = detection["season"]
-            episode = detection["episode"]
-            pattern = detection["pattern"]
-            groups = detection["groups"]
-
-            context = self._build_context(runtime, source_path, season, episode, groups)
-            destination = self._build_destination(runtime, pattern, context)
-
-            match = SportFileMatch(
-                source_path=source_path,
-                destination_path=destination,
-                show=runtime.show,
-                season=season,
-                episode=episode,
-                context=context,
-                sport=runtime.sport,
+            detection_messages: List[Tuple[str, str]] = []
+            detection = match_file_to_episode(
+                source_path.name,
+                runtime.sport,
+                runtime.show,
+                runtime.patterns,
+                diagnostics=detection_messages,
             )
+            if detection:
+                season = detection["season"]
+                episode = detection["episode"]
+                pattern = detection["pattern"]
+                groups = detection["groups"]
 
-            self._handle_match(match, stats)
-            return True
-        return False
+                context = self._build_context(runtime, source_path, season, episode, groups)
+                destination = self._build_destination(runtime, pattern, context)
+
+                match = SportFileMatch(
+                    source_path=source_path,
+                    destination_path=destination,
+                    show=runtime.show,
+                    season=season,
+                    episode=episode,
+                    pattern=pattern,
+                    context=context,
+                    sport=runtime.sport,
+                )
+
+                self._handle_match(match, stats)
+                return True, []
+
+            if not detection_messages:
+                detection_messages.append(("ignored", "No matching pattern resolved to an episode"))
+
+            for severity, message in detection_messages:
+                tagged_message = f"{runtime.sport.id}: {message}"
+                ignored_reasons.append((severity, tagged_message))
+                LOGGER.debug(
+                    "Ignoring %s for sport %s: %s",
+                    source_path.name,
+                    runtime.sport.id,
+                    message,
+                )
+                if severity == "warning":
+                    stats.register_warning(f"{source_path.name}: {tagged_message}")
+                elif severity == "error":
+                    stats.errors.append(f"{source_path.name}: {tagged_message}")
+
+        return False, ignored_reasons
+
+    def _format_ignored_detail(self, source_path: Path, diagnostics: List[Tuple[str, str]]) -> str:
+        if not diagnostics:
+            return f"{source_path.name}: ignored with no diagnostics"
+
+        collapsed: List[str] = []
+        for severity, message in diagnostics:
+            prefix = severity.upper()
+            collapsed.append(f"[{prefix}] {message}")
+
+        unique = list(dict.fromkeys(collapsed))
+        details = "; ".join(unique)
+        return f"{source_path.name}: {details}"
+
+    def _log_detailed_summary(self, stats: ProcessingStats, *, level: int = logging.INFO) -> None:
+        def _format_lines(items: List[str]) -> str:
+            if not items:
+                return "  (none)"
+            unique_items = list(dict.fromkeys(items))
+            return "\n".join(f"  - {item}" for item in unique_items)
+
+        summary = (
+            "Detailed Summary\n"
+            f"Errors ({len(stats.errors)}):\n{_format_lines(stats.errors)}\n"
+            f"Warnings ({len(stats.warnings)}):\n{_format_lines(stats.warnings)}\n"
+            f"Skipped ({len(stats.skipped_details)}):\n{_format_lines(stats.skipped_details)}\n"
+            f"Ignored ({len(stats.ignored_details)}):\n{_format_lines(stats.ignored_details)}"
+        )
+
+        LOGGER.log(level, summary)
+
+    @staticmethod
+    def _has_activity(stats: ProcessingStats) -> bool:
+        return bool(
+            stats.processed
+            or stats.skipped
+            or stats.ignored
+            or stats.errors
+            or stats.warnings
+        )
+
+    @staticmethod
+    def _has_detailed_activity(stats: ProcessingStats) -> bool:
+        return bool(
+            stats.errors
+            or stats.warnings
+            or stats.skipped_details
+            or stats.ignored_details
+        )
 
     def _build_context(self, runtime: SportRuntime, source_path: Path, season, episode, groups) -> Dict[str, object]:
         show = runtime.show
@@ -207,10 +309,39 @@ class Processor:
         settings = self.config.settings
         link_mode = (match.sport.link_mode or settings.link_mode).lower()
 
-        if settings.skip_existing and destination.exists():
-            LOGGER.info("Skipping existing destination %s", destination)
-            stats.register_skipped(f"Destination exists: {destination}")
-            return
+        replace_existing = False
+        if destination.exists():
+            if settings.skip_existing:
+                if self._should_overwrite_existing(match):
+                    replace_existing = True
+                else:
+                    LOGGER.debug(
+                        "Skipping existing destination %s (source %s)",
+                        destination,
+                        match.source_path,
+                    )
+                    stats.register_skipped(
+                        f"Destination exists: {destination} (source {match.source_path})",
+                        is_error=False,
+                    )
+                    return
+
+        if replace_existing:
+            LOGGER.info(
+                "Replacing existing destination %s with higher priority source %s",
+                destination,
+                match.source_path,
+            )
+            if not settings.dry_run:
+                try:
+                    destination.unlink()
+                except OSError as exc:
+                    LOGGER.error("Failed to remove existing destination %s: %s", destination, exc)
+                    stats.register_skipped(
+                        f"Failed to replace destination {destination}: {exc}",
+                        is_error=True,
+                    )
+                    return
 
         LOGGER.info(
             "%s -> %s (S%sE%s)",
@@ -229,3 +360,114 @@ class Processor:
             stats.register_processed()
         else:
             stats.register_skipped(f"Failed to link {match.source_path} -> {destination}: {result.reason}")
+
+    def _should_overwrite_existing(self, match: SportFileMatch) -> bool:
+        source_name = match.source_path.name.lower()
+        if any(keyword in source_name for keyword in ("repack", "proper")):
+            return True
+
+        if "2160p" in source_name:
+            return True
+
+        session_raw = str(match.context.get("session") or "").strip()
+        if not session_raw:
+            return False
+
+        session_specificity = self._specificity_score(session_raw)
+        if session_specificity == 0:
+            return False
+
+        session_token = normalize_token(session_raw)
+        alias_candidates = self._alias_candidates(match)
+
+        baseline_scores = [
+            self._specificity_score(alias)
+            for alias in alias_candidates
+            if normalize_token(alias) != session_token
+        ]
+
+        if not baseline_scores:
+            return False
+
+        return session_specificity > min(baseline_scores)
+
+    def _alias_candidates(self, match: SportFileMatch) -> List[str]:
+        candidates: List[str] = []
+
+        canonical = match.episode.title
+        if canonical:
+            candidates.append(canonical)
+
+        candidates.extend(match.episode.aliases)
+
+        session_aliases = match.pattern.session_aliases
+        if canonical in session_aliases:
+            candidates.extend(session_aliases[canonical])
+        else:
+            canonical_token = normalize_token(canonical) if canonical else ""
+            for key, aliases in session_aliases.items():
+                if canonical_token and normalize_token(key) == canonical_token:
+                    candidates.extend(aliases)
+                    break
+
+        # Deduplicate while preserving order and skip falsy values
+        seen: Set[str] = set()
+        unique_candidates: List[str] = []
+        for value in candidates:
+            if not value:
+                continue
+            if value not in seen:
+                seen.add(value)
+                unique_candidates.append(value)
+
+        return unique_candidates
+
+    @staticmethod
+    def _specificity_score(value: str) -> int:
+        if not value:
+            return 0
+
+        score = 0
+        lower = value.lower()
+
+        digit_count = sum(ch.isdigit() for ch in value)
+        score += digit_count * 2
+
+        score += lower.count(".") + lower.count("-") + lower.count("_")
+
+        if re.search(r"\\bpart[\\s._-]*\\d+\\b", lower):
+            score += 2
+        if re.search(r"\\bstage[\\s._-]*\\d+\\b", lower):
+            score += 1
+        if re.search(r"\\b(?:heat|round|leg|match|session)[\\s._-]*\\d+\\b", lower):
+            score += 1
+        if re.search(r"(?:^|[\\s._-])(qf|sf|q|fp|sp)[\\s._-]*\\d+\\b", lower):
+            score += 1
+
+        spelled_markers = (
+            "one",
+            "two",
+            "three",
+            "four",
+            "five",
+            "six",
+            "seven",
+            "eight",
+            "nine",
+            "ten",
+            "first",
+            "second",
+            "third",
+            "fourth",
+            "fifth",
+            "sixth",
+            "seventh",
+            "eighth",
+            "ninth",
+            "tenth",
+        )
+        for marker in spelled_markers:
+            if re.search(rf"\\b{marker}\\b", lower):
+                score += 1
+
+        return score

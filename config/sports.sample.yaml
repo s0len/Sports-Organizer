@@ -1,7 +1,7 @@
 settings:
-  source_dir: ${SPORTS_ORGANIZER_SOURCE:-/data/source}
-  destination_dir: ${SPORTS_ORGANIZER_DESTINATION:-/data/destination}
-  cache_dir: ${SPORTS_ORGANIZER_CACHE:-/data/cache}
+  source_dir: ${SOURCE_DIR:-/data/source}
+  destination_dir: ${DESTINATION_DIR:-/data/destination}
+  cache_dir: ${CACHE_DIR:-/var/cache/sports-organizer}
   dry_run: false
   skip_existing: true
   poll_interval: 0
@@ -11,67 +11,444 @@ settings:
     season_dir_template: "{season_number:02d} {season_title}"
     episode_template: "{show_title} - S{season_number:02d}E{episode_number:02d} - {episode_title}.{extension}"
 
+pattern_sets:
+  formula1: &formula1_patterns
+    - description: Formula 1 MWR releases
+      regex: '(?i)^Formula\.?1\.(?P<year>\d{4})\.Round(?P<round>\d{2})\.(?P<location>[^.]+)\.(?P<venue>[^.]+)\.(?P<session>[^.]+(?:\.[^.]+)*?(?:\.Part\d+)?)(?=\.F1)'
+      season_selector:
+        mode: round
+        group: round
+        offset: 0
+      episode_selector:
+        group: session
+      session_aliases: &formula1_session_aliases
+        Drivers Press Conference:
+          - Drivers.Press.Conference
+          - Press.Conference
+        Drivers Press Conference Part 1:
+          - Drivers.Press.Conference.Part1
+          - Drivers Press Conference Part 1
+          - Drivers Press Conference Part1
+          - Press.Conference.Part1
+        Drivers Press Conference Part 2:
+          - Drivers.Press.Conference.Part2
+          - Drivers Press Conference Part 2
+          - Drivers Press Conference Part2
+          - Press.Conference.Part2
+        Weekend Warm Up:
+          - Weekend.Warm.Up
+        Free Practice 1:
+          - FP1
+          - Free.Practice.1
+        Free Practice 2:
+          - FP2
+          - Free.Practice.2
+        Free Practice 3:
+          - FP3
+          - Free.Practice.3
+        Sprint Qualifying:
+          - Sprint.Qualifying
+          - Sprint.Shootout
+        Sprint:
+          - Sprint.Race
+          - Sprint
+        Qualifying:
+          - Qualifying
+          - Quali
+        Race:
+          - Race
+        Pre Qualifying Show:
+          - Pre.Qualifying
+        Post Qualifying Show:
+          - Post.Qualifying
+        Pre Race Show:
+          - Pre.Race
+        Post Race Show:
+          - Post.Race
+        Post Sprint Show:
+          - Post.Sprint
+        Pre Sprint Show:
+          - Pre.Sprint
+      destination_root_template: "{show_title}"
+      season_dir_template: "{season_round:02d} {season_title}"
+      filename_template: "{show_title} - S{season_number:02d}E{episode_number:02d} - {episode_title}.{extension}"
+    - description: Formula 1 F1Carreras releases
+      regex: '(?i)^Formula\.?1\.S(?P<year>\d{4})E\d+\.Round(?P<round>\d{2})\.(?P<location>[^.]+(?:\.[^.]+)*)\.(?P<session>[^.]+(?:\.[^.]+)*?)(?=\.F1TV).*?-F1Carreras\.(?:mkv|mp4|ts)$'
+      season_selector:
+        mode: round
+        group: round
+        offset: 0
+      episode_selector:
+        group: session
+      session_aliases: *formula1_session_aliases
+      destination_root_template: "{show_title}"
+      season_dir_template: "{season_round:02d} {season_title}"
+      filename_template: "{show_title} - S{season_number:02d}E{episode_number:02d} - {episode_title}.{extension}"
+    - description: Formula 1 spaced MWR releases
+      regex: '(?i)^Formula1\s+(?P<year>\d{4})\s+Round(?P<round>\d{2})\s+(?P<location>[^\s]+)\s+(?P<session>.+?(?:\s+Part\d+)?)\s*(?=\s+F1(?:TV|LIVE))'
+      season_selector:
+        mode: round
+        group: round
+        offset: 0
+      episode_selector:
+        group: session
+      destination_root_template: "{show_title}"
+      season_dir_template: "{season_round:02d} {season_title}"
+      filename_template: "{show_title} - S{season_number:02d}E{episode_number:02d} - {episode_title}.{extension}"
+    - description: Formula 1 VERUM releases
+      regex: '(?i)^Formula1\.(?P<year>\d{4})\.(?P<season_slug>[^.]+(?:\.[^.]+){1,2})\.(?P<session>Qualifying|Sprint\.Race|Race)(?=\.1080p)'
+      season_selector:
+        mode: title
+        group: season_slug
+        offset: 0
+      episode_selector:
+        group: session
+        allow_fallback_to_title: true
+      session_aliases:
+        Sprint:
+          - Sprint.Race
+      destination_root_template: "{show_title}"
+      season_dir_template: "{season_round:02d} {season_title}"
+      filename_template: "{show_title} - S{season_number:02d}E{episode_number:02d} - {episode_title}.{extension}"
+    - description: Formula 1 VERUM full race packs
+      regex: '(?i)^Formula1\.(?P<year>\d{4})\.(?P<season_slug>[^.]+(?:\.[^.]+)*?)(?=\.Grand\.Prix)\.(?P<session>Grand\.Prix)\.1080p.*'
+      season_selector:
+        mode: title
+        group: season_slug
+      episode_selector:
+        group: session
+      session_aliases:
+        Race:
+          - Grand.Prix
+      destination_root_template: "{show_title}"
+      season_dir_template: "{season_round:02d} {season_title}"
+      filename_template: "{show_title} - S{season_number:02d}E{episode_number:02d} - {episode_title}.{extension}"
+  motogp: &motogp_patterns
+    - description: MotoGP DNU releases
+      regex: '(?i)^(?=.*-DNU\.(?:mkv|mp4|ts)$)MotoGP\.(?P<year>\d{4})\.Round(?P<round>\d{2})\.(?P<location>[^.]+(?:\.[^.]+)*)\.(?P<session>FP[1-4]|Practice(?:\.One|\.Two|\.Three|\.Four)?|Q[a-z]+(?:\.Q[1-3]|\.One|\.Two|\.Three)?|Warm\.?Up|Sprint|Race)'
+      season_selector:
+        mode: round
+        group: round
+      episode_selector:
+        group: session
+      session_aliases: &motogp_session_aliases
+        Practice One:
+          - Practice.One
+          - Practice1
+          - Practice-1
+          - Practice_1
+          - Practice
+          - FP1
+          - Free.Practice.1
+          - FreePractice1
+        Practice Two:
+          - Practice.Two
+          - Practice2
+          - Practice-2
+          - Practice_2
+          - FP2
+          - Free.Practice.2
+          - FreePractice2
+        Practice Three:
+          - Practice.Three
+          - Practice3
+          - Practice-3
+          - Practice_3
+          - FP3
+          - Free.Practice.3
+          - FreePractice3
+        Practice Four:
+          - Practice.Four
+          - Practice4
+          - Practice-4
+          - Practice_4
+          - FP4
+          - Free.Practice.4
+          - FreePractice4
+        Warm Up:
+          - Warm.Up
+          - WarmUp
+          - Warm-Up
+        Qualifying One:
+          - Qualifying.Q1
+          - Qualifying1
+          - Qualifying-1
+          - Qualifying_1
+          - Q1
+        Qualifying Two:
+          - Qualifying.Q2
+          - Qualifying2
+          - Qualifying-2
+          - Qualifying_2
+          - Q2
+          - Qualifying
+        Qualifying Three:
+          - Qualifying.Q3
+          - Qualifying3
+          - Qualifying-3
+          - Qualifying_3
+          - Q3
+        Sprint:
+          - Sprint.Race
+        Race:
+          - Grand.Prix
+          - GP
+      destination_root_template: "{show_title}"
+      season_dir_template: "{season_round:02d} {season_title}"
+      filename_template: "{show_title} - S{season_number:02d}E{episode_number:02d} - {episode_title}.{extension}"
+    - description: MotoGP MWR releases
+      regex: '(?i)^(?=.*-MWR\.(?:mkv|mp4|ts)$)MotoGP\.(?P<year>\d{4})\.Round(?P<round>\d{2})\.(?P<location>[^.]+(?:\.[^.]+)*)\.(?P<session>FP[1-4]|Practice(?:\.One|\.Two|\.Three|\.Four)?|Q[a-z]+(?:\.Q[1-3]|\.One|\.Two|\.Three)?|Warm\.?Up|Sprint|Race)'
+      season_selector:
+        mode: round
+        group: round
+      episode_selector:
+        group: session
+      session_aliases: *motogp_session_aliases
+      destination_root_template: "{show_title}"
+      season_dir_template: "{season_round:02d} {season_title}"
+      filename_template: "{show_title} - S{season_number:02d}E{episode_number:02d} - {episode_title}.{extension}"
+  isle_of_man_tt: &isle_of_man_tt_patterns
+    - description: Isle of Man TT releases
+      regex: '(?i)^Isle[.\s_-]*Of[.\s_-]*Man[.\s_-]*TT[.\s_-]*(?P<year>\d{4})[.\s_-]+(?P<session>.+?)(?=(?:[.\s_-]+(?:ITVX|ITV|BBC|Sky|WEBRip|WEB-?DL|WEB|AMZN|NF|F1TV|1080p|2160p|720p|4K|x264|x265|h264|h265|HEVC|AAC|AC3|DDP|EAC3|Atmos|Dolby|DTS|PCM|10bit|8bit|BluRay|Rip|Pack|Collection|Sample|Trailer|Bonus|Subs?|Subbed|Dual|Multi|Proper|Repack|Extended|DNU|VERUM|MWR|Hybrid|PAL|NTSC|Docu|Sports|Broadcast))(?:[.\s_-]|$)|\.(?:mkv|mp4|ts|m4v|avi)$)'
+      season_selector:
+        mode: key
+        group: year
+      episode_selector:
+        group: session
+      session_aliases:
+        Qualifying Highlights:
+          - Qualifying Highlights
+          - Qualifying.Highlights
+          - Qualifying-Highlights
+          - Qualifying_Highlights
+          - QualifyingHighlights
+        Qualifying Highlights Part Two:
+          - Qualifying Highlights Part 2
+          - Qualifying.Highlights.Part.Two
+          - Qualifying.Highlights.Part.2
+          - Qualifying Highlights Pt 2
+          - Qualifying Highlights Pt.2
+          - Qualifying Highlights Pt Two
+          - Qualifying Highlights Part II
+        Qualifying Highlights Part Three:
+          - Qualifying Highlights Part 3
+          - Qualifying.Highlights.Part.Three
+          - Qualifying.Highlights.Part.3
+          - Qualifying Highlights Pt 3
+          - Qualifying Highlights Pt.3
+          - Qualifying Highlights Pt Three
+          - Qualifying Highlights Part III
+        Monster Energy Supersport TT Race 1:
+          - Monster.Energy.Supersport.TT.Race.1
+          - Monster Energy Supersport Race 1
+          - Monster Energy Supersport TT Race One
+          - Supersport TT Race 1
+          - Supersport TT Race One
+          - Supersport Race 1
+          - Supersport Race One
+        Monster Energy Supersport TT Race 2:
+          - Monster.Energy.Supersport.TT.Race.2
+          - Monster Energy Supersport Race 2
+          - Monster Energy Supersport TT Race Two
+          - Supersport TT Race 2
+          - Supersport TT Race Two
+          - Supersport Race 2
+          - Supersport Race Two
+        RST Superbike TT Race:
+          - RST.Superbike.TT.Race
+          - Superbike.TT.Race
+          - RST Superbike Race
+          - Superbike Race
+        Metzeler Supertwin TT Race 1:
+          - Metzeler.Supertwin.TT.Race.1
+          - Metzeler Supertwin TT Race One
+          - Supertwin TT Race 1
+          - Supertwin TT Race One
+          - Supertwin Race 1
+          - Supertwin Race One
+        RL360 Superstock TT Race 1:
+          - RL360.Superstock.TT.Race.1
+          - RL360 Superstock TT Race One
+          - Superstock TT Race 1
+          - Superstock TT Race One
+          - Superstock Race 1
+          - Superstock Race One
+        Entire Cover insurance Supertwin TT Race 2:
+          - Entire.Cover.Insurance.Supertwin.TT.Race.2
+          - Entire Cover Insurance Supertwin TT Race 2
+          - Entire Cover Insurance Supertwin TT Race Two
+          - Supertwin TT Race 2
+          - Supertwin TT Race Two
+          - Supertwin Race 2
+          - Supertwin Race Two
+        3wheeling.meida Sidecar TT Race 1:
+          - 3wheeling.Media.Sidecar.TT.Race.1
+          - 3wheeling media Sidecar TT Race 1
+          - 3wheeling Media Sidecar TT Race 1
+          - Sidecar TT Race 1
+          - Sidecar TT Race One
+          - Sidecar Race 1
+          - Sidecar Race One
+        3wheeling.Media Sidecar TT Race 2:
+          - 3wheeling.Media.Sidecar.TT.Race.2
+          - 3wheeling.media Sidecar TT Race 2
+          - 3wheeling.meida.Sidecar.TT.Race.2
+          - Sidecar TT Race 2
+          - Sidecar TT Race Two
+          - Sidecar Race 2
+          - Sidecar Race Two
+        Milwaukee Senior TT Race:
+          - Milwaukee Senior Race
+          - Senior TT Race
+          - Senior Race
+        Superbike Race Highlights:
+          - Superbike.Race.Highlights
+          - Superbike TT Race Highlights
+          - Superbike Highlights
+        Supersport Race One Highlights:
+          - Supersport.Race.One.Highlights
+          - Supersport.Race.1.Highlights
+          - Supersport Race 1 Highlights
+          - Supersport Race One Highlight
+        Supersport Race Two Highlights:
+          - Supersport.Race.Two.Highlights
+          - Supersport.Race.2.Highlights
+          - Supersport Race 2 Highlights
+          - Supersport Race Two Highlight
+        Superstock Race Two Highlights:
+          - Superstock.Race.Two.Highlights
+          - Superstock.Race.2.Highlights
+          - Superstock Race 2 Highlights
+          - Superstock Race Two Highlight
+        Supertwin Race Two Highlights:
+          - Supertwin.Race.Two.Highlights
+          - Supertwin.Race.2.Highlights
+          - Supertwin Race 2 Highlights
+          - Supertwin Race Two Highlight
+        Review Show One:
+          - Review.Show.One
+          - Review Show 1
+          - Review.Show.1
+        Review Show Two:
+          - Review.Show.Two
+          - Review Show 2
+          - Review.Show.2
+  ufc: &ufc_patterns
+    - description: UFC numbered events (dot separated)
+      regex: '(?i)^UFC\.(?P<season>\d{3})\.(?P<event>.+?)\.(?P<session>Early[._-]Prelims|Prelims|Main[._-]Card|PPV)(?:\.[^.]+)*\.(?:mkv|mp4|ts|m4v|avi)$'
+      season_selector:
+        mode: key
+        group: season
+      episode_selector:
+        group: session
+      session_aliases:
+        Main Card:
+          - Main.Card
+          - Main-Card
+          - Main_Card
+          - PPV
+          - Pay.Per.View
+        Early Prelims:
+          - Early.Prelims
+          - Early-Prelims
+          - Early_Prelims
+        Prelims:
+          - Preliminary.Card
+    - description: UFC numbered events (space separated)
+      regex: '(?i)^UFC\s+(?P<season>\d{3})\s+(?P<event>.+?)\s+(?P<session>Early(?:\s+|[._-])Prelims|Prelims|Main(?:\s+|[._-])Card|PPV)(?:\s+.+)?\.(?:mkv|mp4|ts|m4v|avi)$'
+      season_selector:
+        mode: key
+        group: season
+      episode_selector:
+        group: session
+      session_aliases:
+        Main Card:
+          - Main.Card
+          - Main-Card
+          - Main_Card
+          - PPV
+          - Pay.Per.View
+        Early Prelims:
+          - Early.Prelims
+          - Early-Prelims
+          - Early_Prelims
+        Prelims:
+          - Preliminary.Card
+
 sports:
-  - id: formula1_2025
-    name: Formula 1 2025
+  - id: formula1
+    name: Formula 1
     enabled: true
-    metadata:
-      url: https://raw.githubusercontent.com/s0len/meta-manager-config/refs/heads/main/metadata-files/formula1-2025.yaml
-      show_key: Formula1 2025
-      ttl_hours: 12
-      season_overrides:
-        Pre-Season Testing:
-          season_number: 0
-          round: 0
     source_globs:
       - "Formula.1.*"
-    file_patterns:
-      - description: Formula 1 MWR releases
-        regex: "(?i)^Formula\.1\.(?P<year>\d{4})\.Round(?P<round>\d{2})\.(?P<location>[^.]+)\.(?P<session>[^.]+)"
-        season_selector:
-          mode: round
-          group: round
-          offset: 0
-        episode_selector:
-          group: session
-        session_aliases:
-          Drivers Press Conference:
-            - Drivers.Press.Conference
-            - Press.Conference
-          Weekend Warm Up:
-            - Weekend.Warm.Up
-          Free Practice 1:
-            - FP1
-            - Free.Practice.1
-          Free Practice 2:
-            - FP2
-            - Free.Practice.2
-          Free Practice 3:
-            - FP3
-            - Free.Practice.3
-          Sprint Qualifying:
-            - Sprint.Qualifying
-            - Sprint.Shootout
-          Sprint:
-            - Sprint.Race
-            - Sprint
-          Qualifying:
-            - Qualifying
-            - Quali
-          Race:
-            - Race
-          Pre Qualifying Show:
-            - Pre.Qualifying
-          Post Qualifying Show:
-            - Post.Qualifying
-          Pre Race Show:
-            - Pre.Race
-          Post Race Show:
-            - Post.Race
-          Post Sprint Show:
-            - Post.Sprint
-          Pre Sprint Show:
-            - Pre.Sprint
-        destination_root_template: "{show_title}"
-        season_dir_template: "{season_round:02d} {season_title}"
-        filename_template: "{show_title} - S{season_number:02d}E{episode_number:02d} - {episode_title}.{extension}"
+      - "Formula1.*"
+      - "Formula1 *"
+      - "Formula 1 *"
+      - "formula1.*"
+      - "formula1 *"
+      - "formula 1 *"
+    file_patterns: *formula1_patterns
+    variants:
+      - year: 2025
+        metadata:
+          url: https://raw.githubusercontent.com/s0len/meta-manager-config/refs/heads/main/metadata-files/formula1-2025.yaml
+          show_key: Formula1 2025
+          ttl_hours: 24
+          season_overrides:
+            Pre-Season Testing:
+              season_number: 0
+              round: 0
+  - id: motogp
+    name: MotoGP
+    enabled: true
+    source_globs:
+      - "MotoGP.*"
+      - "MotoGP *"
+      - "motogp.*"
+      - "motogp *"
+    file_patterns: *motogp_patterns
+    variants:
+      - year: 2025
+        metadata:
+          url: https://raw.githubusercontent.com/s0len/meta-manager-config/refs/heads/main/metadata-files/motogp-2025.yaml
+          show_key: MotoGP 2025
+          ttl_hours: 24
+      - year: 2024
+        metadata:
+          url: https://raw.githubusercontent.com/s0len/meta-manager-config/refs/heads/main/metadata-files/motogp-2024.yaml
+          show_key: MotoGP 2024
+          ttl_hours: 24
+      - year: 2023
+        metadata:
+          url: https://raw.githubusercontent.com/s0len/meta-manager-config/refs/heads/main/metadata-files/motogp-2023.yaml
+          show_key: MotoGP 2023
+          ttl_hours: 24
+  - id: isle_of_man_tt
+    name: Isle of Man TT
+    enabled: true
+    metadata:
+      url: https://raw.githubusercontent.com/s0len/meta-manager-config/refs/heads/main/metadata-files/isle-of-man-tt.yaml
+      show_key: Isle of Man TT
+      ttl_hours: 24
+    source_globs:
+      - "Isle*TT*"
+      - "isle*tt*"
+      - "IOMTT*"
+      - "iomtt*"
+    file_patterns: *isle_of_man_tt_patterns
+    destination:
+      season_dir_template: "{season_title}"
+      episode_template: "{show_title} - S{season_number:02d}E{episode_number:02d} - {episode_title}.{extension}"
+  - id: ufc
+    name: UFC
+    enabled: true
+    metadata:
+      url: https://raw.githubusercontent.com/s0len/meta-manager-config/refs/heads/main/metadata-files/ufc.yaml
+      show_key: UFC
+      ttl_hours: 24
+    source_globs:
+      - "UFC.*"
+      - "UFC *"
+      - "ufc.*"
+      - "ufc *"
+    file_patterns: *ufc_patterns

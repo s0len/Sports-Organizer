@@ -1,9 +1,83 @@
 from __future__ import annotations
 
+import difflib
 import logging
 import re
 from dataclasses import dataclass
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Tuple
+
+try:
+    from rapidfuzz.distance import DamerauLevenshtein, Levenshtein
+except ImportError:  # pragma: no cover - optional dependency
+    DamerauLevenshtein = None  # type: ignore[assignment]
+    Levenshtein = None  # type: ignore[assignment]
+
+
+def _token_similarity(candidate: str, target: str) -> float:
+    if DamerauLevenshtein and Levenshtein:
+        similarity = Levenshtein.normalized_similarity(candidate, target)
+        if similarity > 1:
+            similarity /= 100
+        return float(similarity)
+    return difflib.SequenceMatcher(None, candidate, target, autojunk=False).ratio()
+
+
+def _tokens_close(candidate: str, target: str) -> bool:
+    if len(candidate) < 4 or len(target) < 4:
+        return False
+    if abs(len(candidate) - len(target)) > 1:
+        return False
+    if candidate[0] != target[0]:
+        return False
+
+    if len(candidate) == len(target):
+        differing_indices = [idx for idx, (cand_char, targ_char) in enumerate(zip(candidate, target)) if cand_char != targ_char]
+        if len(differing_indices) == 2:
+            first, second = differing_indices
+            if candidate[first] == target[second] and candidate[second] == target[first]:
+                return True
+
+    if DamerauLevenshtein and Levenshtein:
+        distance = DamerauLevenshtein.distance(candidate, target)
+        if distance <= 1:
+            return True
+        similarity = Levenshtein.normalized_similarity(candidate, target)
+        if similarity > 1:
+            similarity /= 100
+        return similarity >= 0.92
+
+    return _token_similarity(candidate, target) >= 0.9
+
+
+def _resolve_session_lookup(session_lookup: Dict[str, str], token: str) -> Optional[str]:
+    direct = session_lookup.get(token)
+    if direct:
+        return direct
+
+    if len(token) < 4:
+        return None
+
+    best_key: Optional[str] = None
+    best_score = 0.0
+
+    for candidate in session_lookup.keys():
+        if len(candidate) < 4:
+            continue
+        if not _tokens_close(candidate, token):
+            continue
+        score = _token_similarity(candidate, token)
+        if DamerauLevenshtein:
+            distance = DamerauLevenshtein.distance(candidate, token)
+            if distance <= 1:
+                score = max(score, 0.92)
+        if score > best_score:
+            best_key = candidate
+            best_score = score
+
+    if best_key is not None and best_score >= 0.85:
+        return session_lookup[best_key]
+    return None
+
 
 from .config import PatternConfig, SeasonSelector, SportConfig
 from .models import Episode, Season, Show
@@ -84,6 +158,10 @@ def _select_season(show: Show, selector: SeasonSelector, match_groups: Dict[str,
         for season in show.seasons:
             if normalize_token(season.title) == normalized:
                 return season
+        for season in show.seasons:
+            season_normalized = normalize_token(season.title)
+            if normalized and (normalized in season_normalized or season_normalized in normalized):
+                return season
         mapped = selector.mapping.get(title)
         if mapped:
             desired_round = int(mapped)
@@ -114,21 +192,69 @@ def _select_episode(
             return None
 
     normalized = normalize_token(raw_value)
-    metadata_title = session_lookup.get(normalized)
+    normalized_without_part: Optional[str] = None
+    if "part" in normalized:
+        without_trailing = re.sub(r"part\d+$", "", normalized)
+        without_embedded = re.sub(r"part\d+", "", without_trailing)
+        cleaned = without_embedded.strip()
+        normalized_without_part = cleaned or None
+
+    def tokens_match(candidate: str, target: str) -> bool:
+        if not candidate or not target:
+            return False
+        if candidate == target:
+            return True
+        if candidate.startswith(target) or target.startswith(candidate):
+            return True
+        return _tokens_close(candidate, target)
+
+    metadata_title = _resolve_session_lookup(session_lookup, normalized)
+    if metadata_title:
+        target_token = normalize_token(metadata_title)
+        if not any(tokens_match(normalize_token(episode.title), target_token) for episode in season.episodes):
+            metadata_title = None
+
+    if not metadata_title and normalized_without_part:
+        metadata_title = _resolve_session_lookup(session_lookup, normalized_without_part)
+        if metadata_title:
+            target_token = normalize_token(metadata_title)
+            if not any(tokens_match(normalize_token(episode.title), target_token) for episode in season.episodes):
+                metadata_title = None
 
     candidates = season.episodes
     if metadata_title:
+        target_token = normalize_token(metadata_title)
         for episode in candidates:
-            if normalize_token(episode.title) == normalize_token(metadata_title):
+            episode_token = normalize_token(episode.title)
+            alias_tokens = [normalize_token(alias) for alias in episode.aliases]
+            if episode_token == target_token:
                 return episode
+            if target_token in alias_tokens:
+                return episode
+
         for episode in candidates:
-            if normalize_token(metadata_title) in [normalize_token(alias) for alias in episode.aliases]:
+            episode_token = normalize_token(episode.title)
+            alias_tokens = [normalize_token(alias) for alias in episode.aliases]
+            if tokens_match(episode_token, target_token):
+                return episode
+            if any(tokens_match(alias_token, target_token) for alias_token in alias_tokens):
+                return episode
+
+    if normalized_without_part:
+        for episode in candidates:
+            episode_token = normalize_token(episode.title)
+            alias_tokens = [normalize_token(alias) for alias in episode.aliases]
+            if tokens_match(episode_token, normalized_without_part):
+                return episode
+            if any(tokens_match(alias_token, normalized_without_part) for alias_token in alias_tokens):
                 return episode
 
     for episode in candidates:
-        if normalize_token(episode.title) == normalized:
+        episode_token = normalize_token(episode.title)
+        alias_tokens = [normalize_token(alias) for alias in episode.aliases]
+        if tokens_match(episode_token, normalized):
             return episode
-        if any(normalize_token(alias) == normalized for alias in episode.aliases):
+        if any(tokens_match(alias_token, normalized) for alias_token in alias_tokens):
             return episode
 
     return None
@@ -152,27 +278,46 @@ def match_file_to_episode(
     sport: SportConfig,
     show: Show,
     patterns: List[PatternRuntime],
+    *,
+    diagnostics: Optional[List[Tuple[str, str]]] = None,
 ) -> Optional[Dict[str, object]]:
+    matched_patterns = 0
+    failed_resolutions: List[str] = []
+
+    def record(severity: str, message: str) -> None:
+        if diagnostics is not None:
+            diagnostics.append((severity, message))
     for pattern_runtime in patterns:
         match = pattern_runtime.regex.search(filename)
         if not match:
             continue
 
+        matched_patterns += 1
         groups = {key: value for key, value in match.groupdict().items() if value is not None}
         season = _select_season(show, pattern_runtime.config.season_selector, groups)
         if not season:
+            descriptor = pattern_runtime.config.description or pattern_runtime.config.regex
+            message = f"{descriptor}: season not resolved"
             LOGGER.debug("Season not resolved for file %s with pattern %s", filename, pattern_runtime.config.regex)
+            failed_resolutions.append(f"{descriptor}: season")
+            severity = "ignored" if sport.allow_unmatched else "warning"
+            record(severity, message)
             continue
 
         pattern_runtime.session_lookup = _build_session_lookup(pattern_runtime.config, season)
         episode = _select_episode(pattern_runtime.config, season, pattern_runtime.session_lookup, groups)
         if not episode:
+            descriptor = pattern_runtime.config.description or pattern_runtime.config.regex
+            message = f"{descriptor}: episode not resolved"
             LOGGER.debug(
                 "Episode not resolved for file %s in season %s using pattern %s",
                 filename,
                 season.title,
                 pattern_runtime.config.regex,
             )
+            failed_resolutions.append(f"{descriptor}: episode")
+            severity = "ignored" if sport.allow_unmatched else "warning"
+            record(severity, message)
             continue
 
         return {
@@ -181,4 +326,21 @@ def match_file_to_episode(
             "pattern": pattern_runtime.config,
             "groups": groups,
         }
+    if failed_resolutions:
+        log_fn = LOGGER.debug if sport.allow_unmatched else LOGGER.warning
+        log_fn(
+            "File %s matched %d pattern(s) but could not resolve: %s",
+            filename,
+            matched_patterns,
+            "; ".join(failed_resolutions),
+        )
+        message = (
+            f"Matched {matched_patterns} pattern(s) but could not resolve: "
+            f"{'; '.join(failed_resolutions)}"
+        )
+        severity = "ignored" if sport.allow_unmatched else "warning"
+        record(severity, message)
+    elif matched_patterns == 0:
+        LOGGER.debug("File %s did not match any configured patterns", filename)
+        record("ignored", "Did not match any configured patterns")
     return None

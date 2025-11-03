@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
 if TYPE_CHECKING:  # pragma: no cover
-    from .config import SportConfig
+    from .config import PatternConfig, SportConfig
 
 
 @dataclass(slots=True)
@@ -49,6 +49,7 @@ class SportFileMatch:
     show: Show
     season: Season
     episode: Episode
+    pattern: "PatternConfig"
     context: Dict[str, Any]
     sport: "SportConfig"
 
@@ -59,13 +60,23 @@ class ProcessingStats:
     skipped: int = 0
     ignored: int = 0
     errors: List[str] = field(default_factory=list)
+    warnings: List[str] = field(default_factory=list)
+    skipped_details: List[str] = field(default_factory=list)
+    ignored_details: List[str] = field(default_factory=list)
 
     def register_processed(self) -> None:
         self.processed += 1
 
-    def register_skipped(self, reason: str) -> None:
+    def register_skipped(self, reason: str, *, is_error: bool = True) -> None:
         self.skipped += 1
-        self.errors.append(reason)
+        self.skipped_details.append(reason)
+        if is_error:
+            self.errors.append(reason)
 
-    def register_ignored(self) -> None:
+    def register_warning(self, message: str) -> None:
+        if message not in self.warnings:
+            self.warnings.append(message)
+
+    def register_ignored(self, detail: str) -> None:
         self.ignored += 1
+        self.ignored_details.append(detail)

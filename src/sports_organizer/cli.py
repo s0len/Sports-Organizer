@@ -6,6 +6,7 @@ import os
 import sys
 import time
 from pathlib import Path
+from typing import Optional, Tuple
 
 from rich.console import Console
 from rich.logging import RichHandler
@@ -15,6 +16,35 @@ from .processor import Processor
 
 LOGGER = logging.getLogger(__name__)
 CONSOLE = Console()
+LOG_LEVEL_CHOICES = ["CRITICAL", "ERROR", "WARNING", "INFO", "DEBUG"]
+
+_TRUE_VALUES = {"1", "true", "yes", "on"}
+_FALSE_VALUES = {"0", "false", "no", "off"}
+
+
+def _parse_env_bool(value: Optional[str]) -> Optional[bool]:
+    if value is None:
+        return None
+    lowered = value.strip().lower()
+    if lowered in _TRUE_VALUES:
+        return True
+    if lowered in _FALSE_VALUES:
+        return False
+    return None
+
+
+def _env_bool(name: str) -> Optional[bool]:
+    return _parse_env_bool(os.getenv(name))
+
+
+def _env_int(name: str) -> Tuple[Optional[int], bool]:
+    raw = os.getenv(name)
+    if raw is None or not raw.strip():
+        return None, False
+    try:
+        return int(raw), False
+    except ValueError:
+        return None, True
 
 
 def parse_args() -> argparse.Namespace:
@@ -22,7 +52,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--config",
         type=Path,
-        default=Path(os.getenv("SPORTS_ORGANIZER_CONFIG", "/config/sports.yaml")),
+        default=Path(os.getenv("CONFIG_PATH", "/config/sports.yaml")),
         help="Path to the YAML configuration file",
     )
     parser.add_argument("--dry-run", action="store_true", help="Execute without writing to destination")
@@ -33,36 +63,105 @@ def parse_args() -> argparse.Namespace:
         default=None,
         help="Polling interval in seconds when running continuously",
     )
-    parser.add_argument("--verbose", action="store_true", help="Enable debug logging")
+    parser.add_argument("--verbose", action="store_true", help="Enable debug logging on the console")
+    parser.add_argument(
+        "--log-level",
+        choices=LOG_LEVEL_CHOICES,
+        help="Log level for the persistent log file (default INFO, or DEBUG when --verbose)",
+    )
+    parser.add_argument(
+        "--console-level",
+        choices=LOG_LEVEL_CHOICES,
+        help="Log level for console output (defaults to --log-level)",
+    )
+    parser.add_argument(
+        "--log-file",
+        type=Path,
+        help="Path to the persistent log file (default ./sports.log or $LOG_FILE)",
+    )
     return parser.parse_args()
 
 
-def configure_logging(verbose: bool) -> None:
-    level = logging.DEBUG if verbose or os.getenv("DEBUG", "false").lower() == "true" else logging.INFO
-    logging.basicConfig(
-        level=level,
-        format="%(message)s",
-        datefmt="[%X]",
-        handlers=[RichHandler(console=CONSOLE, rich_tracebacks=True, markup=True)],
+def _resolve_previous_log_path(log_file: Path) -> Path:
+    if log_file.suffix:
+        return log_file.with_suffix(f"{log_file.suffix}.previous")
+    return log_file.with_name(f"{log_file.name}.previous")
+
+
+def _resolve_level(name: str) -> int:
+    return getattr(logging, name.upper(), logging.INFO)
+
+
+def configure_logging(log_level_name: str, log_file: Path, console_level_name: Optional[str] = None) -> None:
+    log_level = _resolve_level(log_level_name)
+    console_level = _resolve_level(console_level_name or log_level_name)
+
+    log_file = log_file.resolve()
+    log_file.parent.mkdir(parents=True, exist_ok=True)
+
+    previous_log = _resolve_previous_log_path(log_file)
+    if previous_log.exists():
+        previous_log.unlink()
+    rotated = False
+    if log_file.exists():
+        log_file.replace(previous_log)
+        rotated = True
+
+    root_logger = logging.getLogger()
+    for handler in root_logger.handlers[:]:
+        root_logger.removeHandler(handler)
+        try:
+            handler.close()
+        except Exception:  # pragma: no cover - defensive cleanup
+            pass
+
+    file_handler = logging.FileHandler(log_file, mode="w", encoding="utf-8")
+    file_handler.setLevel(log_level)
+    file_handler.setFormatter(
+        logging.Formatter("%(asctime)s %(levelname)s %(name)s: %(message)s", "%Y-%m-%d %H:%M:%S")
+    )
+
+    console_handler = RichHandler(console=CONSOLE, rich_tracebacks=True, markup=True)
+    console_handler.setLevel(console_level)
+
+    root_logger.setLevel(min(log_level, console_level))
+    root_logger.addHandler(file_handler)
+    root_logger.addHandler(console_handler)
+
+    logging.captureWarnings(True)
+
+    if rotated:
+        LOGGER.debug("Rotated previous log to %s", previous_log)
+    LOGGER.info(
+        "Logging to %s (file level %s, console level %s)",
+        log_file,
+        logging.getLevelName(log_level),
+        logging.getLevelName(console_level),
     )
 
 
 def apply_runtime_overrides(config: AppConfig, args: argparse.Namespace) -> None:
-    if args.dry_run:
-        config.settings.dry_run = True
-    if args.interval is not None:
-        config.settings.poll_interval = args.interval
+    dry_run = args.dry_run or config.settings.dry_run
+    env_dry_run = _env_bool("DRY_RUN")
+    if env_dry_run is not None:
+        dry_run = env_dry_run
+    config.settings.dry_run = bool(dry_run)
 
-    if os.getenv("SPORTS_ORGANIZER_DRY_RUN", "false").lower() == "true":
-        config.settings.dry_run = True
+    interval = args.interval if args.interval is not None else config.settings.poll_interval
+    env_interval, invalid_interval = _env_int("PROCESS_INTERVAL")
+    if invalid_interval:
+        LOGGER.warning(
+            "Invalid integer for PROCESS_INTERVAL: %s",
+            os.getenv("PROCESS_INTERVAL"),
+        )
+    if env_interval is not None:
+        interval = env_interval
+    if interval is not None:
+        config.settings.poll_interval = interval
 
-    env_interval = os.getenv("SPORTS_ORGANIZER_PROCESS_INTERVAL")
-    if env_interval and env_interval.isdigit():
-        config.settings.poll_interval = int(env_interval)
-
-    source_override = os.getenv("SPORTS_ORGANIZER_SOURCE")
-    dest_override = os.getenv("SPORTS_ORGANIZER_DESTINATION")
-    cache_override = os.getenv("SPORTS_ORGANIZER_CACHE")
+    source_override = os.getenv("SOURCE_DIR")
+    dest_override = os.getenv("DESTINATION_DIR")
+    cache_override = os.getenv("CACHE_DIR")
     if source_override:
         config.settings.source_dir = Path(source_override)
     if dest_override:
@@ -73,7 +172,41 @@ def apply_runtime_overrides(config: AppConfig, args: argparse.Namespace) -> None
 
 def main() -> int:
     args = parse_args()
-    configure_logging(args.verbose)
+    env_verbose = _env_bool("VERBOSE")
+    verbose = args.verbose
+    if not verbose and env_verbose is not None:
+        verbose = env_verbose
+    if not verbose:
+        debug_env = _env_bool("DEBUG")
+        if debug_env:
+            verbose = debug_env
+
+    log_dir_env = os.getenv("LOG_DIR")
+    log_file_env = os.getenv("LOG_FILE")
+    if args.log_file:
+        log_file = args.log_file
+    elif log_dir_env:
+        log_file = Path(log_dir_env) / "sports.log"
+    elif log_file_env:
+        log_file = Path(log_file_env)
+    else:
+        log_file = Path("sports.log")
+
+    log_level_env = os.getenv("LOG_LEVEL")
+    console_level_env = os.getenv("CONSOLE_LEVEL")
+
+    resolved_log_level = (args.log_level or log_level_env or ("DEBUG" if verbose else "INFO"))
+    resolved_console_level: Optional[str]
+    if args.console_level:
+        resolved_console_level = args.console_level
+    elif console_level_env:
+        resolved_console_level = console_level_env
+    elif verbose:
+        resolved_console_level = "DEBUG"
+    else:
+        resolved_console_level = None
+
+    configure_logging(resolved_log_level.upper(), log_file, resolved_console_level.upper() if resolved_console_level else None)
 
     if not args.config.exists():
         LOGGER.error("Configuration file %s does not exist", args.config)
@@ -88,7 +221,9 @@ def main() -> int:
     apply_runtime_overrides(config, args)
 
     processor = Processor(config)
-    once = args.once or os.getenv("SPORTS_ORGANIZER_RUN_ONCE", "true").lower() == "true"
+    env_run_once = _env_bool("RUN_ONCE")
+    default_run_once = True if env_run_once is None else env_run_once
+    once = args.once or default_run_once
     interval = config.settings.poll_interval
 
     LOGGER.info("Starting Sports Organizer%s", " (dry-run)" if config.settings.dry_run else "")
@@ -101,7 +236,8 @@ def main() -> int:
             if interval <= 0:
                 LOGGER.info("No polling interval configured; exiting after one pass")
                 break
-            LOGGER.info("Sleeping for %s seconds", interval)
+            if LOGGER.isEnabledFor(logging.DEBUG):
+                LOGGER.debug("Sleeping for %s seconds", interval)
             time.sleep(interval)
     except KeyboardInterrupt:
         LOGGER.info("Interrupted by user")
