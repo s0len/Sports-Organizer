@@ -56,7 +56,7 @@ Key ideas:
 
 ## Architecture at a Glance
 
-```
+```text
 ┌────────────────┐    fetch + cache     ┌─────────────────────┐
 │ Remote YAML    │ ───────────────────▶ │ Metadata Normalizer │
 └────────────────┘                      └────────┬────────────┘
@@ -315,6 +315,7 @@ Each variant inherits the base config, tweaks fields from the variant block, and
 | `--log-level LEVEL` | `LOG_LEVEL` | `INFO` (or `DEBUG` with `--verbose`) | File log level. |
 | `--console-level LEVEL` | `CONSOLE_LEVEL` | matches file level | Console log level. |
 | `--log-file PATH` | `LOG_FILE` / `LOG_DIR` | `./sports.log` | Rotates to `*.previous` on start. |
+| `--clear-processed-cache` | `CLEAR_PROCESSED_CACHE` | `false` | Truthy to reset processed file cache before processing. |
 
 Environment variables always win over config defaults, and CLI flags win over environment variables.
 
@@ -341,7 +342,7 @@ The CLI will sleep for `600` seconds between passes (flag) unless `PROCESS_INTER
 
 A typical library after one Formula 1 weekend might look like:
 
-```
+```text
 Formula 1 2025/
 └── 01 Bahrain Grand Prix/
     ├── Formula 1 - S01E01 - Free Practice 1.mkv
@@ -402,4 +403,4 @@ Questions, feature ideas, or metadata feed requests? [Open an issue](https://git
 
 ---
 
-[^f1]: Formula 1 2025 metadata feed – https://raw.githubusercontent.com/s0len/meta-manager-config/refs/heads/main/metadata-files/formula1-2025.yaml
+[^f1]: Formula 1 2025 metadata feed – [raw YAML](https://raw.githubusercontent.com/s0len/meta-manager-config/refs/heads/main/metadata-files/formula1-2025.yaml)

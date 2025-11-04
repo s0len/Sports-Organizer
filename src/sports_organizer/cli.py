@@ -81,6 +81,11 @@ def parse_args() -> argparse.Namespace:
         type=Path,
         help="Path to the persistent log file (default ./sports.log or $LOG_FILE)",
     )
+    parser.add_argument(
+        "--clear-processed-cache",
+        action="store_true",
+        help="Clear the processed-file cache before running",
+    )
     return parser.parse_args()
 
 
@@ -237,6 +242,15 @@ def main() -> int:
     apply_runtime_overrides(config, args)
 
     processor = Processor(config)
+    env_clear_cache = _env_bool("CLEAR_PROCESSED_CACHE")
+    clear_processed_cache = args.clear_processed_cache
+    if env_clear_cache is not None:
+        clear_processed_cache = env_clear_cache
+
+    if clear_processed_cache:
+        LOGGER.info("Clearing processed file cache at %s", processor.processed_cache.cache_path)
+        processor.clear_processed_cache()
+
     env_run_once = _env_bool("RUN_ONCE")
     default_run_once = True if env_run_once is None else env_run_once
     once = args.once or default_run_once

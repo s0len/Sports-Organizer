@@ -9,6 +9,7 @@ from typing import Iterable, List, Optional, Set, Tuple
 
 from rich.progress import Progress
 
+from .cache import ProcessedFileCache
 from .config import AppConfig, SportConfig
 from .matcher import PatternRuntime, compile_patterns, match_file_to_episode
 from .metadata import load_show
@@ -32,6 +33,7 @@ class Processor:
         self.config = config
         ensure_directory(self.config.settings.destination_dir)
         ensure_directory(self.config.settings.cache_dir)
+        self.processed_cache = ProcessedFileCache(self.config.settings.cache_dir)
 
     def _load_sports(self) -> List[SportRuntime]:
         runtimes: List[SportRuntime] = []
@@ -46,42 +48,64 @@ class Processor:
             runtimes.append(SportRuntime(sport=sport, show=show, patterns=patterns, extensions=extensions))
         return runtimes
 
+    def clear_processed_cache(self) -> None:
+        self.processed_cache.clear()
+        self.processed_cache.save()
+        LOGGER.debug("Processed file cache cleared")
+
     def run_once(self) -> ProcessingStats:
+        self.processed_cache.prune_missing_sources()
         runtimes = self._load_sports()
         stats = ProcessingStats()
 
-        source_files = list(self._gather_source_files(stats))
-        file_count = len(source_files)
-        if LOGGER.isEnabledFor(logging.DEBUG):
-            LOGGER.debug("Discovered %d candidate files", file_count)
+        try:
+            all_source_files = list(self._gather_source_files(stats))
+            filtered_source_files: List[Path] = []
+            skipped_by_cache = 0
+            for source_path in all_source_files:
+                if self.processed_cache.is_processed(source_path):
+                    skipped_by_cache += 1
+                    LOGGER.debug("Skipping previously processed file %s", source_path)
+                    continue
+                filtered_source_files.append(source_path)
 
-        with Progress() as progress:
-            task_id = progress.add_task("Processing", total=len(source_files))
-            for source_path in source_files:
-                handled, diagnostics = self._process_single_file(source_path, runtimes, stats)
-                if not handled:
-                    detail = self._format_ignored_detail(source_path, diagnostics)
-                    stats.register_ignored(detail)
-                progress.advance(task_id, 1)
+            file_count = len(filtered_source_files)
+            if LOGGER.isEnabledFor(logging.DEBUG):
+                LOGGER.debug(
+                    "Discovered %d candidate files (%d skipped via cache)",
+                    len(all_source_files),
+                    skipped_by_cache,
+                )
 
-        should_log_summary = LOGGER.isEnabledFor(logging.DEBUG) or self._has_activity(stats)
-        if should_log_summary:
-            LOGGER.info(
-                "Summary: %d processed, %d skipped, %d ignored", stats.processed, stats.skipped, stats.ignored
-            )
-        if stats.errors:
-            for error in stats.errors:
-                LOGGER.error(error)
+            with Progress() as progress:
+                task_id = progress.add_task("Processing", total=file_count)
+                for source_path in filtered_source_files:
+                    handled, diagnostics = self._process_single_file(source_path, runtimes, stats)
+                    if not handled:
+                        detail = self._format_ignored_detail(source_path, diagnostics)
+                        stats.register_ignored(detail)
+                    progress.advance(task_id, 1)
 
-        has_details = self._has_detailed_activity(stats)
-        has_issues = bool(stats.errors or stats.warnings)
-        if LOGGER.isEnabledFor(logging.DEBUG):
-            if has_details or has_issues:
-                level = logging.INFO if has_issues else logging.DEBUG
-                self._log_detailed_summary(stats, level=level)
-        elif has_issues:
-            self._log_detailed_summary(stats)
-        return stats
+            should_log_summary = LOGGER.isEnabledFor(logging.DEBUG) or self._has_activity(stats)
+            if should_log_summary:
+                LOGGER.info(
+                    "Summary: %d processed, %d skipped, %d ignored", stats.processed, stats.skipped, stats.ignored
+                )
+            if stats.errors:
+                for error in stats.errors:
+                    LOGGER.error(error)
+
+            has_details = self._has_detailed_activity(stats)
+            has_issues = bool(stats.errors or stats.warnings)
+            if LOGGER.isEnabledFor(logging.DEBUG):
+                if has_details or has_issues:
+                    level = logging.INFO if has_issues else logging.DEBUG
+                    self._log_detailed_summary(stats, level=level)
+            elif has_issues:
+                self._log_detailed_summary(stats)
+            return stats
+        finally:
+            self.processed_cache.save()
 
     def _gather_source_files(self, stats: Optional[ProcessingStats] = None) -> Iterable[Path]:
         root = self.config.settings.source_dir
@@ -324,6 +348,8 @@ class Processor:
                         f"Destination exists: {destination} (source {match.source_path})",
                         is_error=False,
                     )
+                    if not settings.dry_run:
+                        self.processed_cache.mark_processed(match.source_path, destination)
                     return
 
         if replace_existing:
@@ -365,8 +391,11 @@ class Processor:
         result = link_file(match.source_path, destination, mode=link_mode)
         if result.created:
             stats.register_processed()
+            self.processed_cache.mark_processed(match.source_path, destination)
         else:
             stats.register_skipped(f"Failed to link {match.source_path} -> {destination}: {result.reason}")
+            if result.reason == "destination-exists":
+                self.processed_cache.mark_processed(match.source_path, destination)
 
     def _should_overwrite_existing(self, match: SportFileMatch) -> bool:
         source_name = match.source_path.name.lower()
