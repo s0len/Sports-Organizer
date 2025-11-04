@@ -287,6 +287,18 @@ def match_file_to_episode(
     def record(severity: str, message: str) -> None:
         if diagnostics is not None:
             diagnostics.append((severity, message))
+
+    def summarize_groups(groups: Dict[str, str]) -> str:
+        if not groups:
+            return "none"
+        parts = [f"{key}={value!r}" for key, value in sorted(groups.items())]
+        return ", ".join(parts)
+
+    def summarize_episode_candidates(season: Season, *, limit: int = 5) -> str:
+        titles = [episode.title for episode in season.episodes[:limit]]
+        if len(season.episodes) > limit:
+            titles.append("…")
+        return ", ".join(titles) if titles else "none"
     for pattern_runtime in patterns:
         match = pattern_runtime.regex.search(filename)
         if not match:
@@ -297,9 +309,16 @@ def match_file_to_episode(
         season = _select_season(show, pattern_runtime.config.season_selector, groups)
         if not season:
             descriptor = pattern_runtime.config.description or pattern_runtime.config.regex
-            message = f"{descriptor}: season not resolved"
+            selector = pattern_runtime.config.season_selector
+            selector_group = selector.group or selector.mode or "season"
+            candidate_value = groups.get(selector.group or selector.mode or "season")
+            message = (
+                f"{descriptor}: season not resolved "
+                f"(selector mode={selector.mode!r}, group={selector_group!r}, "
+                f"value={candidate_value!r}, groups={summarize_groups(groups)})"
+            )
             LOGGER.debug("Season not resolved for file %s with pattern %s", filename, pattern_runtime.config.regex)
-            failed_resolutions.append(f"{descriptor}: season")
+            failed_resolutions.append(message)
             severity = "ignored" if sport.allow_unmatched else "warning"
             record(severity, message)
             continue
@@ -308,14 +327,22 @@ def match_file_to_episode(
         episode = _select_episode(pattern_runtime.config, season, pattern_runtime.session_lookup, groups)
         if not episode:
             descriptor = pattern_runtime.config.description or pattern_runtime.config.regex
-            message = f"{descriptor}: episode not resolved"
+            selector = pattern_runtime.config.episode_selector
+            raw_value = groups.get(selector.group)
+            normalized_value = normalize_token(raw_value) if raw_value else None
+            message = (
+                f"{descriptor}: episode not resolved "
+                f"(group={selector.group!r}, raw_value={raw_value!r}, normalized={normalized_value!r}, "
+                f"season='{season.title}', candidates={summarize_episode_candidates(season)}, "
+                f"groups={summarize_groups(groups)})"
+            )
             LOGGER.debug(
                 "Episode not resolved for file %s in season %s using pattern %s",
                 filename,
                 season.title,
                 pattern_runtime.config.regex,
             )
-            failed_resolutions.append(f"{descriptor}: episode")
+            failed_resolutions.append(message)
             severity = "ignored" if sport.allow_unmatched else "warning"
             record(severity, message)
             continue
@@ -329,10 +356,11 @@ def match_file_to_episode(
     if failed_resolutions:
         log_fn = LOGGER.debug if sport.allow_unmatched else LOGGER.warning
         log_fn(
-            "File %s matched %d pattern(s) but could not resolve: %s",
+            "File %s matched %d pattern(s) but could not resolve:%s%s",
             filename,
             matched_patterns,
-            "; ".join(failed_resolutions),
+            "\n  - " if len(failed_resolutions) > 1 else " ",
+            "\n  - ".join(failed_resolutions) if len(failed_resolutions) > 1 else failed_resolutions[0],
         )
         message = (
             f"Matched {matched_patterns} pattern(s) but could not resolve: "

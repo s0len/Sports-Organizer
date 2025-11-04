@@ -17,6 +17,8 @@ from .processor import Processor
 LOGGER = logging.getLogger(__name__)
 CONSOLE = Console()
 LOG_LEVEL_CHOICES = ["CRITICAL", "ERROR", "WARNING", "INFO", "DEBUG"]
+LOG_RECORD_FORMAT = "%(asctime)s %(levelname)s %(name)s: %(message)s"
+LOG_DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
 
 _TRUE_VALUES = {"1", "true", "yes", "on"}
 _FALSE_VALUES = {"0", "false", "no", "off"}
@@ -115,13 +117,26 @@ def configure_logging(log_level_name: str, log_file: Path, console_level_name: O
         except Exception:  # pragma: no cover - defensive cleanup
             pass
 
+    formatter = logging.Formatter(LOG_RECORD_FORMAT, LOG_DATE_FORMAT)
+
     file_handler = logging.FileHandler(log_file, mode="w", encoding="utf-8")
     file_handler.setLevel(log_level)
-    file_handler.setFormatter(
-        logging.Formatter("%(asctime)s %(levelname)s %(name)s: %(message)s", "%Y-%m-%d %H:%M:%S")
-    )
+    file_handler.setFormatter(formatter)
 
-    console_handler = RichHandler(console=CONSOLE, rich_tracebacks=True, markup=True)
+    plain_console_env = _env_bool("PLAIN_CONSOLE_LOGS")
+    rich_console_env = _env_bool("RICH_CONSOLE_LOGS")
+    if plain_console_env is True:
+        use_rich_console = False
+    elif rich_console_env is True:
+        use_rich_console = True
+    else:
+        use_rich_console = CONSOLE.is_terminal
+
+    if use_rich_console:
+        console_handler = RichHandler(console=CONSOLE, rich_tracebacks=True, markup=True)
+    else:
+        console_handler = logging.StreamHandler()
+        console_handler.setFormatter(formatter)
     console_handler.setLevel(console_level)
 
     root_logger.setLevel(min(log_level, console_level))
@@ -133,10 +148,11 @@ def configure_logging(log_level_name: str, log_file: Path, console_level_name: O
     if rotated:
         LOGGER.debug("Rotated previous log to %s", previous_log)
     LOGGER.info(
-        "Logging to %s (file level %s, console level %s)",
+        "Logging to %s (file level %s, console level %s, console style %s)",
         log_file,
         logging.getLevelName(log_level),
         logging.getLevelName(console_level),
+        "rich" if use_rich_console else "plain",
     )
 
 
