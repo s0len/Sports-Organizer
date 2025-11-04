@@ -17,36 +17,17 @@
 ######################################################################
 
 settings:
-  # Where Sports Organizer looks for newly downloaded media files.
-  source_dir: ${SOURCE_DIR:-/data/source}
-
-  # Destination root for organized media. Files are written here (or hard-linked).
-  destination_dir: ${DESTINATION_DIR:-/data/destination}
-
-  # Directory that holds cached metadata responses and other temp files.
-  cache_dir: ${CACHE_DIR:-/var/cache/sports-organizer}
-
-  # Enable for "what would happen" runs without touching the filesystem.
-  dry_run: false
-
-  # Skip files that already exist at the destination path when true.
-  skip_existing: true
-
-  # Seconds between scans when running continuously; 0 disables polling.
-  poll_interval: 0
-
-  # Use `hardlink` to avoid copies on the same filesystem; switch to `copy` otherwise.
-  link_mode: hardlink
-
+  source_dir: ${SOURCE_DIR:-/data/source} # Where Sports Organizer looks for newly downloaded media files.
+  destination_dir: ${DESTINATION_DIR:-/data/destination} # Destination root for organized media. Files are written here (or hard-linked).
+  cache_dir: ${CACHE_DIR:-/var/cache/sports-organizer} # Directory that holds cached metadata responses and other temp files.
+  dry_run: false # Enable for "what would happen" runs without touching the filesystem.
+  skip_existing: true # Skip files that already exist at the destination path when true.
+  poll_interval: 0 # Seconds between scans when running continuously; 0 disables polling.
+  link_mode: hardlink # Use `hardlink` to avoid copies on the same filesystem; switch to `copy` otherwise.
   destination:
-    # Top-level folder pattern for each sport/show.
-    root_template: "{show_title}"
-
-    # Sub-folder per season or round. Zero-padded for neat ordering.
-    season_dir_template: "{season_number:02d} {season_title}"
-
-    # Final filename applied to every organized episode/session.
-    episode_template: "{show_title} - S{season_number:02d}E{episode_number:02d} - {episode_title}.{extension}"
+    root_template: "{show_title}" # Top-level folder pattern for each sport/show.
+    season_dir_template: "{season_number:02d} {season_title}" # Sub-folder per season or round. Zero-padded for neat ordering.
+    episode_template: "{show_title} - S{season_number:02d}E{episode_number:02d} - {episode_title}.{extension}" # Final filename applied to every organized episode/session.
 
 
 ######################################################################
