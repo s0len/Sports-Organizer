@@ -34,14 +34,31 @@ class Processor:
         ensure_directory(self.config.settings.destination_dir)
         ensure_directory(self.config.settings.cache_dir)
         self.processed_cache = ProcessedFileCache(self.config.settings.cache_dir)
+        self._previous_summary: Optional[Tuple[int, int, int]] = None
 
     @staticmethod
     def _format_log(event: str, fields: Optional[Mapping[str, object]] = None) -> str:
         lines = [event]
         if fields:
-            for key, value in fields.items():
-                lines.append(f"  {key}={value}")
+            items = list(fields.items())
+            width = max((len(str(key)) for key, _ in items), default=0)
+            for key, value in items:
+                text = "" if value is None else str(value)
+                lines.append(f"  {str(key):<{width}}: {text}")
         return "\n".join(lines)
+
+    @staticmethod
+    def _format_inline_log(event: str, fields: Optional[Mapping[str, object]] = None) -> str:
+        if not fields:
+            return event
+
+        items = list(fields.items())
+        width = max((len(str(key)) for key, _ in items), default=0)
+        formatted = []
+        for key, value in items:
+            text = "" if value is None else str(value)
+            formatted.append(f"{str(key):<{width}}: {text}")
+        return f"{event} | " + " | ".join(formatted)
 
     def _load_sports(self) -> List[SportRuntime]:
         runtimes: List[SportRuntime] = []
@@ -103,10 +120,12 @@ class Processor:
                         stats.register_ignored(detail)
                     progress.advance(task_id, 1)
 
-            should_log_summary = LOGGER.isEnabledFor(logging.DEBUG) or self._has_activity(stats)
+            summary_counts = (stats.processed, stats.skipped, stats.ignored)
+            summary_changed = summary_counts != self._previous_summary
+            should_log_summary = (LOGGER.isEnabledFor(logging.DEBUG) or self._has_activity(stats)) and summary_changed
             if should_log_summary:
                 LOGGER.info(
-                    self._format_log(
+                    self._format_inline_log(
                         "Summary",
                         {
                             "Processed": stats.processed,
@@ -115,6 +134,7 @@ class Processor:
                         },
                     )
                 )
+            self._previous_summary = summary_counts
             if stats.errors:
                 for error in stats.errors:
                     LOGGER.error(
