@@ -327,11 +327,7 @@ class Processor:
                     return
 
         if replace_existing:
-            LOGGER.info(
-                "Replacing existing destination %s with higher priority source %s",
-                destination,
-                match.source_path,
-            )
+            LOGGER.debug("Preparing to replace existing destination %s", destination)
             if not settings.dry_run:
                 try:
                     destination.unlink()
@@ -344,12 +340,23 @@ class Processor:
                     return
 
         LOGGER.info(
-            "%s -> %s (S%sE%s)",
+            "processed action=%s sport=%s season=%s session=%s dest=%s src=%s",
+            "replace" if replace_existing else "link",
+            match.sport.id,
+            match.context.get("season_title"),
+            match.context.get("session"),
+            self._format_relative_destination(destination),
             match.source_path.name,
-            destination,
-            match.context.get("season_number"),
-            match.context.get("episode_number"),
         )
+
+        if LOGGER.isEnabledFor(logging.DEBUG):
+            LOGGER.debug(
+                "source=%s destination=%s link_mode=%s replace_existing=%s",
+                match.source_path,
+                destination,
+                link_mode,
+                replace_existing,
+            )
 
         if settings.dry_run:
             stats.register_processed()
@@ -471,3 +478,11 @@ class Processor:
                 score += 1
 
         return score
+
+    def _format_relative_destination(self, destination: Path) -> str:
+        base = self.config.settings.destination_dir
+        try:
+            relative = destination.relative_to(base)
+        except ValueError:
+            return str(destination)
+        return str(relative)
