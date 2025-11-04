@@ -92,6 +92,7 @@ pattern_sets:
         offset: 0
       episode_selector:
         group: session
+      session_aliases: *formula1_session_aliases
       destination_root_template: "{show_title}"
       season_dir_template: "{season_round:02d} {season_title}"
       filename_template: "{show_title} - S{season_number:02d}E{episode_number:02d} - {episode_title}.{extension}"
