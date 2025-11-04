@@ -1,26 +1,77 @@
+######################################################################
+# Sports Organizer Sample Configuration
+######################################################################
+# This annotated example is designed to be copied to `sports.yaml`
+# and tweaked for your environment. Comments call out what each block
+# controls so you can quickly adapt it for new sports or release formats.
+#
+# Key ideas:
+#   * `settings` control the global behavior of the organizer.
+#   * `pattern_sets` describe how to recognize and normalize filenames.
+#   * `sports` tie pattern sets to metadata sources and per-sport tweaks.
+#
+# Tips for customization:
+#   * Strings like ${SOURCE_DIR:-/data/source} can be overridden via env vars.
+#   * Templates such as "{season_number:02d}" use Python's format syntax.
+#   * Regular expressions use Python-style syntax; `(?i)` makes them case-insensitive.
+######################################################################
+
 settings:
+  # Where Sports Organizer looks for newly downloaded media files.
   source_dir: ${SOURCE_DIR:-/data/source}
+
+  # Destination root for organized media. Files are written here (or hard-linked).
   destination_dir: ${DESTINATION_DIR:-/data/destination}
+
+  # Directory that holds cached metadata responses and other temp files.
   cache_dir: ${CACHE_DIR:-/var/cache/sports-organizer}
+
+  # Enable for "what would happen" runs without touching the filesystem.
   dry_run: false
+
+  # Skip files that already exist at the destination path when true.
   skip_existing: true
+
+  # Seconds between scans when running continuously; 0 disables polling.
   poll_interval: 0
+
+  # Use `hardlink` to avoid copies on the same filesystem; switch to `copy` otherwise.
   link_mode: hardlink
+
   destination:
+    # Top-level folder pattern for each sport/show.
     root_template: "{show_title}"
+
+    # Sub-folder per season or round. Zero-padded for neat ordering.
     season_dir_template: "{season_number:02d} {season_title}"
+
+    # Final filename applied to every organized episode/session.
     episode_template: "{show_title} - S{season_number:02d}E{episode_number:02d} - {episode_title}.{extension}"
 
+
+######################################################################
+# Pattern Sets - reusable filename matchers grouped by sport
+#
+# Each entry is a list of regex-driven matchers. Captured groups feed into
+# `season_selector` and `episode_selector`. Anchors (e.g., &formula1_patterns)
+# are referenced later from the `sports` section.
+######################################################################
+
 pattern_sets:
+  # ------------------------------------------------------------------
+  # Formula 1 releases
+  # ------------------------------------------------------------------
   formula1: &formula1_patterns
     - description: Formula 1 MWR releases
-      regex: '(?i)^Formula\.?1\.(?P<year>\d{4})\.Round(?P<round>\d{2})\.(?P<location>[^.]+)\.(?P<venue>[^.]+)\.(?P<session>[^.]+(?:\.[^.]+)*?(?:\.Part\d+)?)(?=\.F1)'
+      # Example: Formula.1.2024.Round03.Melbourne.Albert.Park.Qualifying.F1TV-1080p
+      regex: >-
+        (?i)^Formula\.?1\.(?P<year>\d{4})\.Round(?P<round>\d{2})\.(?P<location>[^.]+)\.(?P<venue>[^.]+)\.(?P<session>[^.]+(?:\.[^.]+)*?(?:\.Part\d+)?)(?=\.F1)
       season_selector:
-        mode: round
+        mode: round           # Use captured round number to map metadata seasons.
         group: round
         offset: 0
       episode_selector:
-        group: session
+        group: session        # Normalize the session name via aliases below.
       session_aliases: &formula1_session_aliases
         Drivers Press Conference:
           - Drivers.Press.Conference
@@ -72,20 +123,26 @@ pattern_sets:
       destination_root_template: "{show_title}"
       season_dir_template: "{season_round:02d} {season_title}"
       filename_template: "{show_title} - S{season_number:02d}E{episode_number:02d} - {episode_title}.{extension}"
+
     - description: Formula 1 F1Carreras releases
-      regex: '(?i)^Formula\.?1\.S(?P<year>\d{4})E\d+\.Round(?P<round>\d{2})\.(?P<location>[^.]+(?:\.[^.]+)*)\.(?P<session>[^.]+(?:\.[^.]+)*?)(?=\.F1TV).*?-F1Carreras\.(?:mkv|mp4|ts)$'
+      # Example: Formula.1.S2024E02.Round04.Baku.Azerbaijan.Sprint.F1TV-1080p-F1Carreras.mkv
+      regex: >-
+        (?i)^Formula\.?1\.S(?P<year>\d{4})E\d+\.Round(?P<round>\d{2})\.(?P<location>[^.]+(?:\.[^.]+)*)\.(?P<session>[^.]+(?:\.[^.]+)*?)(?=\.F1TV).*?-F1Carreras\.(?:mkv|mp4|ts)$
       season_selector:
         mode: round
         group: round
         offset: 0
       episode_selector:
         group: session
-      session_aliases: *formula1_session_aliases
+      session_aliases: *formula1_session_aliases   # Re-use the normalization table above.
       destination_root_template: "{show_title}"
       season_dir_template: "{season_round:02d} {season_title}"
       filename_template: "{show_title} - S{season_number:02d}E{episode_number:02d} - {episode_title}.{extension}"
+
     - description: Formula 1 spaced MWR releases
-      regex: '(?i)^Formula1\s+(?P<year>\d{4})\s+Round(?P<round>\d{2})\s+(?P<location>[^\s]+)\s+(?P<session>.+?(?:\s+Part\d+)?)\s*(?=\s+F1(?:TV|LIVE))'
+      # Example: Formula1 2024 Round05 Miami Sprint Race F1TV 1080p
+      regex: >-
+        (?i)^Formula1\s+(?P<year>\d{4})\s+Round(?P<round>\d{2})\s+(?P<location>[^\s]+)\s+(?P<session>.+?(?:\s+Part\d+)?)\s*(?=\s+F1(?:TV|LIVE))
       season_selector:
         mode: round
         group: round
@@ -96,10 +153,13 @@ pattern_sets:
       destination_root_template: "{show_title}"
       season_dir_template: "{season_round:02d} {season_title}"
       filename_template: "{show_title} - S{season_number:02d}E{episode_number:02d} - {episode_title}.{extension}"
+
     - description: Formula 1 VERUM releases
-      regex: '(?i)^Formula1\.(?P<year>\d{4})\.(?P<season_slug>[^.]+(?:\.[^.]+){1,2})\.(?P<session>Qualifying|Sprint\.Race|Race)(?=\.1080p)'
+      # Example: Formula1.2024.Saudi.Arabian.Grand.Prix.Qualifying.1080p.VERUM.mkv
+      regex: >-
+        (?i)^Formula1\.(?P<year>\d{4})\.(?P<season_slug>[^.]+(?:\.[^.]+){1,2})\.(?P<session>Qualifying|Sprint\.Race|Race)(?=\.1080p)
       season_selector:
-        mode: title
+        mode: title        # Use the slug to match metadata titles directly.
         group: season_slug
         offset: 0
       episode_selector:
@@ -109,8 +169,11 @@ pattern_sets:
       destination_root_template: "{show_title}"
       season_dir_template: "{season_round:02d} {season_title}"
       filename_template: "{show_title} - S{season_number:02d}E{episode_number:02d} - {episode_title}.{extension}"
+
     - description: Formula 1 VERUM full race packs
-      regex: '(?i)^Formula1\.(?P<year>\d{4})\.(?P<season_slug>[^.]+(?:\.[^.]+)*?)(?=\.Grand\.Prix)\.(?P<session>Grand\.Prix)\.1080p.*'
+      # Example: Formula1.2024.Miami.Grand.Prix.Grand.Prix.1080p.VERUM
+      regex: >-
+        (?i)^Formula1\.(?P<year>\d{4})\.(?P<season_slug>[^.]+(?:\.[^.]+)*?)(?=\.Grand\.Prix)\.(?P<session>Grand\.Prix)\.1080p.*
       season_selector:
         mode: title
         group: season_slug
@@ -122,9 +185,15 @@ pattern_sets:
       destination_root_template: "{show_title}"
       season_dir_template: "{season_round:02d} {season_title}"
       filename_template: "{show_title} - S{season_number:02d}E{episode_number:02d} - {episode_title}.{extension}"
+
+  # ------------------------------------------------------------------
+  # MotoGP releases
+  # ------------------------------------------------------------------
   motogp: &motogp_patterns
     - description: MotoGP DNU releases
-      regex: '(?i)^(?=.*-DNU\.(?:mkv|mp4|ts)$)MotoGP\.(?P<year>\d{4})\.Round(?P<round>\d{2})\.(?P<location>[^.]+(?:\.[^.]+)*)\.(?P<session>FP[1-4]|Practice(?:\.One|\.Two|\.Three|\.Four)?|Q[a-z]+(?:\.Q[1-3]|\.One|\.Two|\.Three)?|Warm\.?Up|Sprint|Race)'
+      # Example: MotoGP.2024.Round03.Austin.Circuit.of.the.Americas.Qualifying-DNU.mkv
+      regex: >-
+        (?i)^(?=.*-DNU\.(?:mkv|mp4|ts)$)MotoGP\.(?P<year>\d{4})\.Round(?P<round>\d{2})\.(?P<location>[^.]+(?:\.[^.]+)*)\.(?P<session>FP[1-4]|Practice(?:\.One|\.Two|\.Three|\.Four)?|Q[a-z]+(?:\.Q[1-3]|\.One|\.Two|\.Three)?|Warm\.?Up|Sprint|Race)
       season_selector:
         mode: round
         group: round
@@ -195,8 +264,11 @@ pattern_sets:
       destination_root_template: "{show_title}"
       season_dir_template: "{season_round:02d} {season_title}"
       filename_template: "{show_title} - S{season_number:02d}E{episode_number:02d} - {episode_title}.{extension}"
+
     - description: MotoGP MWR releases
-      regex: '(?i)^(?=.*-MWR\.(?:mkv|mp4|ts)$)MotoGP\.(?P<year>\d{4})\.Round(?P<round>\d{2})\.(?P<location>[^.]+(?:\.[^.]+)*)\.(?P<session>FP[1-4]|Practice(?:\.One|\.Two|\.Three|\.Four)?|Q[a-z]+(?:\.Q[1-3]|\.One|\.Two|\.Three)?|Warm\.?Up|Sprint|Race)'
+      # Example: MotoGP.2024.Round05.Jerez.Qualifying-MWR.mp4
+      regex: >-
+        (?i)^(?=.*-MWR\.(?:mkv|mp4|ts)$)MotoGP\.(?P<year>\d{4})\.Round(?P<round>\d{2})\.(?P<location>[^.]+(?:\.[^.]+)*)\.(?P<session>FP[1-4]|Practice(?:\.One|\.Two|\.Three|\.Four)?|Q[a-z]+(?:\.Q[1-3]|\.One|\.Two|\.Three)?|Warm\.?Up|Sprint|Race)
       season_selector:
         mode: round
         group: round
@@ -206,11 +278,17 @@ pattern_sets:
       destination_root_template: "{show_title}"
       season_dir_template: "{season_round:02d} {season_title}"
       filename_template: "{show_title} - S{season_number:02d}E{episode_number:02d} - {episode_title}.{extension}"
+
+  # ------------------------------------------------------------------
+  # Isle of Man TT releases
+  # ------------------------------------------------------------------
   isle_of_man_tt: &isle_of_man_tt_patterns
     - description: Isle of Man TT releases
-      regex: '(?i)^Isle[.\s_-]*Of[.\s_-]*Man[.\s_-]*TT[.\s_-]*(?P<year>\d{4})[.\s_-]+(?P<session>.+?)(?=(?:[.\s_-]+(?:ITVX|ITV|BBC|Sky|WEBRip|WEB-?DL|WEB|AMZN|NF|F1TV|1080p|2160p|720p|4K|x264|x265|h264|h265|HEVC|AAC|AC3|DDP|EAC3|Atmos|Dolby|DTS|PCM|10bit|8bit|BluRay|Rip|Pack|Collection|Sample|Trailer|Bonus|Subs?|Subbed|Dual|Multi|Proper|Repack|Extended|DNU|VERUM|MWR|Hybrid|PAL|NTSC|Docu|Sports|Broadcast))(?:[.\s_-]|$)|\.(?:mkv|mp4|ts|m4v|avi)$)'
+      # Example: Isle.of.Man.TT.2023.Superbike.Race.Highlights.1080p.WEB-DL.mkv
+      regex: >-
+        (?i)^Isle[.\s_-]*Of[.\s_-]*Man[.\s_-]*TT[.\s_-]*(?P<year>\d{4})[.\s_-]+(?P<session>.+?)(?=(?:[.\s_-]+(?:ITVX|ITV|BBC|Sky|WEBRip|WEB-?DL|WEB|AMZN|NF|F1TV|1080p|2160p|720p|4K|x264|x265|h264|h265|HEVC|AAC|AC3|DDP|EAC3|Atmos|Dolby|DTS|PCM|10bit|8bit|BluRay|Rip|Pack|Collection|Sample|Trailer|Bonus|Subs?|Subbed|Dual|Multi|Proper|Repack|Extended|DNU|VERUM|MWR|Hybrid|PAL|NTSC|Docu|Sports|Broadcast))(?:[.\s_-]|$)|\.(?:mkv|mp4|ts|m4v|avi)$)
       season_selector:
-        mode: key
+        mode: key            # Treat the captured year as the season key.
         group: year
       episode_selector:
         group: session
@@ -332,11 +410,17 @@ pattern_sets:
           - Review.Show.Two
           - Review Show 2
           - Review.Show.2
+
+  # ------------------------------------------------------------------
+  # UFC numbered events
+  # ------------------------------------------------------------------
   ufc: &ufc_patterns
     - description: UFC numbered events (dot separated)
-      regex: '(?i)^UFC\.(?P<season>\d{3})\.(?P<event>.+?)\.(?P<session>Early[._-]Prelims|Prelims|Main[._-]Card|PPV)(?:\.[^.]+)*\.(?:mkv|mp4|ts|m4v|avi)$'
+      # Example: UFC.298.Volkanovski.vs.Topuria.Main.Card.1080p.WEB.mkv
+      regex: >-
+        (?i)^UFC\.(?P<season>\d{3})\.(?P<event>.+?)\.(?P<session>Early[._-]Prelims|Prelims|Main[._-]Card|PPV)(?:\.[^.]+)*\.(?:mkv|mp4|ts|m4v|avi)$
       season_selector:
-        mode: key
+        mode: key            # Use the UFC event number as the season identifier.
         group: season
       episode_selector:
         group: session
@@ -353,8 +437,11 @@ pattern_sets:
           - Early_Prelims
         Prelims:
           - Preliminary.Card
+
     - description: UFC numbered events (space separated)
-      regex: '(?i)^UFC\s+(?P<season>\d{3})\s+(?P<event>.+?)\s+(?P<session>Early(?:\s+|[._-])Prelims|Prelims|Main(?:\s+|[._-])Card|PPV)(?:\s+.+)?\.(?:mkv|mp4|ts|m4v|avi)$'
+      # Example: UFC 299 O'Malley vs Vera Main Card 1080p WEB.mp4
+      regex: >-
+        (?i)^UFC\s+(?P<season>\d{3})\s+(?P<event>.+?)\s+(?P<session>Early(?:\s+|[._-])Prelims|Prelims|Main(?:\s+|[._-])Card|PPV)(?:\s+.+)?\.(?:mkv|mp4|ts|m4v|avi)$
       season_selector:
         mode: key
         group: season
@@ -374,10 +461,22 @@ pattern_sets:
         Prelims:
           - Preliminary.Card
 
+
+######################################################################
+# Sports - tie pattern sets to metadata, variants, and overrides
+#
+# Each sport declares:
+#   * `source_globs` to pick up matching downloads.
+#   * `file_patterns` referencing the anchors above.
+#   * Optional metadata endpoints and per-year overrides.
+######################################################################
+
 sports:
   - id: formula1
     name: Formula 1
     enabled: true
+
+    # Filenames that should be considered for Formula 1 processing.
     source_globs:
       - "Formula.1.*"
       - "Formula1.*"
@@ -386,7 +485,11 @@ sports:
       - "formula1.*"
       - "formula1 *"
       - "formula 1 *"
+
+    # Apply the Formula 1 pattern set defined above.
     file_patterns: *formula1_patterns
+
+    # Optional per-season metadata sources. Useful when schedules change.
     variants:
       - year: 2025
         metadata:
@@ -397,15 +500,19 @@ sports:
             Pre-Season Testing:
               season_number: 0
               round: 0
+
   - id: motogp
     name: MotoGP
     enabled: true
+
     source_globs:
       - "MotoGP.*"
       - "MotoGP *"
       - "motogp.*"
       - "motogp *"
+
     file_patterns: *motogp_patterns
+
     variants:
       - year: 2025
         metadata:
@@ -422,32 +529,41 @@ sports:
           url: https://raw.githubusercontent.com/s0len/meta-manager-config/refs/heads/main/metadata-files/motogp-2023.yaml
           show_key: MotoGP 2023
           ttl_hours: 24
+
   - id: isle_of_man_tt
     name: Isle of Man TT
     enabled: true
+
     metadata:
       url: https://raw.githubusercontent.com/s0len/meta-manager-config/refs/heads/main/metadata-files/isle-of-man-tt.yaml
       show_key: Isle of Man TT
       ttl_hours: 24
+
     source_globs:
       - "Isle*TT*"
       - "isle*tt*"
       - "IOMTT*"
       - "iomtt*"
+
     file_patterns: *isle_of_man_tt_patterns
+
     destination:
       season_dir_template: "{season_title}"
       episode_template: "{show_title} - S{season_number:02d}E{episode_number:02d} - {episode_title}.{extension}"
+
   - id: ufc
     name: UFC
     enabled: true
+
     metadata:
       url: https://raw.githubusercontent.com/s0len/meta-manager-config/refs/heads/main/metadata-files/ufc.yaml
       show_key: UFC
       ttl_hours: 24
+
     source_globs:
       - "UFC.*"
       - "UFC *"
       - "ufc.*"
       - "ufc *"
+
     file_patterns: *ufc_patterns
