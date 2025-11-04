@@ -340,7 +340,7 @@ class Processor:
                     return
 
         LOGGER.info(
-            "processed action=%s sport=%s season=%s session=%s dest=%s src=%s",
+            "PROCESSED action=%s\n  sport=%s\n  season=%s\n  session=%s\n  dest=%s\n  src=%s",
             "replace" if replace_existing else "link",
             match.sport.id,
             match.context.get("season_title"),
