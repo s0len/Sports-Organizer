@@ -22,6 +22,7 @@ class CachedFileRecord:
 class ProcessedFileCache:
     cache_dir: Path
     cache_filename: str = "processed-files.json"
+    cache_path: Path = field(init=False)
     _records: Dict[str, CachedFileRecord] = field(default_factory=dict, init=False)
     _dirty: bool = field(default=False, init=False)
 
