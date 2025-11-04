@@ -4,7 +4,7 @@ import difflib
 import logging
 import re
 from dataclasses import dataclass
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional, Set, Tuple
 
 try:
     from rapidfuzz.distance import DamerauLevenshtein, Levenshtein
@@ -84,6 +84,17 @@ from .models import Episode, Season, Show
 from .utils import normalize_token
 
 LOGGER = logging.getLogger(__name__)
+
+_NOISE_TOKENS = (
+    "f1live",
+    "f1tv",
+    "f1kids",
+    "sky",
+    "intl",
+    "international",
+    "proper",
+    "verum",
+)
 
 
 @dataclass(slots=True)
@@ -191,7 +202,14 @@ def _select_episode(
         if raw_value is None:
             return None
 
-    normalized = normalize_token(raw_value)
+    def _strip_noise(normalized: str) -> str:
+        result = normalized
+        for token in _NOISE_TOKENS:
+            if token and token in result:
+                result = result.replace(token, "")
+        return result
+
+    normalized = _strip_noise(normalize_token(raw_value))
     normalized_without_part: Optional[str] = None
     if "part" in normalized:
         without_trailing = re.sub(r"part\d+$", "", normalized)
@@ -208,54 +226,79 @@ def _select_episode(
             return True
         return _tokens_close(candidate, target)
 
-    metadata_title = _resolve_session_lookup(session_lookup, normalized)
-    if metadata_title:
-        target_token = normalize_token(metadata_title)
-        if not any(tokens_match(normalize_token(episode.title), target_token) for episode in season.episodes):
-            metadata_title = None
+    lookup_attempts: List[Tuple[str, str, str]] = []
+    seen_tokens: Set[str] = set()
 
-    if not metadata_title and normalized_without_part:
-        metadata_title = _resolve_session_lookup(session_lookup, normalized_without_part)
+    def add_lookup(label: str, value: Optional[str]) -> None:
+        if not value:
+            return
+        variants = {value}
+        split_variants = [segment for segment in re.split(r"[\s._-]+", value) if segment]
+        if split_variants:
+            variants.add(" ".join(split_variants))
+            without_noise_words = " ".join(
+                word for word in split_variants if _strip_noise(normalize_token(word))
+            )
+            if without_noise_words:
+                variants.add(without_noise_words)
+            for index in range(1, len(split_variants)):
+                truncated = " ".join(split_variants[index:])
+                if truncated:
+                    variants.add(truncated)
+
+        for variant in variants:
+            normalized_variant = _strip_noise(normalize_token(variant))
+            if not normalized_variant or normalized_variant in seen_tokens:
+                continue
+            seen_tokens.add(normalized_variant)
+            lookup_attempts.append((label, variant, normalized_variant))
+
+    add_lookup("session", raw_value)
+
+    if normalized_without_part and normalized_without_part not in seen_tokens:
+        lookup_attempts.append(("session_without_part", raw_value, normalized_without_part))
+        seen_tokens.add(normalized_without_part)
+
+    for key, value in match_groups.items():
+        if key == group:
+            continue
+        add_lookup(key, value)
+
+    venue_value = match_groups.get("venue")
+    if venue_value:
+        add_lookup("venue+session", f"{venue_value} {raw_value}")
+        add_lookup("session+venue", f"{raw_value} {venue_value}")
+
+    def find_episode_for_token(token: str) -> Optional[Episode]:
+        for episode in season.episodes:
+            episode_token = normalize_token(episode.title)
+            if tokens_match(episode_token, token):
+                return episode
+            alias_tokens = [normalize_token(alias) for alias in episode.aliases]
+            if any(tokens_match(alias_token, token) for alias_token in alias_tokens):
+                return episode
+        return None
+
+    attempted_variants: List[str] = []
+
+    for label, variant, normalized_variant in lookup_attempts:
+        attempted_variants.append(f"{label}:{variant}")
+        metadata_title = _resolve_session_lookup(session_lookup, normalized_variant)
+        candidate_tokens: List[str] = []
         if metadata_title:
             target_token = normalize_token(metadata_title)
-            if not any(tokens_match(normalize_token(episode.title), target_token) for episode in season.episodes):
-                metadata_title = None
+            candidate_tokens.append(target_token)
+        candidate_tokens.append(normalized_variant)
 
-    candidates = season.episodes
-    if metadata_title:
-        target_token = normalize_token(metadata_title)
-        for episode in candidates:
-            episode_token = normalize_token(episode.title)
-            alias_tokens = [normalize_token(alias) for alias in episode.aliases]
-            if episode_token == target_token:
-                return episode
-            if target_token in alias_tokens:
+        for token in candidate_tokens:
+            if not token:
+                continue
+            episode = find_episode_for_token(token)
+            if episode:
                 return episode
 
-        for episode in candidates:
-            episode_token = normalize_token(episode.title)
-            alias_tokens = [normalize_token(alias) for alias in episode.aliases]
-            if tokens_match(episode_token, target_token):
-                return episode
-            if any(tokens_match(alias_token, target_token) for alias_token in alias_tokens):
-                return episode
-
-    if normalized_without_part:
-        for episode in candidates:
-            episode_token = normalize_token(episode.title)
-            alias_tokens = [normalize_token(alias) for alias in episode.aliases]
-            if tokens_match(episode_token, normalized_without_part):
-                return episode
-            if any(tokens_match(alias_token, normalized_without_part) for alias_token in alias_tokens):
-                return episode
-
-    for episode in candidates:
-        episode_token = normalize_token(episode.title)
-        alias_tokens = [normalize_token(alias) for alias in episode.aliases]
-        if tokens_match(episode_token, normalized):
-            return episode
-        if any(tokens_match(alias_token, normalized) for alias_token in alias_tokens):
-            return episode
+    if attempted_variants:
+        match_groups["_attempted_session_tokens"] = attempted_variants
 
     return None
 
@@ -291,7 +334,11 @@ def match_file_to_episode(
     def summarize_groups(groups: Dict[str, str]) -> str:
         if not groups:
             return "none"
-        parts = [f"{key}={value!r}" for key, value in sorted(groups.items())]
+        parts = [
+            f"{key}={value!r}"
+            for key, value in sorted(groups.items())
+            if not key.startswith("_")
+        ]
         return ", ".join(parts)
 
     def summarize_episode_candidates(season: Season, *, limit: int = 5) -> str:
@@ -330,11 +377,19 @@ def match_file_to_episode(
             selector = pattern_runtime.config.episode_selector
             raw_value = groups.get(selector.group)
             normalized_value = normalize_token(raw_value) if raw_value else None
+            attempted_tokens = groups.pop("_attempted_session_tokens", None)
+            attempted_display = ""
+            if attempted_tokens:
+                max_items = 5
+                display_items = list(attempted_tokens[:max_items])
+                if len(attempted_tokens) > max_items:
+                    display_items.append("…")
+                attempted_display = f", attempted={'; '.join(display_items)}"
             message = (
                 f"{descriptor}: episode not resolved "
                 f"(group={selector.group!r}, raw_value={raw_value!r}, normalized={normalized_value!r}, "
                 f"season='{season.title}', candidates={summarize_episode_candidates(season)}, "
-                f"groups={summarize_groups(groups)})"
+                f"groups={summarize_groups(groups)}{attempted_display})"
             )
             LOGGER.debug(
                 "Episode not resolved for file %s in season %s using pattern %s",
