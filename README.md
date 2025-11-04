@@ -16,6 +16,7 @@
   - [Quickstart](#quickstart)
     - [Option A: Docker (Recommended)](#option-a-docker-recommended)
     - [Option B: Python Environment](#option-b-python-environment)
+    - [Option C: Kubernetes (Flux HelmRelease)](#option-c-kubernetes-flux-helmrelease)
   - [Configuration Deep Dive](#configuration-deep-dive)
     - [1. Global Settings](#1-global-settings)
     - [2. Sport Entries](#2-sport-entries)
@@ -129,6 +130,71 @@ Tips:
 - Set `SOURCE_DIR`, `DESTINATION_DIR`, and `CACHE_DIR` env vars to avoid editing YAML during experimentation.
 - Use `LOG_LEVEL=DEBUG` or `VERBOSE=true` to mirror the Docker verbosity locally.
 - When running from source, the entrypoint script `entrypoint.sh` mirrors the Docker environment variable contract.
+
+### Option C: Kubernetes (Flux HelmRelease)
+
+Use the [bjw-s/app-template](https://github.com/bjw-s/helm-charts/tree/main/charts/other/app-template) chart with Flux to keep a cluster deployment reconciled. The example below mirrors the Docker settings and mounts persistent cache/log directories alongside the config file:
+
+```yaml
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s-labs/helm-charts/main/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: &app sports-organizer
+spec:
+  interval: 30m
+  chartRef:
+    kind: OCIRepository
+    name: app-template
+  values:
+    controllers:
+      main:
+        type: deployment
+        containers:
+          app:
+            image:
+              repository: ghcr.io/s0len/sports-organizer
+              tag: develop@sha256:586d8e06fae7d156d47130ed18b1a619a47d2c5378345e3f074ee6c282f09f02
+              pullPolicy: Always
+            env:
+              RUN_ONCE: false
+              LOG_LEVEL: INFO
+              CONFIG_PATH: /config/sports.yaml
+              CACHE_DIR: /settings/cache
+              LOG_DIR: /settings/logs
+              SOURCE_DIR: /data/torrents/sport
+              DESTINATION_DIR: /data/media/sport
+              PROCESS_INTERVAL: 60
+            envFrom:
+              - secretRef:
+                  name: sports-organizer-secret
+    persistence:
+      settings:
+        existingClaim: sports-organizer-settings
+        globalMounts:
+          - path: /settings
+      data:
+        type: nfs
+        server: "${TRUENAS_IP}"
+        path: /mnt/rust/data
+        globalMounts:
+          - path: /data
+      config:
+        type: configMap
+        name: sports-organizer-configmap
+        globalMounts:
+          - path: /config/sports.yaml
+            subPath: sports.yaml
+            readOnly: true
+```
+
+Quick checklist:
+
+- Create a `sports-organizer-secret` with any sensitive values (`kubectl create secret generic ... --from-literal=API_TOKEN=...`).
+- Mount a `sports-organizer-configmap` containing your `sports.yaml` (or use an `externalSecret`).
+- Backing storage: either bind an existing PVC (`settings`) for cache/logs or swap in another persistence strategy. The NFS block mounts downloads and media libraries.
+- Flip `RUN_ONCE`/`PROCESS_INTERVAL` for batch vs. continuous runs; the CLI picks up the same env vars as the Docker image.
+- Add `reloader.stakater.com/auto: "true"` (already in the example) to hot-reload when the config map changes.
 
 ## Configuration Deep Dive
 
