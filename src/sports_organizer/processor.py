@@ -5,7 +5,7 @@ import re
 from dataclasses import dataclass
 from fnmatch import fnmatch
 from pathlib import Path
-from typing import Iterable, List, Optional, Set, Tuple
+from typing import Dict, Iterable, List, Mapping, Optional, Set, Tuple
 
 from rich.progress import Progress
 
@@ -35,13 +35,21 @@ class Processor:
         ensure_directory(self.config.settings.cache_dir)
         self.processed_cache = ProcessedFileCache(self.config.settings.cache_dir)
 
+    @staticmethod
+    def _format_log(event: str, fields: Optional[Mapping[str, object]] = None) -> str:
+        lines = [event]
+        if fields:
+            for key, value in fields.items():
+                lines.append(f"  {key}={value}")
+        return "\n".join(lines)
+
     def _load_sports(self) -> List[SportRuntime]:
         runtimes: List[SportRuntime] = []
         for sport in self.config.sports:
             if not sport.enabled:
-                LOGGER.debug("Skipping disabled sport %s", sport.id)
+                LOGGER.debug(self._format_log("Skipping Disabled Sport", {"Sport": sport.id}))
                 continue
-            LOGGER.debug("Loading metadata for %s", sport.name)
+            LOGGER.debug(self._format_log("Loading Metadata", {"Sport": sport.name}))
             show = load_show(self.config.settings, sport.metadata)
             patterns = compile_patterns(sport)
             extensions = {ext.lower() for ext in sport.source_extensions}
@@ -51,7 +59,7 @@ class Processor:
     def clear_processed_cache(self) -> None:
         self.processed_cache.clear()
         self.processed_cache.save()
-        LOGGER.debug("Processed file cache cleared")
+        LOGGER.debug(self._format_log("Processed File Cache Cleared"))
 
     def run_once(self) -> ProcessingStats:
         self.processed_cache.prune_missing_sources()
@@ -65,16 +73,25 @@ class Processor:
             for source_path in all_source_files:
                 if self.processed_cache.is_processed(source_path):
                     skipped_by_cache += 1
-                    LOGGER.debug("Skipping previously processed file %s", source_path)
+                    LOGGER.debug(
+                        self._format_log(
+                            "Skipping Previously Processed File",
+                            {"Path": source_path},
+                        )
+                    )
                     continue
                 filtered_source_files.append(source_path)
 
             file_count = len(filtered_source_files)
             if LOGGER.isEnabledFor(logging.DEBUG):
                 LOGGER.debug(
-                    "Discovered %d candidate files (%d skipped via cache)",
-                    len(all_source_files),
-                    skipped_by_cache,
+                    self._format_log(
+                        "Discovered Candidate Files",
+                        {
+                            "Total": len(all_source_files),
+                            "Skipped Via Cache": skipped_by_cache,
+                        },
+                    )
                 )
 
             with Progress() as progress:
@@ -89,11 +106,23 @@ class Processor:
             should_log_summary = LOGGER.isEnabledFor(logging.DEBUG) or self._has_activity(stats)
             if should_log_summary:
                 LOGGER.info(
-                    "Summary: %d processed, %d skipped, %d ignored", stats.processed, stats.skipped, stats.ignored
+                    self._format_log(
+                        "Summary",
+                        {
+                            "Processed": stats.processed,
+                            "Skipped": stats.skipped,
+                            "Ignored": stats.ignored,
+                        },
+                    )
                 )
             if stats.errors:
                 for error in stats.errors:
-                    LOGGER.error(error)
+                    LOGGER.error(
+                        self._format_log(
+                            "Processing Error",
+                            {"Detail": error},
+                        )
+                    )
 
             has_details = self._has_detailed_activity(stats)
             has_issues = bool(stats.errors or stats.warnings)
@@ -110,7 +139,12 @@ class Processor:
     def _gather_source_files(self, stats: Optional[ProcessingStats] = None) -> Iterable[Path]:
         root = self.config.settings.source_dir
         if not root.exists():
-            LOGGER.warning("Source directory %s does not exist", root)
+            LOGGER.warning(
+                self._format_log(
+                    "Source Directory Missing",
+                    {"Path": root},
+                )
+            )
             if stats is not None:
                 stats.register_warning(f"Source directory missing: {root}")
             return []
@@ -138,7 +172,15 @@ class Processor:
         if not matching_runtimes:
             message = f"No configured sport accepts extension '{suffix or '<no extension>'}'"
             ignored_reasons.append(("ignored", message))
-            LOGGER.debug("Ignoring %s: %s", source_path, message)
+            LOGGER.debug(
+                self._format_log(
+                    "Ignoring File",
+                    {
+                        "Source": source_path,
+                        "Reason": message,
+                    },
+                )
+            )
             return False, ignored_reasons
 
         for runtime in matching_runtimes:
@@ -147,7 +189,16 @@ class Processor:
                 message = f"Excluded by source_globs {patterns}"
                 tagged_message = f"{runtime.sport.id}: {message}"
                 ignored_reasons.append(("ignored", tagged_message))
-                LOGGER.debug("Ignoring %s for sport %s: %s", source_path.name, runtime.sport.id, message)
+                LOGGER.debug(
+                    self._format_log(
+                        "Ignoring File For Sport",
+                        {
+                            "Source": source_path.name,
+                            "Sport": runtime.sport.id,
+                            "Reason": message,
+                        },
+                    )
+                )
                 continue
 
             detection_messages: List[Tuple[str, str]] = []
@@ -188,10 +239,15 @@ class Processor:
                 tagged_message = f"{runtime.sport.id}: {message}"
                 ignored_reasons.append((severity, tagged_message))
                 LOGGER.debug(
-                    "Ignoring %s for sport %s: %s",
-                    source_path.name,
-                    runtime.sport.id,
-                    message,
+                    self._format_log(
+                        "Ignoring Detection",
+                        {
+                            "Source": source_path.name,
+                            "Sport": runtime.sport.id,
+                            "Severity": severity,
+                            "Reason": message,
+                        },
+                    )
                 )
                 if severity == "warning":
                     stats.register_warning(f"{source_path.name}: {tagged_message}")
@@ -216,19 +272,23 @@ class Processor:
     def _log_detailed_summary(self, stats: ProcessingStats, *, level: int = logging.INFO) -> None:
         def _format_lines(items: List[str]) -> str:
             if not items:
-                return "  (none)"
+                return "    (none)"
             unique_items = list(dict.fromkeys(items))
-            return "\n".join(f"  - {item}" for item in unique_items)
+            return "\n".join(f"    - {item}" for item in unique_items)
 
-        summary = (
-            "Detailed Summary\n"
-            f"Errors ({len(stats.errors)}):\n{_format_lines(stats.errors)}\n"
-            f"Warnings ({len(stats.warnings)}):\n{_format_lines(stats.warnings)}\n"
-            f"Skipped ({len(stats.skipped_details)}):\n{_format_lines(stats.skipped_details)}\n"
-            f"Ignored ({len(stats.ignored_details)}):\n{_format_lines(stats.ignored_details)}"
-        )
+        summary_lines = [
+            "Detailed Summary",
+            f"  Errors ({len(stats.errors)}):",
+            _format_lines(stats.errors),
+            f"  Warnings ({len(stats.warnings)}):",
+            _format_lines(stats.warnings),
+            f"  Skipped ({len(stats.skipped_details)}):",
+            _format_lines(stats.skipped_details),
+            f"  Ignored ({len(stats.ignored_details)}):",
+            _format_lines(stats.ignored_details),
+        ]
 
-        LOGGER.log(level, summary)
+        LOGGER.log(level, "\n".join(summary_lines))
 
     @staticmethod
     def _has_activity(stats: ProcessingStats) -> bool:
@@ -340,9 +400,13 @@ class Processor:
                     replace_existing = True
                 else:
                     LOGGER.debug(
-                        "Skipping existing destination %s (source %s)",
-                        destination,
-                        match.source_path,
+                        self._format_log(
+                            "Skipping Existing Destination",
+                            {
+                                "Destination": destination,
+                                "Source": match.source_path,
+                            },
+                        )
                     )
                     stats.register_skipped(
                         f"Destination exists: {destination} (source {match.source_path})",
@@ -353,12 +417,25 @@ class Processor:
                     return
 
         if replace_existing:
-            LOGGER.debug("Preparing to replace existing destination %s", destination)
+            LOGGER.debug(
+                self._format_log(
+                    "Preparing To Replace Destination",
+                    {"Destination": destination},
+                )
+            )
             if not settings.dry_run:
                 try:
                     destination.unlink()
                 except OSError as exc:
-                    LOGGER.error("Failed to remove existing destination %s: %s", destination, exc)
+                    LOGGER.error(
+                        self._format_log(
+                            "Failed To Remove Destination",
+                            {
+                                "Destination": destination,
+                                "Error": exc,
+                            },
+                        )
+                    )
                     stats.register_skipped(
                         f"Failed to replace destination {destination}: {exc}",
                         is_error=True,
@@ -366,22 +443,30 @@ class Processor:
                     return
 
         LOGGER.info(
-            "PROCESSED action=%s\n  sport=%s\n  season=%s\n  session=%s\n  dest=%s\n  src=%s",
-            "replace" if replace_existing else "link",
-            match.sport.id,
-            match.context.get("season_title"),
-            match.context.get("session"),
-            self._format_relative_destination(destination),
-            match.source_path.name,
+            self._format_log(
+                "Processed",
+                {
+                    "Action": "replace" if replace_existing else "link",
+                    "Sport": match.sport.id,
+                    "Season": match.context.get("season_title"),
+                    "Session": match.context.get("session"),
+                    "Dest": self._format_relative_destination(destination),
+                    "Src": match.source_path.name,
+                },
+            )
         )
 
         if LOGGER.isEnabledFor(logging.DEBUG):
             LOGGER.debug(
-                "source=%s destination=%s link_mode=%s replace_existing=%s",
-                match.source_path,
-                destination,
-                link_mode,
-                replace_existing,
+                self._format_log(
+                    "Processing Details",
+                    {
+                        "Source": match.source_path,
+                        "Destination": destination,
+                        "Link Mode": link_mode,
+                        "Replace": replace_existing,
+                    },
+                )
             )
 
         if settings.dry_run:
