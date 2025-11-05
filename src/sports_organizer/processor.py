@@ -31,8 +31,9 @@ class SportRuntime:
 class Processor:
     def __init__(self, config: AppConfig) -> None:
         self.config = config
-        ensure_directory(self.config.settings.destination_dir)
-        ensure_directory(self.config.settings.cache_dir)
+        if not self.config.settings.dry_run:
+            ensure_directory(self.config.settings.destination_dir)
+            ensure_directory(self.config.settings.cache_dir)
         self.processed_cache = ProcessedFileCache(self.config.settings.cache_dir)
         self._previous_summary: Optional[Tuple[int, int, int]] = None
 
@@ -74,6 +75,15 @@ class Processor:
         return runtimes
 
     def clear_processed_cache(self) -> None:
+        if self.config.settings.dry_run:
+            LOGGER.debug(
+                self._format_log(
+                    "Dry-Run: Skipping Processed Cache Clear",
+                    {"Cache": self.processed_cache.cache_path.parent},
+                )
+            )
+            return
+
         self.processed_cache.clear()
         self.processed_cache.save()
         LOGGER.debug(self._format_log("Processed File Cache Cleared"))
@@ -154,7 +164,8 @@ class Processor:
                 self._log_detailed_summary(stats)
             return stats
         finally:
-            self.processed_cache.save()
+            if not self.config.settings.dry_run:
+                self.processed_cache.save()
 
     def _gather_source_files(self, stats: Optional[ProcessingStats] = None) -> Iterable[Path]:
         root = self.config.settings.source_dir
