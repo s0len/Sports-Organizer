@@ -22,16 +22,11 @@ COPY README.md LICENSE /app/
 
 RUN chmod +x /entrypoint.sh
 
-ENV SRC_DIR=/data/source \
-    DEST_DIR=/data/destination \
-    CACHE_DIR=/data/cache \
-    CONFIG_PATH=/config/sports.yaml \
+ENV CONFIG_PATH=/config/sports.yaml \
     PROCESS_INTERVAL=0 \
     RUN_ONCE=true \
     DRY_RUN=false
 
 ENV PYTHONPATH=/app/src
-
-VOLUME ["/config", "/data/source", "/data/destination", "/data/cache"]
 
 ENTRYPOINT ["/entrypoint.sh"]
