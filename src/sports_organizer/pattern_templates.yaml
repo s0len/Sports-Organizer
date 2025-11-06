@@ -186,18 +186,27 @@ pattern_sets:
           - Warm.Up
           - WarmUp
           - Warm-Up
+          - MotoGP Warm Up
         Qualifying One:
           - Qualifying.Q1
           - Qualifying1
           - Qualifying-1
           - Qualifying_1
           - Q1
+          - Qualifying Nr. 1
+          - Qualifying Nr.1
+          - MotoGP Qualifying Nr. 1
+          - MotoGP Qualifying Nr.1
         Qualifying Two:
           - Qualifying.Q2
           - Qualifying2
           - Qualifying-2
           - Qualifying_2
           - Q2
+          - Qualifying Nr. 2
+          - Qualifying Nr.2
+          - MotoGP Qualifying Nr. 2
+          - MotoGP Qualifying Nr.2
           - Qualifying
         Qualifying Three:
           - Qualifying.Q3
@@ -205,11 +214,17 @@ pattern_sets:
           - Qualifying-3
           - Qualifying_3
           - Q3
+          - Qualifying Nr. 3
+          - Qualifying Nr.3
+          - MotoGP Qualifying Nr. 3
+          - MotoGP Qualifying Nr.3
         Sprint:
           - Sprint.Race
+          - MotoGP Sprint
         Race:
           - Grand.Prix
           - GP
+          - MotoGP Race
           - Thailand
           - Argentina
           - The.Americas
@@ -265,6 +280,36 @@ pattern_sets:
         group: round
       episode_selector:
         group: session
+      session_aliases: *motogp_session_aliases
+      destination_root_template: "{show_title}"
+      season_dir_template: "{season_round:02d} {season_title}"
+      filename_template: "{show_title} - S{season_number:02d}E{episode_number:02d} - {episode_title}.{extension}"
+
+    - description: MotoGP season-episode DNU/MWR releases
+      # Example: MotoGP S2024E266 Round 11 Motorrad Grand Prix von Österreich MotoGP Sprint 1080p Webrip x265 10bit AAC 2 0 - DNU.mkv
+      regex: >-
+        (?i)^MotoGP\s+S(?P<year>20\d{2})E\d+\s+Round\s*(?P<round>\d{1,2})\s+(?P<location>.+?)\s+(?P<session>(?:MotoGP\s+)?(?:Sprint|Race|Warm\s*Up|Qualifying(?:\s+(?:Nr\.?|No\.)?\s*\d+|One|Two|Three|Four|\d+)?|Practice(?:\s+(?:Nr\.?|No\.)?\s*\d+|One|Two|Three|Four|\d+)?))(?:\s+.+?)*?\s*-\s*(?:DNU|MWR).+\.(?:mkv|mp4|ts)$
+      season_selector:
+        mode: round
+        group: round
+      episode_selector:
+        group: session
+        allow_fallback_to_title: true
+      session_aliases: *motogp_session_aliases
+      destination_root_template: "{show_title}"
+      season_dir_template: "{season_round:02d} {season_title}"
+      filename_template: "{show_title} - S{season_number:02d}E{episode_number:02d} - {episode_title}.{extension}"
+
+    - description: MotoGP parenthesized season-episode DNU/MWR releases
+      # Example: MotoGP (2024) Round 03 S03E04 Grand Prix of Americas (Race) (1080p Webrip x265 10bit AAC.2.0 - DNU)[TAoE].mkv
+      regex: >-
+        (?i)^MotoGP\s*\((?P<year>20\d{2})\)\s+Round\s*(?P<round>\d{1,2})\s+(?:S\d{2}E\d{2}\s+)?(?P<location>.+?)\s*\((?P<session>[^)]+)\)(?:\s+.+?)*?\s*-\s*(?:DNU|MWR).+\.(?:mkv|mp4|ts)$
+      season_selector:
+        mode: round
+        group: round
+      episode_selector:
+        group: session
+        allow_fallback_to_title: true
       session_aliases: *motogp_session_aliases
       destination_root_template: "{show_title}"
       season_dir_template: "{season_round:02d} {season_title}"
@@ -494,6 +539,99 @@ pattern_sets:
           - Early_Prelims
         Prelims:
           - Preliminary.Card
+
+  # ------------------------------------------------------------------
+  # Premier League releases
+  # ------------------------------------------------------------------
+  premier_league: &premier_league_patterns
+    - description: Premier League dot releases
+      # Example: EPL.2025.11.02.Manchester.City.Vs.Bournemouth.1080p.WEB.H264-NiGHTNiNJAS.mkv
+      regex: >-
+        (?i)^(?:EPL|English\.?Premier\.?League|Premier\.?League)\.(?P<date>(?P<year>\d{4})\.(?P<month>\d{2})\.(?P<day>\d{2}))\.(?P<matchup>(?P<away>[A-Za-z0-9&'-]+(?:\.[A-Za-z0-9&'-]+){0,5})\.(?P<separator>Vs|vs|VS|V|v)\.(?P<home>[A-Za-z0-9&'-]+(?:\.[A-Za-z0-9&'-]+){0,5}))(?:(?:\.[^.]+))*\.(?P<extension>mkv|mp4|ts|m4v|avi)$
+      season_selector:
+        mode: key
+        group: date
+        mapping:
+          '2025.08.15': 1
+          '2025.08.16': 1
+          '2025.08.17': 1
+          '2025.08.18': 1
+          '2025.08.22': 2
+          '2025.08.23': 2
+          '2025.08.24': 2
+          '2025.08.25': 2
+          '2025.08.30': 3
+          '2025.08.31': 3
+          '2025.09.13': 4
+          '2025.09.14': 4
+          '2025.09.20': 5
+          '2025.09.21': 5
+          '2025.09.27': 6
+          '2025.09.28': 6
+          '2025.09.29': 6
+          '2025.10.03': 7
+          '2025.10.04': 7
+          '2025.10.05': 7
+          '2025.10.18': 8
+          '2025.10.19': 8
+          '2025.10.20': 8
+          '2025.10.24': 9
+          '2025.10.25': 9
+          '2025.10.26': 9
+          '2025.11.01': 10
+          '2025.11.02': 10
+          '2025.11.03': 10
+          '2025.11.08': 11
+          '2025.11.09': 11
+          '2025.11.22': 12
+          '2025.11.23': 12
+          '2025.11.24': 12
+          '2025.11.29': 13
+          '2025.11.30': 13
+          '2025.12.02': 14
+          '2025.12.03': 14
+          '2025.12.04': 14
+          '2025.12.06': 15
+          '2025.12.07': 15
+          '2025.12.08': 15
+          '2025.12.13': 16
+          '2025.12.14': 16
+          '2025.12.15': 16
+          '2025.12.20': 17
+          '2025.12.21': 17
+          '2025.12.22': 17
+          '2025.12.26': 18
+          '2025.12.27': 18
+          '2025.12.28': 18
+          '2025.12.30': 19
+          '2026.01.01': 20
+          '2026.01.03': 21
+          '2026.01.04': 21
+          '2026.01.06': 22
+          '2026.01.07': 22
+          '2026.01.08': 22
+          '2026.01.17': 23
+          '2026.01.24': 24
+          '2026.01.31': 25
+          '2026.02.07': 26
+          '2026.02.11': 27
+          '2026.02.21': 28
+          '2026.02.28': 29
+          '2026.03.04': 30
+          '2026.03.14': 31
+          '2026.03.21': 32
+          '2026.04.11': 33
+          '2026.04.18': 34
+          '2026.04.25': 35
+          '2026.05.02': 36
+          '2026.05.09': 37
+          '2026.05.17': 38
+      episode_selector:
+        group: matchup
+        allow_fallback_to_title: true
+      destination_root_template: "{show_title}"
+      season_dir_template: "{season_number:02d} {season_title}"
+      filename_template: "{show_title} - S{season_number:02d}E{episode_number:02d} - {episode_title}.{extension}"
 
   # ------------------------------------------------------------------
   # NFL releases

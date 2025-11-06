@@ -42,7 +42,7 @@ settings:
 
 pattern_sets:
   # Built-in pattern templates load automatically from `pattern_templates.yaml`.
-  # Available names: formula1, motogp, moto2, moto3, isle_of_man_tt, football, ufc.
+  # Available names: formula1, motogp, moto2, moto3, isle_of_man_tt, football, premier_league, ufc.
   # Add custom sets below if you need overrides or extra matchers.
   # Example:
   #   my_custom_pack:
@@ -209,6 +209,31 @@ sports:
     # Use the built-in NFL template (pattern set name `football`).
     pattern_sets:
       - football
+
+  - id: premier_league
+    name: Premier League
+    enabled: true
+
+    metadata:
+      url: https://raw.githubusercontent.com/s0len/meta-manager-config/refs/heads/main/metadata-files/premier-league-2025-2026.yaml
+      show_key: Premier League 2025-2026
+      ttl_hours: 24
+
+    source_globs:
+      - "EPL.*"
+      - "EPL *"
+      - "epl.*"
+      - "epl *"
+      - "Premier.League.*"
+      - "Premier League *"
+      - "premier.league.*"
+      - "premier league *"
+      - "English.Premier.League.*"
+      - "English Premier League *"
+
+    # Use the built-in Premier League pattern template.
+    pattern_sets:
+      - premier_league
 
   - id: ufc
     name: UFC
