@@ -324,7 +324,7 @@ sports:
 
     # Use the built-in NFL template (pattern set name `football`).
     pattern_sets:
-      - football
+      - nfl
 
   - id: premier_league
     name: Premier League
