@@ -322,7 +322,7 @@ sports:
       - "nfl.*"
       - "nfl *"
 
-    # Use the built-in NFL template (pattern set name `football`).
+    # Use the built-in NFL template (pattern set name `nfl`).
     pattern_sets:
       - nfl
 
