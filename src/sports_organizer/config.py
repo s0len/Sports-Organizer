@@ -8,6 +8,7 @@ from typing import Any, Dict, Iterable, List, Optional
 
 import re
 
+from .pattern_templates import load_builtin_pattern_sets
 from .utils import load_yaml_file
 
 
@@ -149,13 +150,37 @@ def _build_destination_templates(data: Optional[Dict[str, Any]], defaults: Desti
     )
 
 
-def _build_sport_config(data: Dict[str, Any], defaults: DestinationTemplates, global_link_mode: str) -> SportConfig:
+def _build_sport_config(
+    data: Dict[str, Any],
+    defaults: DestinationTemplates,
+    global_link_mode: str,
+    pattern_sets: Dict[str, List[Dict[str, Any]]],
+) -> SportConfig:
     metadata = _build_metadata_config(data["metadata"])
     destination = _build_destination_templates(data.get("destination"), defaults)
-    patterns = sorted(
-        (_build_pattern_config(pattern) for pattern in data.get("file_patterns", [])),
-        key=lambda cfg: cfg.priority,
-    )
+    pattern_definitions: List[Dict[str, Any]] = []
+
+    pattern_set_refs = data.get("pattern_sets", []) or []
+    if not isinstance(pattern_set_refs, list):
+        raise ValueError(
+            f"Sport '{data.get('id')}' must declare 'pattern_sets' as a list when provided"
+        )
+
+    for set_name in pattern_set_refs:
+        if not isinstance(set_name, str):
+            raise ValueError(
+                f"Sport '{data.get('id')}' pattern set names must be strings, got '{set_name}'"
+            )
+        if set_name not in pattern_sets:
+            raise ValueError(f"Unknown pattern set '{set_name}' referenced by sport '{data.get('id')}'")
+        pattern_definitions.extend(deepcopy(pattern_sets[set_name]))
+
+    custom_patterns = data.get("file_patterns", []) or []
+    pattern_definitions.extend(deepcopy(custom_patterns))
+
+    patterns = sorted((
+        _build_pattern_config(pattern) for pattern in pattern_definitions
+    ), key=lambda cfg: cfg.priority)
 
     return SportConfig(
         id=data["id"],
@@ -267,6 +292,23 @@ def _build_settings(data: Dict[str, Any]) -> Settings:
 def load_config(path: Path) -> AppConfig:
     data = load_yaml_file(path)
 
+    builtin_pattern_sets = {
+        name: deepcopy(patterns) for name, patterns in load_builtin_pattern_sets().items()
+    }
+    user_pattern_sets = data.get("pattern_sets", {}) or {}
+    if not isinstance(user_pattern_sets, dict):
+        raise ValueError("'pattern_sets' must be defined as a mapping of name -> list of patterns")
+
+    for name, patterns in user_pattern_sets.items():
+        if patterns is None:
+            builtin_pattern_sets[name] = []
+            continue
+        if not isinstance(patterns, list):
+            raise ValueError(
+                f"Pattern set '{name}' must be a list of pattern definitions"
+            )
+        builtin_pattern_sets[name] = deepcopy(patterns)
+
     settings = _build_settings(data.get("settings", {}))
     defaults = settings.default_destination
     sports_raw: Iterable[Dict[str, Any]] = data.get("sports", [])
@@ -280,6 +322,6 @@ def load_config(path: Path) -> AppConfig:
     for sport_data in expanded_sports:
         if "metadata" not in sport_data:
             raise ValueError(f"Sport '{sport_data.get('id')}' is missing required 'metadata' section")
-        sports.append(_build_sport_config(sport_data, defaults, settings.link_mode))
+        sports.append(_build_sport_config(sport_data, defaults, settings.link_mode, builtin_pattern_sets))
 
     return AppConfig(settings=settings, sports=sports)

@@ -277,6 +277,15 @@ Key fields:
 - **`priority`** – Lower numbers win when multiple patterns match the same file (defaults to `100`).
 - **`destination_*` overrides** – Apply sport- or pattern-specific templates without touching global settings.
 
+Built-in templates: the project now ships curated pattern sets for Formula 1, MotoGP, Moto2, Moto3, Isle of Man TT, NFL, and UFC. Reference them from a sport entry via:
+
+```yaml
+pattern_sets:
+  - formula1
+```
+
+You can still inline `file_patterns` (alone or in addition to templates) for overrides or experiments. Review `src/sports_organizer/pattern_templates.yaml` for the complete list and structure.
+
 ### 4. Destination Templating
 
 Templates accept rich context built from the match:
@@ -366,12 +375,11 @@ Hardlinks preserve disk space; switch to `copy` or `symlink` when cross-filesyst
 
 ## Extending to New Sports
 
-1. Duplicate a block from `sports.sample.yaml` and update the `metadata.url` and `show_key`.
-2. Set `source_globs` to catch your release naming conventions; add extensions if needed.
-3. Write regex patterns that capture the identifying components (round, session, date, etc.).
-4. Populate `session_aliases` to translate release tokens into official metadata titles.
-5. Run `--dry-run --verbose` and review both console output and `sports.log` for skipped/ignored diagnostics.
-6. Iterate on patterns, aliases, and templates until every file links where you expect.
+1. Start from `sports.sample.yaml` and enable the sport by listing the appropriate `pattern_sets` (e.g., `formula1`, `motogp`).
+2. Update the `metadata.url` / `show_key`, along with `source_globs` and `source_extensions` for your release group.
+3. If no template exists yet (or you need tweaks), copy the closest set from `pattern_templates.yaml` into the `pattern_sets:` section of your config and adjust the regex/aliases.
+4. Run `--dry-run --verbose` and review both console output and `sports.log` for skipped/ignored diagnostics.
+5. Iterate on patterns, aliases, and templates until every file links where you expect—then consider opening a PR to upstream the new template.
 
 ## Troubleshooting & FAQ
 

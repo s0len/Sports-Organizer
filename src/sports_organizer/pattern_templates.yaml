@@ -1,0 +1,605 @@
+pattern_sets:
+  # ------------------------------------------------------------------
+  # Formula 1 releases
+  # ------------------------------------------------------------------
+  formula1: &formula1_patterns
+    - description: Formula 1 MWR releases
+      # Example: Formula.1.2024.Round03.Melbourne.Albert.Park.Qualifying.F1TV-1080p
+      regex: >-
+        (?i)^Formula\.?1\.(?P<year>\d{4})\.Round(?P<round>\d{2})\.(?P<location>[^.]+)\.(?P<venue>[^.]+)\.(?P<session>[^.]+(?:\.[^.]+)*?(?:\.Part\d+)?)(?=\.F1)
+      season_selector:
+        mode: round           # Use captured round number to map metadata seasons.
+        group: round
+        offset: 0
+      episode_selector:
+        group: session        # Normalize the session name via aliases below.
+      session_aliases: &formula1_session_aliases
+        Drivers Press Conference:
+          - Drivers.Press.Conference
+          - Press.Conference
+        Drivers Press Conference Part 1:
+          - Drivers.Press.Conference.Part1
+          - Drivers Press Conference Part 1
+          - Drivers Press Conference Part1
+          - Press.Conference.Part1
+        Drivers Press Conference Part 2:
+          - Drivers.Press.Conference.Part2
+          - Drivers Press Conference Part 2
+          - Drivers Press Conference Part2
+          - Press.Conference.Part2
+        Weekend Warm Up:
+          - Weekend.Warm.Up
+        Free Practice 1:
+          - FP1
+          - Free.Practice.1
+        Free Practice 2:
+          - FP2
+          - Free.Practice.2
+        Free Practice 3:
+          - FP3
+          - Free.Practice.3
+        Sprint Qualifying:
+          - Sprint.Qualifying
+          - Sprint.Shootout
+        Sprint:
+          - Sprint.Race
+          - Sprint
+        Qualifying:
+          - Qualifying
+          - Quali
+        Race:
+          - Race
+        Pre Qualifying Show:
+          - Pre.Qualifying
+        Post Qualifying Show:
+          - Post.Qualifying
+        Pre Race Show:
+          - Pre.Race
+        Post Race Show:
+          - Post.Race
+        Post Sprint Show:
+          - Post.Sprint
+        Pre Sprint Show:
+          - Pre.Sprint
+      destination_root_template: "{show_title}"
+      season_dir_template: "{season_round:02d} {season_title}"
+      filename_template: "{show_title} - S{season_number:02d}E{episode_number:02d} - {episode_title}.{extension}"
+
+    - description: Formula 1 F1Carreras releases
+      # Example: Formula.1.S2024E02.Round04.Baku.Azerbaijan.Sprint.F1TV-1080p-F1Carreras.mkv
+      regex: >-
+        (?i)^Formula\.?1\.S(?P<year>\d{4})E\d+\.Round(?P<round>\d{2})\.(?P<location>[^.]+(?:\.[^.]+)*)\.(?P<session>[^.]+(?:\.[^.]+)*?)(?=\.F1TV).*?-F1Carreras\.(?:mkv|mp4|ts)$
+      season_selector:
+        mode: round
+        group: round
+        offset: 0
+      episode_selector:
+        group: session
+      session_aliases: *formula1_session_aliases   # Re-use the normalization table above.
+      destination_root_template: "{show_title}"
+      season_dir_template: "{season_round:02d} {season_title}"
+      filename_template: "{show_title} - S{season_number:02d}E{episode_number:02d} - {episode_title}.{extension}"
+
+    - description: Formula 1 spaced MWR releases
+      # Example: Formula1 2024 Round05 Miami Sprint Race F1TV 1080p
+      regex: >-
+        (?i)^Formula1\s+(?P<year>\d{4})\s+Round(?P<round>\d{2})\s+(?P<location>[^\s]+)\s+(?P<session>.+?(?:\s+Part\d+)?)\s*(?=\s+F1(?:TV|LIVE))
+      season_selector:
+        mode: round
+        group: round
+        offset: 0
+      episode_selector:
+        group: session
+      session_aliases: *formula1_session_aliases
+      destination_root_template: "{show_title}"
+      season_dir_template: "{season_round:02d} {season_title}"
+      filename_template: "{show_title} - S{season_number:02d}E{episode_number:02d} - {episode_title}.{extension}"
+
+    - description: Formula 1 VERUM releases
+      # Example: Formula1.2024.Saudi.Arabian.Grand.Prix.Qualifying.1080p.VERUM.mkv
+      regex: >-
+        (?i)^Formula1\.(?P<year>\d{4})\.(?P<season_slug>[^.]+(?:\.[^.]+){1,2})\.(?P<session>Qualifying|Sprint\.Race|Race)(?=\.1080p)
+      season_selector:
+        mode: title        # Use the slug to match metadata titles directly.
+        group: season_slug
+        offset: 0
+      episode_selector:
+        group: session
+        allow_fallback_to_title: true
+      session_aliases: *formula1_session_aliases
+      destination_root_template: "{show_title}"
+      season_dir_template: "{season_round:02d} {season_title}"
+      filename_template: "{show_title} - S{season_number:02d}E{episode_number:02d} - {episode_title}.{extension}"
+
+    - description: Formula 1 VERUM full race packs
+      # Example: Formula1.2024.Miami.Grand.Prix.Grand.Prix.1080p.VERUM
+      regex: >-
+        (?i)^Formula1\.(?P<year>\d{4})\.(?P<season_slug>[^.]+(?:\.[^.]+)*?)(?=\.Grand\.Prix)\.(?P<session>Grand\.Prix)\.1080p.*
+      season_selector:
+        mode: title
+        group: season_slug
+      episode_selector:
+        group: session
+      session_aliases:
+        Race:
+          - Grand.Prix
+      destination_root_template: "{show_title}"
+      season_dir_template: "{season_round:02d} {season_title}"
+      filename_template: "{show_title} - S{season_number:02d}E{episode_number:02d} - {episode_title}.{extension}"
+
+  # ------------------------------------------------------------------
+  # MotoGP releases
+  # ------------------------------------------------------------------
+  motogp: &motogp_patterns
+    - description: MotoGP DNU releases
+      # Example: MotoGP.2024.Round03.Austin.Circuit.of.the.Americas.Qualifying-DNU.mkv
+      regex: >-
+        (?i)^(?=.*-\s*DNU\.(?:mkv|mp4|ts)$)MotoGP\.(?P<year>\d{4})\.Round(?P<round>\d{2})\.(?P<location>[^.]+(?:\.[^.]+)*)\.(?P<session>FP[1-4]|Practice(?:\.One|\.Two|\.Three|\.Four)?|Q[a-z]+(?:\.Q[1-3]|\.One|\.Two|\.Three)?|Warm\.?Up|Sprint|Race)
+      season_selector:
+        mode: round
+        group: round
+      episode_selector:
+        group: session
+      session_aliases: &motogp_session_aliases
+        Practice One:
+          - Practice.One
+          - Practice1
+          - Practice-1
+          - Practice_1
+          - Practice
+          - FP1
+          - Free.Practice.One
+          - Free.Practice.1
+          - FreePractice1
+          - FreePracticeOne
+        Practice Two:
+          - Practice.Two
+          - Practice2
+          - Practice-2
+          - Practice_2
+          - FP2
+          - Free.Practice.Two
+          - Free.Practice.2
+          - FreePractice2
+          - FreePracticeTwo
+        Practice Three:
+          - Practice.Three
+          - Practice3
+          - Practice-3
+          - Practice_3
+          - FP3
+          - Free.Practice.Three
+          - Free.Practice.3
+          - FreePractice3
+          - FreePracticeThree
+        Practice Four:
+          - Practice.Four
+          - Practice4
+          - Practice-4
+          - Practice_4
+          - FP4
+          - Free.Practice.Four
+          - Free.Practice.4
+          - FreePractice4
+          - FreePracticeFour
+        Warm Up:
+          - Warm.Up
+          - WarmUp
+          - Warm-Up
+        Qualifying One:
+          - Qualifying.Q1
+          - Qualifying1
+          - Qualifying-1
+          - Qualifying_1
+          - Q1
+        Qualifying Two:
+          - Qualifying.Q2
+          - Qualifying2
+          - Qualifying-2
+          - Qualifying_2
+          - Q2
+          - Qualifying
+        Qualifying Three:
+          - Qualifying.Q3
+          - Qualifying3
+          - Qualifying-3
+          - Qualifying_3
+          - Q3
+        Sprint:
+          - Sprint.Race
+        Race:
+          - Grand.Prix
+          - GP
+          - Thailand
+          - Argentina
+          - The.Americas
+          - Americas
+          - Austin
+          - Qatar
+          - Spain
+          - Jerez
+          - France
+          - Le.Mans
+          - Great.Britain
+          - British
+          - Silverstone
+          - Aragon
+          - Italia
+          - Italy
+          - Mugello
+          - Assen
+          - Netherlands
+          - Deutschland
+          - Germany
+          - Czech.Republic
+          - Czechia
+          - Brno
+          - Austria
+          - Hungary
+          - Catalunya
+          - Catalonia
+          - San.Marino
+          - Rimini
+          - Japan
+          - Motegi
+          - Indonesia
+          - Mandalika
+          - Australia
+          - Phillip.Island
+          - Malaysia
+          - Sepang
+          - Portugal
+          - Portimao
+          - Valencia
+          - Comunitat.Valenciana
+      destination_root_template: "{show_title}"
+      season_dir_template: "{season_round:02d} {season_title}"
+      filename_template: "{show_title} - S{season_number:02d}E{episode_number:02d} - {episode_title}.{extension}"
+
+    - description: MotoGP MWR releases
+      # Example: MotoGP.2024.Round05.Jerez.Qualifying-MWR.mp4
+      regex: >-
+        (?i)^(?=.*-MWR\.(?:mkv|mp4|ts)$)MotoGP\.(?P<year>\d{4})\.Round(?P<round>\d{2})\.(?P<location>[^.]+(?:\.[^.]+)*)\.(?P<session>FP[1-4]|Practice(?:\.One|\.Two|\.Three|\.Four)?|Q[a-z]+(?:\.Q[1-3]|\.One|\.Two|\.Three)?|Warm\.?Up|Sprint|Race)
+      season_selector:
+        mode: round
+        group: round
+      episode_selector:
+        group: session
+      session_aliases: *motogp_session_aliases
+      destination_root_template: "{show_title}"
+      season_dir_template: "{season_round:02d} {season_title}"
+      filename_template: "{show_title} - S{season_number:02d}E{episode_number:02d} - {episode_title}.{extension}"
+
+  # ------------------------------------------------------------------
+  # Moto2 releases
+  # ------------------------------------------------------------------
+  moto2: &moto2_patterns
+    - description: Moto2 MWR releases
+      # Example: Moto2.2025.Round20.Malaysia.Race.WEB-DL.1080p.h264.English-MWR
+      regex: >-
+        (?i)^(?=.*-MWR(?:\.(?:mkv|mp4|ts))?$)Moto2\.(?P<year>\d{4})\.Round(?P<round>\d{2})\.(?P<location>[^.]+(?:\.[^.]+)*)\.(?P<session>FP[1-4]|Free\.Practice(?:\.One|\.Two|\.Three|\.Four)?|Practice(?:\.One|\.Two|\.Three|\.Four)?|Q[a-z]+(?:\.Q[1-3]|\.One|\.Two|\.Three)?|Qualifying(?:\.One|\.Two|\.Three)?|Warm\.?Up|Sprint|Race)
+      season_selector:
+        mode: round
+        group: round
+      episode_selector:
+        group: session
+      session_aliases: *motogp_session_aliases
+      destination_root_template: "{show_title}"
+      season_dir_template: "{season_round:02d} {season_title}"
+      filename_template: "{show_title} - S{season_number:02d}E{episode_number:02d} - {episode_title}.{extension}"
+
+    - description: Moto2 VERUM releases
+      # Example: Moto2.2025.Australia.Free.Practice.Two.1080p.WEB.h264-VERUM
+      regex: >-
+        (?i)^Moto2\.(?P<year>\d{4})\.(?P<season_slug>[^.]+(?:\.[^.]+)*?)(?:\.(?P<session>FP[1-4]|Free\.Practice(?:\.One|\.Two|\.Three|\.Four)?|Practice(?:\.One|\.Two|\.Three|\.Four)?|Qualifying(?:\.One|\.Two|\.Three)?|Warm\.?Up|Sprint|Race))?(?=\.1080p)\.1080p(?:\.[^.]+)*?-VERUM(?:\.(?:mkv|mp4|ts))?$
+      season_selector:
+        mode: title
+        group: season_slug
+      episode_selector:
+        group: session
+        allow_fallback_to_title: true
+      session_aliases: *motogp_session_aliases
+      destination_root_template: "{show_title}"
+      season_dir_template: "{season_round:02d} {season_title}"
+      filename_template: "{show_title} - S{season_number:02d}E{episode_number:02d} - {episode_title}.{extension}"
+
+  # ------------------------------------------------------------------
+  # Moto3 releases
+  # ------------------------------------------------------------------
+  moto3: &moto3_patterns
+    - description: Moto3 MWR releases
+      # Example: Moto3.2025.Round16.San.Marino.FP2.WEB-DL.1080p.h264.English-MWR
+      regex: >-
+        (?i)^(?=.*-MWR(?:\.(?:mkv|mp4|ts))?$)Moto3\.(?P<year>\d{4})\.Round(?P<round>\d{2})\.(?P<location>[^.]+(?:\.[^.]+)*)\.(?P<session>FP[1-4]|Free\.Practice(?:\.One|\.Two|\.Three|\.Four)?|Practice(?:\.One|\.Two|\.Three|\.Four)?|Q[a-z]+(?:\.Q[1-3]|\.One|\.Two|\.Three)?|Qualifying(?:\.One|\.Two|\.Three)?|Warm\.?Up|Sprint|Race)
+      season_selector:
+        mode: round
+        group: round
+      episode_selector:
+        group: session
+      session_aliases: *motogp_session_aliases
+      destination_root_template: "{show_title}"
+      season_dir_template: "{season_round:02d} {season_title}"
+      filename_template: "{show_title} - S{season_number:02d}E{episode_number:02d} - {episode_title}.{extension}"
+
+    - description: Moto3 VERUM releases
+      # Example: Moto3.2025.Malaysia.Free.Practice.Two.1080p.WEB.h264-VERUM
+      regex: >-
+        (?i)^Moto3\.(?P<year>\d{4})\.(?P<season_slug>[^.]+(?:\.[^.]+)*?)(?:\.(?P<session>FP[1-4]|Free\.Practice(?:\.One|\.Two|\.Three|\.Four)?|Practice(?:\.One|\.Two|\.Three|\.Four)?|Qualifying(?:\.One|\.Two|\.Three)?|Warm\.?Up|Sprint|Race))?(?=\.1080p)\.1080p(?:\.[^.]+)*?-VERUM(?:\.(?:mkv|mp4|ts))?$
+      season_selector:
+        mode: title
+        group: season_slug
+      episode_selector:
+        group: session
+        allow_fallback_to_title: true
+      session_aliases: *motogp_session_aliases
+      destination_root_template: "{show_title}"
+      season_dir_template: "{season_round:02d} {season_title}"
+      filename_template: "{show_title} - S{season_number:02d}E{episode_number:02d} - {episode_title}.{extension}"
+
+  # ------------------------------------------------------------------
+  # Isle of Man TT releases
+  # ------------------------------------------------------------------
+  isle_of_man_tt: &isle_of_man_tt_patterns
+    - description: Isle of Man TT releases
+      # Example: Isle.of.Man.TT.2023.Superbike.Race.Highlights.1080p.WEB-DL.mkv
+      regex: >-
+        (?i)^Isle[.\s_-]*Of[.\s_-]*Man[.\s_-]*TT[.\s_-]*(?P<year>\d{4})[.\s_-]+(?P<session>.+?)(?=(?:[.\s_-]+(?:ITVX|ITV|BBC|Sky|WEBRip|WEB-?DL|WEB|AMZN|NF|F1TV|1080p|2160p|720p|4K|x264|x265|h264|h265|HEVC|AAC|AC3|DDP|EAC3|Atmos|Dolby|DTS|PCM|10bit|8bit|BluRay|Rip|Pack|Collection|Sample|Trailer|Bonus|Subs?|Subbed|Dual|Multi|Proper|Repack|Extended|DNU|VERUM|MWR|Hybrid|PAL|NTSC|Docu|Sports|Broadcast))(?:[.\s_-]|$)|\.(?:mkv|mp4|ts|m4v|avi)$)
+      season_selector:
+        mode: key            # Treat the captured year as the season key.
+        group: year
+      episode_selector:
+        group: session
+      session_aliases:
+        Qualifying Highlights:
+          - Qualifying Highlights
+          - Qualifying.Highlights
+          - Qualifying-Highlights
+          - Qualifying_Highlights
+          - QualifyingHighlights
+        Qualifying Highlights Part Two:
+          - Qualifying Highlights Part 2
+          - Qualifying.Highlights.Part.Two
+          - Qualifying.Highlights.Part.2
+          - Qualifying Highlights Pt 2
+          - Qualifying Highlights Pt.2
+          - Qualifying Highlights Pt Two
+          - Qualifying Highlights Part II
+        Qualifying Highlights Part Three:
+          - Qualifying Highlights Part 3
+          - Qualifying.Highlights.Part.Three
+          - Qualifying.Highlights.Part.3
+          - Qualifying Highlights Pt 3
+          - Qualifying Highlights Pt.3
+          - Qualifying Highlights Pt Three
+          - Qualifying Highlights Part III
+        Monster Energy Supersport TT Race 1:
+          - Monster.Energy.Supersport.TT.Race.1
+          - Monster Energy Supersport Race 1
+          - Monster Energy Supersport TT Race One
+          - Supersport TT Race 1
+          - Supersport TT Race One
+          - Supersport Race 1
+          - Supersport Race One
+        Monster Energy Supersport TT Race 2:
+          - Monster.Energy.Supersport.TT.Race.2
+          - Monster Energy Supersport Race 2
+          - Monster Energy Supersport TT Race Two
+          - Supersport TT Race 2
+          - Supersport TT Race Two
+          - Supersport Race 2
+          - Supersport Race Two
+        RST Superbike TT Race:
+          - RST.Superbike.TT.Race
+          - Superbike.TT.Race
+          - RST Superbike Race
+          - Superbike Race
+        Metzeler Supertwin TT Race 1:
+          - Metzeler.Supertwin.TT.Race.1
+          - Metzeler Supertwin TT Race One
+          - Supertwin TT Race 1
+          - Supertwin TT Race One
+          - Supertwin Race 1
+          - Supertwin Race One
+        RL360 Superstock TT Race 1:
+          - RL360.Superstock.TT.Race.1
+          - RL360 Superstock TT Race One
+          - Superstock TT Race 1
+          - Superstock TT Race One
+          - Superstock Race 1
+          - Superstock Race One
+        Entire Cover insurance Supertwin TT Race 2:
+          - Entire.Cover.Insurance.Supertwin.TT.Race.2
+          - Entire Cover Insurance Supertwin TT Race 2
+          - Entire Cover Insurance Supertwin TT Race Two
+          - Supertwin TT Race 2
+          - Supertwin TT Race Two
+          - Supertwin Race 2
+          - Supertwin Race Two
+        3wheeling.meida Sidecar TT Race 1:
+          - 3wheeling.Media.Sidecar.TT.Race.1
+          - 3wheeling media Sidecar TT Race 1
+          - 3wheeling Media Sidecar TT Race 1
+          - Sidecar TT Race 1
+          - Sidecar TT Race One
+          - Sidecar Race 1
+          - Sidecar Race One
+        3wheeling.Media Sidecar TT Race 2:
+          - 3wheeling.Media.Sidecar.TT.Race.2
+          - 3wheeling.media Sidecar TT Race 2
+          - 3wheeling.meida.Sidecar.TT.Race.2
+          - Sidecar TT Race 2
+          - Sidecar TT Race Two
+          - Sidecar Race 2
+          - Sidecar Race Two
+        Milwaukee Senior TT Race:
+          - Milwaukee Senior Race
+          - Senior TT Race
+          - Senior Race
+        Superbike Race Highlights:
+          - Superbike.Race.Highlights
+          - Superbike TT Race Highlights
+          - Superbike Highlights
+        Supersport Race One Highlights:
+          - Supersport.Race.One.Highlights
+          - Supersport.Race.1.Highlights
+          - Supersport Race 1 Highlights
+          - Supersport Race One Highlight
+        Supersport Race Two Highlights:
+          - Supersport.Race.Two.Highlights
+          - Supersport.Race.2.Highlights
+          - Supersport Race 2 Highlights
+          - Supersport Race Two Highlight
+        Superstock Race Two Highlights:
+          - Superstock.Race.Two.Highlights
+          - Superstock.Race.2.Highlights
+          - Superstock Race 2 Highlights
+          - Superstock Race Two Highlight
+        Supertwin Race Two Highlights:
+          - Supertwin.Race.Two.Highlights
+          - Supertwin.Race.2.Highlights
+          - Supertwin Race 2 Highlights
+          - Supertwin Race Two Highlight
+        Review Show One:
+          - Review.Show.One
+          - Review Show 1
+          - Review.Show.1
+        Review Show Two:
+          - Review.Show.Two
+          - Review Show 2
+          - Review.Show.2
+
+  # ------------------------------------------------------------------
+  # UFC numbered events
+  # ------------------------------------------------------------------
+  ufc: &ufc_patterns
+    - description: UFC numbered events (dot separated)
+      # Example: UFC.298.Volkanovski.vs.Topuria.Main.Card.1080p.WEB.mkv
+      regex: >-
+        (?i)^UFC\.(?P<season>\d{3})\.(?P<event>.+?)\.(?P<session>Early[._-]Prelims|Prelims|Main[._-]Card|PPV)(?:\.[^.]+)*\.(?:mkv|mp4|ts|m4v|avi)$
+      season_selector:
+        mode: key            # Use the UFC event number as the season identifier.
+        group: season
+      episode_selector:
+        group: session
+      session_aliases:
+        Main Card:
+          - Main.Card
+          - Main-Card
+          - Main_Card
+          - PPV
+          - Pay.Per.View
+        Early Prelims:
+          - Early.Prelims
+          - Early-Prelims
+          - Early_Prelims
+        Prelims:
+          - Preliminary.Card
+
+  # ------------------------------------------------------------------
+  # NFL releases
+  # ------------------------------------------------------------------
+  football: &nfl_patterns
+    - description: NFL regular season date-based releases
+      # Example: NFL.2025.11.02.Los.Angeles.Chargers.Vs.Tennessee.Titans.720p.WEB.H264-NiGHTNiNJAS.mkv
+      regex: >-
+        (?i)^NFL\.(?P<date>(?P<year>\d{4})\.(?P<month>\d{2})\.(?P<day>\d{2}))\.(?P<matchup>(?P<away>(?:49ers|Angeles|Arizona|Atlanta|Baltimore|Bay|Bears|Bengals|Bills|Broncos|Browns|Buccaneers|Buffalo|Cardinals|Carolina|Chargers|Chicago|Chiefs|Cincinnati|City|Cleveland|Colts|Commanders|Cowboys|Dallas|Denver|Detroit|Dolphins|Eagles|England|Falcons|Francisco|Giants|Green|Houston|Indianapolis|Jacksonville|Jaguars|Jets|Kansas|Las|Lions|Los|Miami|Minnesota|New|Orleans|Packers|Panthers|Patriots|Philadelphia|Pittsburgh|Raiders|Rams|Ravens|Saints|San|Seahawks|Seattle|Steelers|Tampa|Tennessee|Texans|Titans|Vegas|Vikings|Washington|York))(?:\.(?:49ers|Angeles|Arizona|Atlanta|Baltimore|Bay|Bears|Bengals|Bills|Broncos|Browns|Buccaneers|Buffalo|Cardinals|Carolina|Chargers|Chicago|Chiefs|Cincinnati|City|Cleveland|Colts|Commanders|Cowboys|Dallas|Denver|Detroit|Dolphins|Eagles|England|Falcons|Francisco|Giants|Green|Houston|Indianapolis|Jacksonville|Jaguars|Jets|Kansas|Las|Lions|Los|Miami|Minnesota|New|Orleans|Packers|Panthers|Patriots|Philadelphia|Pittsburgh|Raiders|Rams|Ravens|Saints|San|Seahawks|Seattle|Steelers|Tampa|Tennessee|Texans|Titans|Vegas|Vikings|Washington|York)){0,2}\.(?P<separator>vs|at)\.(?P<home>(?:49ers|Angeles|Arizona|Atlanta|Baltimore|Bay|Bears|Bengals|Bills|Broncos|Browns|Buccaneers|Buffalo|Cardinals|Carolina|Chargers|Chicago|Chiefs|Cincinnati|City|Cleveland|Colts|Commanders|Cowboys|Dallas|Denver|Detroit|Dolphins|Eagles|England|Falcons|Francisco|Giants|Green|Houston|Indianapolis|Jacksonville|Jaguars|Jets|Kansas|Las|Lions|Los|Miami|Minnesota|New|Orleans|Packers|Panthers|Patriots|Philadelphia|Pittsburgh|Raiders|Rams|Ravens|Saints|San|Seahawks|Seattle|Steelers|Tampa|Tennessee|Texans|Titans|Vegas|Vikings|Washington|York))(?:\.(?:49ers|Angeles|Arizona|Atlanta|Baltimore|Bay|Bears|Bengals|Bills|Broncos|Browns|Buccaneers|Buffalo|Cardinals|Carolina|Chargers|Chicago|Chiefs|Cincinnati|City|Cleveland|Colts|Commanders|Cowboys|Dallas|Denver|Detroit|Dolphins|Eagles|England|Falcons|Francisco|Giants|Green|Houston|Indianapolis|Jacksonville|Jaguars|Jets|Kansas|Las|Lions|Los|Miami|Minnesota|New|Orleans|Packers|Panthers|Patriots|Philadelphia|Pittsburgh|Raiders|Rams|Ravens|Saints|San|Seahawks|Seattle|Steelers|Tampa|Tennessee|Texans|Titans|Vegas|Vikings|Washington|York)){0,2})(?:\.[^.]+)*\.(?P<extension>mkv|mp4|ts|m4v|avi)$
+      season_selector:
+        mode: key
+        group: date
+        mapping:
+          '2025.09.05': 1
+          '2025.09.06': 1
+          '2025.09.07': 1
+          '2025.09.08': 1
+          '2025.09.09': 1
+          '2025.09.12': 2
+          '2025.09.14': 2
+          '2025.09.15': 2
+          '2025.09.16': 2
+          '2025.09.19': 3
+          '2025.09.21': 3
+          '2025.09.22': 3
+          '2025.09.23': 3
+          '2025.09.26': 4
+          '2025.09.28': 4
+          '2025.09.29': 4
+          '2025.09.30': 4
+          '2025.10.03': 5
+          '2025.10.05': 5
+          '2025.10.06': 5
+          '2025.10.07': 5
+          '2025.10.10': 6
+          '2025.10.12': 6
+          '2025.10.13': 6
+          '2025.10.14': 6
+          '2025.10.17': 7
+          '2025.10.19': 7
+          '2025.10.20': 7
+          '2025.10.21': 7
+          '2025.10.24': 8
+          '2025.10.26': 8
+          '2025.10.27': 8
+          '2025.10.28': 8
+          '2025.10.31': 9
+          '2025.11.02': 9
+          '2025.11.03': 9
+          '2025.11.04': 9
+          '2025.11.06': 10
+          '2025.11.09': 10
+          '2025.11.10': 10
+          '2025.11.13': 11
+          '2025.11.16': 11
+          '2025.11.17': 11
+          '2025.11.20': 12
+          '2025.11.23': 12
+          '2025.11.24': 12
+          '2025.11.27': 13
+          '2025.11.28': 13
+          '2025.11.30': 13
+          '2025.12.01': 13
+          '2025.12.04': 14
+          '2025.12.07': 14
+          '2025.12.08': 14
+          '2025.12.11': 15
+          '2025.12.14': 15
+          '2025.12.15': 15
+          '2025.12.18': 16
+          '2025.12.20': 16
+          '2025.12.21': 16
+          '2025.12.22': 16
+          '2025.12.25': 17
+          '2025.12.27': 17
+          '2025.12.28': 17
+          '2025.12.29': 17
+          '2026.01.04': 18
+      episode_selector:
+        group: matchup
+        allow_fallback_to_title: true
+      destination_root_template: "{show_title}"
+      season_dir_template: "{season_number:02d} {season_title}"
+      filename_template: "{show_title} - S{season_number:02d}E{episode_number:02d} - {episode_title}.{extension}"
+
+    - description: UFC numbered events (space separated)
+      # Example: UFC 299 O'Malley vs Vera Main Card 1080p WEB.mp4
+      regex: >-
+        (?i)^UFC\s+(?P<season>\d{3})\s+(?P<event>.+?)\s+(?P<session>Early(?:\s+|[._-])Prelims|Prelims|Main(?:\s+|[._-])Card|PPV)(?:\s+.+)?\.(?:mkv|mp4|ts|m4v|avi)$
+      season_selector:
+        mode: key
+        group: season
+      episode_selector:
+        group: session
+      session_aliases:
+        Main Card:
+          - Main.Card
+          - Main-Card
+          - Main_Card
+          - PPV
+          - Pay.Per.View
+        Early Prelims:
+          - Early.Prelims
+          - Early-Prelims
+          - Early_Prelims
+        Prelims:
+          - Preliminary.Card
+
+
