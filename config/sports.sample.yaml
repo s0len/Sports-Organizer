@@ -536,6 +536,90 @@ pattern_sets:
         Prelims:
           - Preliminary.Card
 
+  # ------------------------------------------------------------------
+  # NFL releases
+  # ------------------------------------------------------------------
+  football: &nfl_patterns
+    - description: NFL regular season date-based releases
+      # Example: NFL.2025.11.02.Los.Angeles.Chargers.Vs.Tennessee.Titans.720p.WEB.H264-NiGHTNiNJAS.mkv
+      regex: >-
+        (?i)^NFL\.(?P<date>(?P<year>\d{4})\.(?P<month>\d{2})\.(?P<day>\d{2}))\.(?P<matchup>(?P<away>(?:49ers|Angeles|Arizona|Atlanta|Baltimore|Bay|Bears|Bengals|Bills|Broncos|Browns|Buccaneers|Buffalo|Cardinals|Carolina|Chargers|Chicago|Chiefs|Cincinnati|City|Cleveland|Colts|Commanders|Cowboys|Dallas|Denver|Detroit|Dolphins|Eagles|England|Falcons|Francisco|Giants|Green|Houston|Indianapolis|Jacksonville|Jaguars|Jets|Kansas|Las|Lions|Los|Miami|Minnesota|New|Orleans|Packers|Panthers|Patriots|Philadelphia|Pittsburgh|Raiders|Rams|Ravens|Saints|San|Seahawks|Seattle|Steelers|Tampa|Tennessee|Texans|Titans|Vegas|Vikings|Washington|York))(?:\.(?:49ers|Angeles|Arizona|Atlanta|Baltimore|Bay|Bears|Bengals|Bills|Broncos|Browns|Buccaneers|Buffalo|Cardinals|Carolina|Chargers|Chicago|Chiefs|Cincinnati|City|Cleveland|Colts|Commanders|Cowboys|Dallas|Denver|Detroit|Dolphins|Eagles|England|Falcons|Francisco|Giants|Green|Houston|Indianapolis|Jacksonville|Jaguars|Jets|Kansas|Las|Lions|Los|Miami|Minnesota|New|Orleans|Packers|Panthers|Patriots|Philadelphia|Pittsburgh|Raiders|Rams|Ravens|Saints|San|Seahawks|Seattle|Steelers|Tampa|Tennessee|Texans|Titans|Vegas|Vikings|Washington|York)){0,2}\.(?P<separator>vs|at)\.(?P<home>(?:49ers|Angeles|Arizona|Atlanta|Baltimore|Bay|Bears|Bengals|Bills|Broncos|Browns|Buccaneers|Buffalo|Cardinals|Carolina|Chargers|Chicago|Chiefs|Cincinnati|City|Cleveland|Colts|Commanders|Cowboys|Dallas|Denver|Detroit|Dolphins|Eagles|England|Falcons|Francisco|Giants|Green|Houston|Indianapolis|Jacksonville|Jaguars|Jets|Kansas|Las|Lions|Los|Miami|Minnesota|New|Orleans|Packers|Panthers|Patriots|Philadelphia|Pittsburgh|Raiders|Rams|Ravens|Saints|San|Seahawks|Seattle|Steelers|Tampa|Tennessee|Texans|Titans|Vegas|Vikings|Washington|York))(?:\.(?:49ers|Angeles|Arizona|Atlanta|Baltimore|Bay|Bears|Bengals|Bills|Broncos|Browns|Buccaneers|Buffalo|Cardinals|Carolina|Chargers|Chicago|Chiefs|Cincinnati|City|Cleveland|Colts|Commanders|Cowboys|Dallas|Denver|Detroit|Dolphins|Eagles|England|Falcons|Francisco|Giants|Green|Houston|Indianapolis|Jacksonville|Jaguars|Jets|Kansas|Las|Lions|Los|Miami|Minnesota|New|Orleans|Packers|Panthers|Patriots|Philadelphia|Pittsburgh|Raiders|Rams|Ravens|Saints|San|Seahawks|Seattle|Steelers|Tampa|Tennessee|Texans|Titans|Vegas|Vikings|Washington|York)){0,2})(?:\.[^.]+)*\.(?P<extension>mkv|mp4|ts|m4v|avi)$
+      season_selector:
+        mode: key
+        group: date
+        mapping:
+          '2025.09.05': 1
+          '2025.09.06': 1
+          '2025.09.07': 1
+          '2025.09.08': 1
+          '2025.09.09': 1
+          '2025.09.12': 2
+          '2025.09.14': 2
+          '2025.09.15': 2
+          '2025.09.16': 2
+          '2025.09.19': 3
+          '2025.09.21': 3
+          '2025.09.22': 3
+          '2025.09.23': 3
+          '2025.09.26': 4
+          '2025.09.28': 4
+          '2025.09.29': 4
+          '2025.09.30': 4
+          '2025.10.03': 5
+          '2025.10.05': 5
+          '2025.10.06': 5
+          '2025.10.07': 5
+          '2025.10.10': 6
+          '2025.10.12': 6
+          '2025.10.13': 6
+          '2025.10.14': 6
+          '2025.10.17': 7
+          '2025.10.19': 7
+          '2025.10.20': 7
+          '2025.10.21': 7
+          '2025.10.24': 8
+          '2025.10.26': 8
+          '2025.10.27': 8
+          '2025.10.28': 8
+          '2025.10.31': 9
+          '2025.11.02': 9
+          '2025.11.03': 9
+          '2025.11.04': 9
+          '2025.11.06': 10
+          '2025.11.09': 10
+          '2025.11.10': 10
+          '2025.11.13': 11
+          '2025.11.16': 11
+          '2025.11.17': 11
+          '2025.11.20': 12
+          '2025.11.23': 12
+          '2025.11.24': 12
+          '2025.11.27': 13
+          '2025.11.28': 13
+          '2025.11.30': 13
+          '2025.12.01': 13
+          '2025.12.04': 14
+          '2025.12.07': 14
+          '2025.12.08': 14
+          '2025.12.11': 15
+          '2025.12.14': 15
+          '2025.12.15': 15
+          '2025.12.18': 16
+          '2025.12.20': 16
+          '2025.12.21': 16
+          '2025.12.22': 16
+          '2025.12.25': 17
+          '2025.12.27': 17
+          '2025.12.28': 17
+          '2025.12.29': 17
+          '2026.01.04': 18
+      episode_selector:
+        group: matchup
+        allow_fallback_to_title: true
+      destination_root_template: "{show_title}"
+      season_dir_template: "{season_number:02d} {season_title}"
+      filename_template: "{show_title} - S{season_number:02d}E{episode_number:02d} - {episode_title}.{extension}"
+
     - description: UFC numbered events (space separated)
       # Example: UFC 299 O'Malley vs Vera Main Card 1080p WEB.mp4
       regex: >-
@@ -686,6 +770,23 @@ sports:
     destination:
       season_dir_template: "{season_title}"
       episode_template: "{show_title} - S{season_number:02d}E{episode_number:02d} - {episode_title}.{extension}"
+
+  - id: football
+    name: NFL
+    enabled: true
+
+    metadata:
+      url: https://raw.githubusercontent.com/s0len/meta-manager-config/refs/heads/main/metadata-files/nfl-2025-26.yaml
+      show_key: NFL 2025-26
+      ttl_hours: 24
+
+    source_globs:
+      - "NFL.*"
+      - "NFL *"
+      - "nfl.*"
+      - "nfl *"
+
+    file_patterns: *nfl_patterns
 
   - id: ufc
     name: UFC
