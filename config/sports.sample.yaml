@@ -42,7 +42,7 @@ settings:
 
 pattern_sets:
   # Built-in pattern templates load automatically from `pattern_templates.yaml`.
-  # Available names: formula1, motogp, moto2, moto3, isle_of_man_tt, football, premier_league, ufc.
+  # Available names: formula1, formula_e, motogp, moto2, moto3, isle_of_man_tt, football, premier_league, ufc.
   # Add custom sets below if you need overrides or extra matchers.
   # Example:
   #   my_custom_pack:
@@ -94,6 +94,30 @@ sports:
             Pre-Season Testing:
               season_number: 0
               round: 0
+
+  - id: formula_e
+    name: Formula E
+    enabled: true
+
+    source_globs:
+      - "FormulaE.*"
+      - "FormulaE *"
+      - "Formula.E.*"
+      - "Formula E *"
+      - "formulae.*"
+      - "formulae *"
+      - "formula.e.*"
+      - "formula e *"
+
+    pattern_sets:
+      - formula_e
+
+    variants:
+      - year: 2025
+        metadata:
+          url: https://raw.githubusercontent.com/s0len/meta-manager-config/refs/heads/main/metadata-files/formulae-2025.yaml
+          show_key: Formula E 2025
+          ttl_hours: 24
 
   - id: motogp
     name: MotoGP
@@ -215,7 +239,7 @@ sports:
     enabled: true
 
     metadata:
-      url: https://raw.githubusercontent.com/s0len/meta-manager-config/refs/heads/main/metadata-files/premier-league-2025-2026.yaml
+      url: https://raw.githubusercontent.com/s0len/meta-manager-config/refs/heads/main/metadata-files/premier-league-2025-26.yaml
       show_key: Premier League 2025-2026
       ttl_hours: 24
 

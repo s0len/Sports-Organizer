@@ -128,6 +128,89 @@ pattern_sets:
       filename_template: "{show_title} - S{season_number:02d}E{episode_number:02d} - {episode_title}.{extension}"
 
   # ------------------------------------------------------------------
+  # Formula E releases
+  # ------------------------------------------------------------------
+  formula_e: &formula_e_patterns
+    - description: Formula E MWR releases (dot separated)
+      # Example: FormulaE.2025.Round16.Great.Britain.Race.STAN.WEB-DL.1080p.h264.English-MWR
+      regex: >-
+        (?i)^(?=.*-MWR(?:\.(?:mkv|mp4|ts))?$)Formula[.\s]?E\.(?P<year>\d{4})\.Round(?P<round>\d{2})\.(?P<location>[^.]+(?:\.[^.]+)*)\.(?P<session>FP[1-4]|Free\.Practice(?:\.One|\.Two|\.Three|\.Four)?|Practice(?:\.One|\.Two|\.Three|\.Four)?|Qualifying|Quali|Race|E-?Prix|Shakedown|Warm\.?(?:Up)|Test)
+      season_selector:
+        mode: round
+        group: round
+      episode_selector:
+        group: session
+        allow_fallback_to_title: true
+      session_aliases: &formula_e_session_aliases
+        Free Practice 1:
+          - FP1
+          - Free.Practice.1
+          - FreePractice1
+          - Practice1
+          - Practice.One
+          - Practice.1
+        Free Practice 2:
+          - FP2
+          - Free.Practice.2
+          - FreePractice2
+          - Practice2
+          - Practice.Two
+          - Practice.2
+        Free Practice 3:
+          - FP3
+          - Free.Practice.3
+          - FreePractice3
+          - Practice3
+          - Practice.Three
+          - Practice.3
+        Free Practice 4:
+          - FP4
+          - Free.Practice.4
+          - FreePractice4
+          - Practice4
+          - Practice.Four
+          - Practice.4
+        Shakedown:
+          - Shakedown
+          - Shakedown.Session
+        Qualifying:
+          - Qualifying
+          - Quali
+          - Duels
+          - Qualifying.Duels
+        Race:
+          - Race
+          - E-Prix
+          - EPrix
+          - Grand.Prix
+        Warm Up:
+          - Warm.Up
+          - WarmUp
+        Test:
+          - Test
+          - Test.Session
+        Practice:
+          - Practice
+          - Practice.Session
+      destination_root_template: "{show_title}"
+      season_dir_template: "{season_round:02d} {season_title}"
+      filename_template: "{show_title} - S{season_number:02d}E{episode_number:02d} - {episode_title}.{extension}"
+    - description: Formula E MWR releases (space separated)
+      # Example: FormulaE 2025 Round16 Great Britain Race STAN WEB-DL 1080p h264 English-MWR
+      regex: >-
+        (?i)^(?=.*-MWR(?:\.(?:mkv|mp4|ts))?$)FormulaE\s+(?P<year>\d{4})\s+Round(?P<round>\d{2})\s+(?P<location>.+?)\s+(?P<session>FP[1-4]|Free\s+Practice(?:\s+One|\s+Two|\s+Three|\s+Four)?|Practice(?:\s+One|\s+Two|\s+Three|\s+Four)?|Qualifying|Quali|Race|E-?Prix|Shakedown|Warm\s*(?:Up)?|Test)(?=\s)
+      season_selector:
+        mode: round
+        group: round
+      episode_selector:
+        group: session
+        allow_fallback_to_title: true
+      session_aliases: *formula_e_session_aliases
+      destination_root_template: "{show_title}"
+      season_dir_template: "{season_round:02d} {season_title}"
+      filename_template: "{show_title} - S{season_number:02d}E{episode_number:02d} - {episode_title}.{extension}"
+
+  # ------------------------------------------------------------------
   # MotoGP releases
   # ------------------------------------------------------------------
   motogp: &motogp_patterns
