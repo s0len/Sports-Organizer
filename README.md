@@ -402,6 +402,8 @@ pip install -r requirements.txt
 - Run the CLI locally: `python -m sports_organizer.cli --config config/sports.sample.yaml --dry-run --verbose`.
 - Build the container image: `docker build -t sports-organizer:dev .`.
 - Follow standard Python formatting (e.g., `ruff`, `black`) to keep diffs tidy.
+- Install test tooling: `pip install -r requirements-dev.txt`.
+- Run the automated tests: `pytest`.
 - Open a draft pull request early—sample configs and matching logic benefit from collaborative review.
 
 ## Roadmap
