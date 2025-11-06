@@ -332,7 +332,7 @@ sports:
 
     metadata:
       url: https://raw.githubusercontent.com/s0len/meta-manager-config/refs/heads/main/metadata-files/premier-league-2025-26.yaml
-      show_key: Premier League 2025-2026
+      show_key: Premier League 2025-26
       ttl_hours: 24
 
     source_globs:
