@@ -210,6 +210,144 @@ pattern_sets:
       season_dir_template: "{season_round:02d} {season_title}"
       filename_template: "{show_title} - S{season_number:02d}E{episode_number:02d} - {episode_title}.{extension}"
 
+
+  # ------------------------------------------------------------------
+  # IndyCar releases
+  # ------------------------------------------------------------------
+  indycar: &indycar_patterns
+    - description: IndyCar Series MWR releases (dot separated)
+      # Example: IndyCar.Series.2025.Round06.Indianapolis.500.Race.STAN.WEB-DL.1080p.h264.English-MWR
+      regex: >-
+        (?i)^(?=.*-MWR(?:\.(?:mkv|mp4|ts))?$)IndyCar(?:\.Series)?\.(?P<year>\d{4})\.Round(?P<round>\d{2})\.(?P<location>[^.]+(?:\.[^.]+)*?)\.(?P<session>Practice(?:\.(?:[1-6]|One|Two|Three|Four|Five|Six|Session))?|Qualifying(?:\.Day\.(?:1|2)|\.Session)?|Race|Carb\.Day)(?:\.[^.]+)*$
+      season_selector:
+        mode: round
+        group: round
+      episode_selector:
+        group: session
+        allow_fallback_to_title: true
+      session_aliases: &indycar_session_aliases
+        Practice 1:
+          - Practice.1
+          - Practice1
+          - Practice_1
+          - Practice-One
+          - Practice.One
+          - Practice One
+          - Practice one
+          - FP1
+        Practice 2:
+          - Practice.2
+          - Practice2
+          - Practice_2
+          - Practice-Two
+          - Practice.Two
+          - PracticeTwo
+          - Practice Two
+          - Practice two
+          - FP2
+        Practice 3:
+          - Practice.3
+          - Practice3
+          - Practice_3
+          - Practice-Three
+          - Practice.Three
+          - PracticeThree
+          - Practice Three
+          - Practice three
+          - FP3
+        Practice 4:
+          - Practice.4
+          - Practice4
+          - Practice_4
+          - Practice-Four
+          - Practice.Four
+          - PracticeFour
+          - Practice Four
+          - Practice four
+          - FP4
+        Practice 5:
+          - Practice.5
+          - Practice5
+          - Practice_5
+          - Practice-Five
+          - Practice.Five
+          - PracticeFive
+          - Practice Five
+          - Practice five
+          - FP5
+        Practice 6:
+          - Practice.6
+          - Practice6
+          - Practice_6
+          - Practice-Six
+          - Practice.Six
+          - PracticeSix
+          - Practice Six
+          - Practice six
+          - FP6
+        Practice:
+          - Practice
+          - Practice.Session
+          - PracticeSession
+          - Practice Session
+          - Single.Practice
+          - Practice-Session
+        Qualifying:
+          - Qualifying
+          - Quali
+          - Qualifying.Session
+          - Qualifying Session
+        Qualifying Day 1:
+          - Qualifying.Day.1
+          - Qualifying Day 1
+          - Qualifying.Day1
+          - Qualifying Day1
+          - Qualifying.Day.One
+          - Qualifying Day One
+          - Day.1.Qualifying
+          - Day1.Qualifying
+          - Day 1 Qualifying
+          - Day1 Qualifying
+        Qualifying Day 2:
+          - Qualifying.Day.2
+          - Qualifying Day 2
+          - Qualifying.Day2
+          - Qualifying Day2
+          - Qualifying.Day.Two
+          - Qualifying Day Two
+          - Day.2.Qualifying
+          - Day2.Qualifying
+          - Day 2 Qualifying
+          - Day2 Qualifying
+        Carb Day:
+          - Carb.Day
+          - CarbDay
+          - Carb-Day
+          - Carb_Day
+          - Carb day
+        Race:
+          - Race
+          - Main.Race
+          - Feature.Race
+      destination_root_template: "{show_title}"
+      season_dir_template: "{season_round:02d} {season_title}"
+      filename_template: "{show_title} - S{season_number:02d}E{episode_number:02d} - {episode_title}.{extension}"
+
+    - description: IndyCar Series MWR releases (space separated)
+      # Example: IndyCar Series 2025 Round06 Indianapolis 500 Qualifying STAN WEB-DL 1080p h264 English-MWR
+      regex: >-
+        (?i)^(?=.*-MWR(?:\.(?:mkv|mp4|ts))?$)IndyCar(?:\s+Series)?\s+(?P<year>\d{4})\s+Round(?P<round>\d{2})\s+(?P<location>.+?)\s+(?P<session>Practice(?:\s+(?:[1-6]|One|Two|Three|Four|Five|Six))?(?:\s+Session)?|Qualifying(?:\s+Day\s+(?:1|2)|\s+Session)?|Race|Carb\s*Day)(?=\s)
+      season_selector:
+        mode: round
+        group: round
+      episode_selector:
+        group: session
+        allow_fallback_to_title: true
+      session_aliases: *indycar_session_aliases
+      destination_root_template: "{show_title}"
+      season_dir_template: "{season_round:02d} {season_title}"
+      filename_template: "{show_title} - S{season_number:02d}E{episode_number:02d} - {episode_title}.{extension}"
+
   # ------------------------------------------------------------------
   # MotoGP releases
   # ------------------------------------------------------------------
