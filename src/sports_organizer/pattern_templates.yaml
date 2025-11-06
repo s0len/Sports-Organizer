@@ -537,6 +537,132 @@ pattern_sets:
       filename_template: "{show_title} - S{season_number:02d}E{episode_number:02d} - {episode_title}.{extension}"
 
   # ------------------------------------------------------------------
+  # World Supersport releases
+  # ------------------------------------------------------------------
+  world_supersport: &world_supersport_patterns
+    - description: World Supersport MWR releases (dot separated)
+      # Example: WSSP.2025.Round12.Spain.Jerez.Superpole.WEB-DL.1080p.h264.English-MWR
+      regex: >-
+        (?i)^(?=.*-MWR(?:\.(?:mkv|mp4|ts))?$)WSSP\.(?P<year>\d{4})\.Round(?P<round>\d{2})\.(?P<location>[^.]+(?:\.[^.]+)*)\.(?P<session>FP(?:\.?[1-4])?|Free\.Practice(?:\.One|\.Two|\.Three|\.Four)?|FreePractice(?:One|Two|Three|Four)?|Practice(?:\.?(?:One|Two|Three|Four|1|2|3|4))?(?:\.Session)?|Superpole|SuperPole|Tissot\.Superpole|Warm\.Up(?:\.?(?:One|Two|1|2))?|WarmUp(?:One|Two|1|2)?|Warmup(?:One|Two)?|Race(?:\.?(?:One|Two|1|2))?|Race(?:One|Two)|Race[12]?|Main\.Race)(?:\.[^.]+)*$
+      season_selector:
+        mode: round
+        group: round
+      episode_selector:
+        group: session
+        allow_fallback_to_title: true
+      session_aliases: &world_supersport_session_aliases
+        Free Practice:
+          - Free.Practice
+          - FreePractice
+          - FP
+          - Practice.Session
+          - PracticeSession
+        Free Practice One:
+          - FP.1
+          - FP1
+          - Free.Practice.One
+          - FreePractice1
+          - Practice.One
+          - Practice1
+        Free Practice Two:
+          - FP.2
+          - FP2
+          - Free.Practice.Two
+          - FreePractice2
+          - Practice.Two
+          - Practice2
+        Free Practice Three:
+          - FP.3
+          - FP3
+          - Free.Practice.Three
+          - FreePractice3
+          - Practice.Three
+          - Practice3
+        Free Practice Four:
+          - FP.4
+          - FP4
+          - Free.Practice.Four
+          - FreePractice4
+          - Practice.Four
+          - Practice4
+        Practice:
+          - Practice
+          - Practice.Session
+        Superpole:
+          - Superpole
+          - Tissot.Superpole
+          - Super.Pole
+          - SuperPole
+        Warm Up One:
+          - Warm.Up.One
+          - WarmUp.One
+          - WarmUpOne
+          - Warm.Up.1
+          - WarmUp1
+          - WarmUp.1
+          - Warmup.One
+          - WarmupOne
+          - Warm-Up-One
+          - Warm-Up.One
+          - WarmUp-One
+        Warm Up Two:
+          - Warm.Up.Two
+          - WarmUp.Two
+          - WarmUpTwo
+          - Warm.Up.2
+          - WarmUp2
+          - WarmUp.2
+          - Warmup.Two
+          - WarmupTwo
+          - Warm-Up-Two
+          - Warm-Up.Two
+          - WarmUp-Two
+        Warm Up:
+          - Warm.Up
+          - WarmUp
+          - Warmup
+          - Warm-Up
+          - WarmUp.Session
+        Race One:
+          - Race.One
+          - Race1
+          - Race.1
+          - R1
+          - Race-1
+          - Race_1
+          - Race One
+          - Race
+          - Main.Race
+        Race Two:
+          - Race.Two
+          - Race2
+          - Race.2
+          - R2
+          - Race-2
+          - Race_2
+          - Race Two
+        Race:
+          - Race
+          - Main.Race
+      destination_root_template: "{show_title}"
+      season_dir_template: "{season_round:02d} {season_title}"
+      filename_template: "{show_title} - S{season_number:02d}E{episode_number:02d} - {episode_title}.{extension}"
+    - description: World Supersport MWR releases (space separated)
+      # Example: WSSP 2025 Round12 Spain Jerez Race One WEB-DL 1080p h264 English-MWR
+      regex: >-
+        (?i)^(?=.*-MWR(?:\.(?:mkv|mp4|ts))?$)WSSP\s+(?P<year>\d{4})\s+Round(?P<round>\d{2})\s+(?P<location>.+?)\s+(?P<session>FP[1-4]|Free\s+Practice(?:\s+One|\s+Two|\s+Three|\s+Four)?|Practice(?:\s+One|\s+Two|\s+Three|\s+Four)?|Superpole|Tissot\s+Superpole|Warm\s*(?:Up)?(?:\s+One|\s+Two)?|Race(?:\s+One|\s+Two)?|Race[12]?)(?=\s)
+      season_selector:
+        mode: round
+        group: round
+      episode_selector:
+        group: session
+        allow_fallback_to_title: true
+      session_aliases: *world_supersport_session_aliases
+      destination_root_template: "{show_title}"
+      season_dir_template: "{season_round:02d} {season_title}"
+      filename_template: "{show_title} - S{season_number:02d}E{episode_number:02d} - {episode_title}.{extension}"
+
+  # ------------------------------------------------------------------
   # Moto2 releases
   # ------------------------------------------------------------------
   moto2: &moto2_patterns
@@ -598,6 +724,113 @@ pattern_sets:
         group: session
         allow_fallback_to_title: true
       session_aliases: *motogp_session_aliases
+      destination_root_template: "{show_title}"
+      season_dir_template: "{season_round:02d} {season_title}"
+      filename_template: "{show_title} - S{season_number:02d}E{episode_number:02d} - {episode_title}.{extension}"
+
+  # ------------------------------------------------------------------
+  # World Superbike releases
+  # ------------------------------------------------------------------
+  world_superbike: &world_superbike_patterns
+    - description: World Superbike MWR releases (dot separated)
+      # Example: WSBK.2025.Round12.Spain.Jerez.Race.Two.WEB-DL.1080p.h264.English-MWR
+      regex: >-
+        (?i)^(?=.*-MWR(?:\.(?:mkv|mp4|ts))?$)WSBK\.(?P<year>\d{4})\.Round(?P<round>\d{2})\.(?P<location>[^.]+(?:\.[^.]+)*)\.(?P<session>FP[1-4]|Free\.Practice(?:\.(?:One|Two|Three|Four|1|2|3|4))?|Practice(?:\.(?:One|Two|Three|Four|1|2|3|4))?|Superpole(?:\.Race)?|Race(?:\.One|\.Two)?|Warm\.?Up|Season\.Preview|Weekend\.Highlights|Highlights)(?=\.(?:WEB|HDTV|BluRay|Blu|WEB-DL|WEBRip|AMZN|STAN|1080p|720p|2160p|h264|h265|x264|x265|HEVC|AAC|DDP|Dual|Multi|English|-MWR)|$)
+      season_selector:
+        mode: round
+        group: round
+      episode_selector:
+        group: session
+        allow_fallback_to_title: true
+      session_aliases: &world_superbike_session_aliases
+        Season Preview:
+          - Season.Preview
+          - SeasonPreview
+          - Preview
+        Free Practice 1:
+          - FP1
+          - Free.Practice.1
+          - Free.Practice.One
+          - FreePractice1
+          - FreePracticeOne
+          - Practice.1
+          - Practice.One
+          - Practice1
+          - Practice One
+        Free Practice 2:
+          - FP2
+          - Free.Practice.2
+          - Free.Practice.Two
+          - FreePractice2
+          - FreePracticeTwo
+          - Practice.2
+          - Practice.Two
+          - Practice2
+          - Practice Two
+        Free Practice 3:
+          - FP3
+          - Free.Practice.3
+          - Free.Practice.Three
+          - FreePractice3
+          - FreePracticeThree
+          - Practice.3
+          - Practice.Three
+          - Practice3
+          - Practice Three
+        Free Practice 4:
+          - FP4
+          - Free.Practice.4
+          - Free.Practice.Four
+          - FreePractice4
+          - FreePracticeFour
+          - Practice.4
+          - Practice.Four
+          - Practice4
+          - Practice Four
+        Superpole:
+          - Superpole
+          - Qualifying
+          - Quali
+        Superpole Race:
+          - Superpole.Race
+          - Superpole Race
+          - Sprint
+          - Sprint.Race
+        Race One:
+          - Race.One
+          - Race1
+          - Race 1
+          - Race-1
+          - Race_1
+        Race Two:
+          - Race.Two
+          - Race2
+          - Race 2
+          - Race-2
+          - Race_2
+        Warm Up:
+          - Warm.Up
+          - WarmUp
+          - Warm-Up
+        Weekend Highlights:
+          - Weekend.Highlights
+          - Highlights
+          - Highlight
+      destination_root_template: "{show_title}"
+      season_dir_template: "{season_round:02d} {season_title}"
+      filename_template: "{show_title} - S{season_number:02d}E{episode_number:02d} - {episode_title}.{extension}"
+
+    - description: World Superbike MWR releases (space separated)
+      # Example: WSBK 2025 Round12 Spain Jerez Superpole Race WEB-DL 1080p h264 English-MWR
+      regex: >-
+        (?i)^(?=.*-MWR(?:\.(?:mkv|mp4|ts))?$)WSBK\s+(?P<year>\d{4})\s+Round(?P<round>\d{2})\s+(?P<location>.+?)\s+(?P<session>FP[1-4]|Free\s+Practice(?:\s+(?:One|Two|Three|Four|1|2|3|4))?|Practice(?:\s+(?:One|Two|Three|Four|1|2|3|4))?|Superpole(?:\s+Race)?|Race(?:\s+One|\s+Two)?|Warm\s*Up|Season\s+Preview|Weekend\s+Highlights|Highlights)(?=\s)
+      season_selector:
+        mode: round
+        group: round
+      episode_selector:
+        group: session
+        allow_fallback_to_title: true
+      session_aliases: *world_superbike_session_aliases
       destination_root_template: "{show_title}"
       season_dir_template: "{season_round:02d} {season_title}"
       filename_template: "{show_title} - S{season_number:02d}E{episode_number:02d} - {episode_title}.{extension}"
