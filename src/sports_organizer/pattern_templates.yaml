@@ -636,7 +636,7 @@ pattern_sets:
   # ------------------------------------------------------------------
   # NFL releases
   # ------------------------------------------------------------------
-  football: &nfl_patterns
+  nfl: &nfl_patterns
     - description: NFL regular season date-based releases
       # Example: NFL.2025.11.02.Los.Angeles.Chargers.Vs.Tennessee.Titans.720p.WEB.H264-NiGHTNiNJAS.mkv
       regex: >-
