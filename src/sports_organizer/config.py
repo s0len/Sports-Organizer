@@ -86,6 +86,7 @@ class Settings:
     poll_interval: int = 0
     default_destination: DestinationTemplates = field(default_factory=DestinationTemplates)
     link_mode: str = "hardlink"
+    discord_webhook_url: Optional[str] = None
 
 
 @dataclass(slots=True)
@@ -244,6 +245,12 @@ def _build_settings(data: Dict[str, Any]) -> Settings:
         ),
     )
 
+    raw_webhook = data.get("discord_webhook_url")
+    if isinstance(raw_webhook, str):
+        discord_webhook_url = raw_webhook.strip() or None
+    else:
+        discord_webhook_url = raw_webhook if raw_webhook else None
+
     return Settings(
         source_dir=Path(data.get("source_dir", "/data/source")).expanduser(),
         destination_dir=Path(data.get("destination_dir", "/data/destination")).expanduser(),
@@ -253,6 +260,7 @@ def _build_settings(data: Dict[str, Any]) -> Settings:
         poll_interval=int(data.get("poll_interval", 0)),
         default_destination=destination_defaults,
         link_mode=data.get("link_mode", "hardlink"),
+        discord_webhook_url=discord_webhook_url,
     )
 
 

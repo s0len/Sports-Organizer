@@ -219,7 +219,10 @@ Start with `config/sports.sample.yaml`. The schema mirrors `sports_organizer.con
 | `skip_existing` | Leave destination files untouched unless a higher-priority release arrives. | `true` |
 | `poll_interval` | Seconds between passes when running continuously. `0` means run once. | `0` |
 | `link_mode` | Default link behavior: `hardlink`, `copy`, or `symlink`. | `hardlink` |
+| `discord_webhook_url` | Optional Discord webhook URL for processed-file notifications. Set via config or `DISCORD_WEBHOOK_URL`. | `null` |
 | `destination.*` | Default templates for root folder, season folder, and filename. | See sample |
+
+When `discord_webhook_url` is set (or `DISCORD_WEBHOOK_URL` is exported), Sports Organizer will post a short embed to that channel each time a new file is linked or copied into the library.
 
 ### 2. Sport Entries
 

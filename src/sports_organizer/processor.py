@@ -14,6 +14,7 @@ from .config import AppConfig, SportConfig
 from .matcher import PatternRuntime, compile_patterns, match_file_to_episode
 from .metadata import load_show
 from .models import ProcessingStats, Show, SportFileMatch
+from .notifications import DiscordNotifier
 from .templating import render_template
 from .utils import ensure_directory, link_file, sanitize_component, slugify, normalize_token
 
@@ -35,6 +36,7 @@ class Processor:
             ensure_directory(self.config.settings.destination_dir)
             ensure_directory(self.config.settings.cache_dir)
         self.processed_cache = ProcessedFileCache(self.config.settings.cache_dir)
+        self.notifier = DiscordNotifier(self.config.settings.discord_webhook_url)
         self._previous_summary: Optional[Tuple[int, int, int]] = None
 
     @staticmethod
@@ -340,6 +342,22 @@ class Processor:
             or stats.ignored_details
         )
 
+    def _notify_processed(self, match: SportFileMatch, destination_display: str) -> None:
+        if not self.notifier.enabled:
+            return
+        try:
+            self.notifier.notify_processed(match, destination_display=destination_display)
+        except Exception as exc:  # pragma: no cover - defensive fallback
+            LOGGER.debug(
+                self._format_log(
+                    "Failed To Send Notification",
+                    {
+                        "Sport": match.sport.id,
+                        "Error": exc,
+                    },
+                )
+            )
+
     def _build_context(self, runtime: SportRuntime, source_path: Path, season, episode, groups) -> Dict[str, object]:
         show = runtime.show
         sport = runtime.sport
@@ -473,6 +491,8 @@ class Processor:
                     )
                     return
 
+        destination_display = self._format_relative_destination(destination)
+
         LOGGER.info(
             self._format_log(
                 "Processed",
@@ -481,7 +501,7 @@ class Processor:
                     "Sport": match.sport.id,
                     "Season": match.context.get("season_title"),
                     "Session": match.context.get("session"),
-                    "Dest": self._format_relative_destination(destination),
+                    "Dest": destination_display,
                     "Src": match.source_path.name,
                 },
             )
@@ -508,6 +528,7 @@ class Processor:
         if result.created:
             stats.register_processed()
             self.processed_cache.mark_processed(match.source_path, destination)
+            self._notify_processed(match, destination_display)
         else:
             stats.register_skipped(f"Failed to link {match.source_path} -> {destination}: {result.reason}")
             if result.reason == "destination-exists":

@@ -190,6 +190,10 @@ def apply_runtime_overrides(config: AppConfig, args: argparse.Namespace) -> None
     if cache_override:
         config.settings.cache_dir = Path(cache_override)
 
+    webhook_override = os.getenv("DISCORD_WEBHOOK_URL")
+    if webhook_override is not None:
+        config.settings.discord_webhook_url = webhook_override.strip() or None
+
 
 def main() -> int:
     args = parse_args()
