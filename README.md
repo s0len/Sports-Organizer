@@ -86,10 +86,15 @@ Key ideas:
 
 ### Option A: Docker (Recommended)
 
+> **Important:** The container validates that `SOURCE_DIR`, `DESTINATION_DIR`, and `CACHE_DIR` are defined through environment variables or the `settings` block in your config. It exits with an error instead of silently creating `/data/...` defaults, so wire these paths explicitly.
+
 ```bash
 docker run -d \
   --name sports-organizer \
   -e TZ="UTC" \
+  -e SOURCE_DIR="/downloads" \
+  -e DESTINATION_DIR="/library" \
+  -e CACHE_DIR="/cache" \
   -v /config:/config \
   -v /downloads:/data/source \
   -v /library:/data/destination \
@@ -108,6 +113,9 @@ _Dry-run everything first:_
 docker run --rm -it \
   -e DRY_RUN=true \
   -e VERBOSE=true \
+  -e SOURCE_DIR="/downloads" \
+  -e DESTINATION_DIR="/library" \
+  -e CACHE_DIR="/cache" \
   -v /config:/config \
   -v /downloads:/data/source \
   -v /library:/data/destination \
@@ -127,7 +135,7 @@ python -m sports_organizer.cli --config /path/to/sports.yaml --dry-run --verbose
 
 Tips:
 
-- Set `SOURCE_DIR`, `DESTINATION_DIR`, and `CACHE_DIR` env vars to avoid editing YAML during experimentation.
+- Set `SOURCE_DIR`, `DESTINATION_DIR`, and `CACHE_DIR` env vars (or the equivalent entries in `settings`)—the container will refuse to start if these are missing.
 - Use `LOG_LEVEL=DEBUG` or `VERBOSE=true` to mirror the Docker verbosity locally.
 - When running from source, the entrypoint script `entrypoint.sh` mirrors the Docker environment variable contract.
 

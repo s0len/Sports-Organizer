@@ -73,7 +73,10 @@ def fetch_metadata(metadata: MetadataConfig, settings: Settings) -> Dict[str, An
     if not isinstance(content, dict):
         raise ValueError(f"Unexpected metadata structure at {metadata.url}")
 
-    _store_cache(cache_file, content)
+    if settings.dry_run:
+        LOGGER.debug("Dry-run: skipping metadata cache write for %s", metadata.url)
+    else:
+        _store_cache(cache_file, content)
     return content
 
 
