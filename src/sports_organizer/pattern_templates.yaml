@@ -547,7 +547,7 @@ pattern_sets:
     - description: Premier League dot releases
       # Example: EPL.2025.11.02.Manchester.City.Vs.Bournemouth.1080p.WEB.H264-NiGHTNiNJAS.mkv
       regex: >-
-        (?i)^(?:EPL|English\.?Premier\.?League|Premier\.?League)\.(?P<date>(?P<year>\d{4})\.(?P<month>\d{2})\.(?P<day>\d{2}))\.(?P<matchup>(?P<away>[A-Za-z0-9&'-]+(?:\.[A-Za-z0-9&'-]+){0,5})\.(?P<separator>Vs|vs|VS|V|v)\.(?P<home>[A-Za-z0-9&'-]+(?:\.[A-Za-z0-9&'-]+){0,5}))(?:(?:\.[^.]+))*\.(?P<extension>mkv|mp4|ts|m4v|avi)$
+        (?i)^(?:EPL|English\.?Premier\.?League|Premier\.?League)\.(?P<date>(?P<year>\d{4})\.(?P<month>\d{2})\.(?P<day>\d{2}))\.(?P<matchup>(?P<away>[A-Za-z0-9&'-]+(?:\.[A-Za-z0-9&'-]+){0,5})\.(?P<separator>Vs|vs|VS|V|v)\.(?P<home>[A-Za-z0-9&'-]+(?:\.[A-Za-z0-9&'-]+){0,5}))(?:\.[^.]+)*?(?:\.(?P<release>SKYNZ))?\.(?P<extension>mkv|mp4|ts|m4v|avi)$
       season_selector:
         mode: key
         group: date
