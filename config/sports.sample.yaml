@@ -307,7 +307,7 @@ sports:
       season_dir_template: "{season_title}"
       episode_template: "{show_title} - S{season_number:02d}E{episode_number:02d} - {episode_title}.{extension}"
 
-  - id: football
+  - id: nfl
     name: NFL
     enabled: true
 
