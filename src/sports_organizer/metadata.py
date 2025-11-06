@@ -30,7 +30,7 @@ def _cache_path(cache_dir: Path, url: str) -> Path:
     return cache_dir / "metadata" / f"{digest}.json"
 
 
-def _load_cached_metadata(cache_file: Path, ttl_hours: int) -> Optional[Dict[str, Any]]:
+def _load_cached_metadata(cache_file: Path, ttl_hours: int, *, allow_expired: bool = False) -> Optional[Dict[str, Any]]:
     if not cache_file.exists():
         return None
 
@@ -43,7 +43,7 @@ def _load_cached_metadata(cache_file: Path, ttl_hours: int) -> Optional[Dict[str
 
     fetched_at = dt.datetime.fromisoformat(payload.get("fetched_at"))
     age = dt.datetime.utcnow() - fetched_at
-    if age > dt.timedelta(hours=ttl_hours):
+    if age > dt.timedelta(hours=ttl_hours) and not allow_expired:
         return None
 
     return payload.get("content")
@@ -59,6 +59,10 @@ def _store_cache(cache_file: Path, content: Dict[str, Any]) -> None:
         json.dump(payload, handle, ensure_ascii=False, indent=2, default=_json_default)
 
 
+class MetadataFetchError(RuntimeError):
+    """Raised when metadata cannot be retrieved from remote or cache."""
+
+
 def fetch_metadata(metadata: MetadataConfig, settings: Settings) -> Dict[str, Any]:
     cache_file = _cache_path(settings.cache_dir, metadata.url)
     cached = _load_cached_metadata(cache_file, metadata.ttl_hours)
@@ -67,8 +71,16 @@ def fetch_metadata(metadata: MetadataConfig, settings: Settings) -> Dict[str, An
         return cached
 
     LOGGER.info("Fetching metadata from %s", metadata.url)
-    response = requests.get(metadata.url, headers=metadata.headers, timeout=30)
-    response.raise_for_status()
+    try:
+        response = requests.get(metadata.url, headers=metadata.headers, timeout=30)
+        response.raise_for_status()
+    except requests.RequestException as exc:  # noqa: BLE001 - propagate cleanly below
+        LOGGER.warning("Failed to fetch metadata from %s: %s", metadata.url, exc)
+        stale = _load_cached_metadata(cache_file, metadata.ttl_hours, allow_expired=True)
+        if stale is not None:
+            LOGGER.info("Using stale cached metadata for %s", metadata.url)
+            return stale
+        raise MetadataFetchError(f"Unable to fetch metadata from {metadata.url}") from exc
     content = yaml.safe_load(response.text)
     if not isinstance(content, dict):
         raise ValueError(f"Unexpected metadata structure at {metadata.url}")

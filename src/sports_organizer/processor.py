@@ -12,7 +12,7 @@ from rich.progress import Progress
 from .cache import ProcessedFileCache
 from .config import AppConfig, SportConfig
 from .matcher import PatternRuntime, compile_patterns, match_file_to_episode
-from .metadata import load_show
+from .metadata import MetadataFetchError, load_show
 from .models import ProcessingStats, Show, SportFileMatch
 from .notifications import DiscordNotifier
 from .templating import render_template
@@ -70,7 +70,32 @@ class Processor:
                 LOGGER.debug(self._format_log("Skipping Disabled Sport", {"Sport": sport.id}))
                 continue
             LOGGER.debug(self._format_log("Loading Metadata", {"Sport": sport.name}))
-            show = load_show(self.config.settings, sport.metadata)
+            try:
+                show = load_show(self.config.settings, sport.metadata)
+            except MetadataFetchError as exc:
+                LOGGER.error(
+                    self._format_log(
+                        "Failed To Fetch Metadata",
+                        {
+                            "Sport": sport.id,
+                            "Name": sport.name,
+                            "Error": exc,
+                        },
+                    )
+                )
+                continue
+            except Exception as exc:  # pragma: no cover - defensive
+                LOGGER.error(
+                    self._format_log(
+                        "Failed To Load Metadata",
+                        {
+                            "Sport": sport.id,
+                            "Name": sport.name,
+                            "Error": exc,
+                        },
+                    )
+                )
+                continue
             patterns = compile_patterns(sport)
             extensions = {ext.lower() for ext in sport.source_extensions}
             runtimes.append(SportRuntime(sport=sport, show=show, patterns=patterns, extensions=extensions))
