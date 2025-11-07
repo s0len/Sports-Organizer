@@ -974,25 +974,70 @@ pattern_sets:
     - description: UFC numbered events (dot separated)
       # Example: UFC.298.Volkanovski.vs.Topuria.Main.Card.1080p.WEB.mkv
       regex: >-
-        (?i)^UFC\.(?P<season>\d{3})\.(?P<event>.+?)\.(?P<session>Early[._-]Prelims|Prelims|Main[._-]Card|PPV)(?:\.[^.]+)*\.(?:mkv|mp4|ts|m4v|avi)$
+        (?i)^UFC\.(?P<season>\d{3})\.(?P<event>.+?)\.(?P<session>Early[._-]Prelims|Prelims|Main(?:[._-]Card|Card)|PPV|Pay(?:[._-]?Per(?:[._-]?View)?)|Fight(?:[._-]?BB)|SHREDDiE)(?:\.[^.]+)*\.(?:mkv|mp4|ts|m4v|avi)$
       season_selector:
         mode: key            # Use the UFC event number as the season identifier.
         group: season
       episode_selector:
         group: session
-      session_aliases:
+      session_aliases: &ufc_session_aliases
         Main Card:
           - Main.Card
           - Main-Card
           - Main_Card
+          - MainCard
           - PPV
           - Pay.Per.View
+          - Pay-Per-View
+          - Pay_Per_View
+          - PayPerView
+          - Fight-BB
+          - Fight.BB
+          - Fight_BB
+          - FightBB
+          - SHREDDiE
         Early Prelims:
           - Early.Prelims
           - Early-Prelims
           - Early_Prelims
+          - EarlyPrelims
         Prelims:
           - Preliminary.Card
+
+    - description: UFC numbered events without matchup slug (release-group driven)
+      # Example: UFC.321.1080p.WEB-DL.H264.Fight-BB.mkv
+      regex: >-
+        (?i)^UFC\.(?P<season>\d{3})\.(?P<session>Early[._-]Prelims|Prelims|Main(?:[._-]Card|Card)|PPV|Pay(?:[._-]?Per(?:[._-]?View)?)|Fight(?:[._-]?BB)|SHREDDiE)(?:\.[^.]+)*\.(?:mkv|mp4|ts|m4v|avi)$
+      priority: 95
+      season_selector:
+        mode: key
+        group: season
+      episode_selector:
+        group: session
+      session_aliases: *ufc_session_aliases
+
+    - description: UFC numbered events (space separated, no matchup slug)
+      # Example: UFC 284 Pay Per View 1080p WEB.mp4
+      regex: >-
+        (?i)^UFC\s+(?P<season>\d{3})\s+(?P<session>Early(?:\s+|[._-])Prelims|Prelims|Main(?:\s+|[._-])Card|MainCard|PPV|Pay(?:\s+|[._-])?Per(?:\s+|[._-])?View|Fight(?:\s+BB|[._-]?BB)|SHREDDiE)(?:\s+.+)?\.(?:mkv|mp4|ts|m4v|avi)$
+      priority: 95
+      season_selector:
+        mode: key
+        group: season
+      episode_selector:
+        group: session
+      session_aliases: *ufc_session_aliases
+
+    - description: UFC numbered events (space separated)
+      # Example: UFC 299 O'Malley vs Vera Main Card 1080p WEB.mp4
+      regex: >-
+        (?i)^UFC\s+(?P<season>\d{3})\s+(?P<event>.+?)\s+(?P<session>Early(?:\s+|[._-])Prelims|Prelims|Main(?:\s+|[._-])Card|MainCard|PPV|Pay(?:\s+|[._-])?Per(?:\s+|[._-])?View|Fight(?:\s+BB|[._-]?BB)|SHREDDiE)(?:\s+.+)?\.(?:mkv|mp4|ts|m4v|avi)$
+      season_selector:
+        mode: key
+        group: season
+      episode_selector:
+        group: session
+      session_aliases: *ufc_session_aliases
 
   # ------------------------------------------------------------------
   # UEFA Champions League releases
@@ -5317,28 +5362,4 @@ pattern_sets:
       destination_root_template: "{show_title}"
       season_dir_template: "{season_number:02d} {season_title}"
       filename_template: "{show_title} - S{season_number:02d}E{episode_number:02d} - {episode_title}.{extension}"
-
-    - description: UFC numbered events (space separated)
-      # Example: UFC 299 O'Malley vs Vera Main Card 1080p WEB.mp4
-      regex: >-
-        (?i)^UFC\s+(?P<season>\d{3})\s+(?P<event>.+?)\s+(?P<session>Early(?:\s+|[._-])Prelims|Prelims|Main(?:\s+|[._-])Card|PPV)(?:\s+.+)?\.(?:mkv|mp4|ts|m4v|avi)$
-      season_selector:
-        mode: key
-        group: season
-      episode_selector:
-        group: session
-      session_aliases:
-        Main Card:
-          - Main.Card
-          - Main-Card
-          - Main_Card
-          - PPV
-          - Pay.Per.View
-        Early Prelims:
-          - Early.Prelims
-          - Early-Prelims
-          - Early_Prelims
-        Prelims:
-          - Preliminary.Card
-
 

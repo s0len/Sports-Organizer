@@ -41,8 +41,21 @@ def _load_cached_metadata(cache_file: Path, ttl_hours: int, *, allow_expired: bo
         LOGGER.warning("Failed to load cache file %s", cache_file)
         return None
 
-    fetched_at = dt.datetime.fromisoformat(payload.get("fetched_at"))
-    age = dt.datetime.utcnow() - fetched_at
+    fetched_at_raw = payload.get("fetched_at")
+    if not fetched_at_raw:
+        return None
+
+    try:
+        fetched_at = dt.datetime.fromisoformat(fetched_at_raw)
+    except (TypeError, ValueError):
+        LOGGER.warning("Invalid fetched_at value in cache file %s", cache_file)
+        return None
+
+    if fetched_at.tzinfo is None:
+        # Backwards compatibility with caches written prior to UTC-aware timestamps.
+        fetched_at = fetched_at.replace(tzinfo=dt.timezone.utc)
+
+    age = dt.datetime.now(dt.timezone.utc) - fetched_at
     if age > dt.timedelta(hours=ttl_hours) and not allow_expired:
         return None
 
@@ -52,7 +65,7 @@ def _load_cached_metadata(cache_file: Path, ttl_hours: int, *, allow_expired: bo
 def _store_cache(cache_file: Path, content: Dict[str, Any]) -> None:
     ensure_directory(cache_file.parent)
     payload = {
-        "fetched_at": dt.datetime.utcnow().isoformat(timespec="seconds"),
+        "fetched_at": dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds"),
         "content": content,
     }
     with cache_file.open("w", encoding="utf-8") as handle:

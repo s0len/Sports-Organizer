@@ -36,3 +36,52 @@ samples:
       - value: "01.final.hdtv.mp4"
         expect_episode: "Finals"
 
+  - description: "UFC release groups resolve to sessions"
+    sport:
+      id: "ufc_release_groups"
+      name: "UFC Release Groups"
+      pattern_sets:
+        - ufc
+    show:
+      key: "ufc"
+      title: "Ultimate Fighting Championship"
+      seasons:
+        - key: "321"
+          title: "UFC 321"
+          episodes:
+            - title: "Early Prelims"
+            - title: "Prelims"
+            - title: "Main Card"
+        - key: "284"
+          title: "UFC 284"
+          episodes:
+            - title: "Early Prelims"
+            - title: "Prelims"
+            - title: "Main Card"
+    filenames:
+      - value: "UFC.321.1080p.WEB-DL.H264.Fight-BB.mkv"
+        expect_episode: "Main Card"
+      - value: "UFC.284.Early.Prelims.WEB-DL.H264-SHREDDiE.mp4"
+        expect_episode: "Early Prelims"
+      - value: "UFC.284.Prelims.WEB-DL.H264-SHREDDiE.mp4"
+        expect_episode: "Prelims"
+      - value: "UFC.284.Main.Card.WEB-DL.H264-SHREDDiE.mkv"
+        expect_episode: "Main Card"
+      - value: "UFC.284.MainCard.WEB-DL.H264.SHREDDiE.mkv"
+        expect_episode: "Main Card"
+      - value: "UFC.284.PPV.WEB-DL.H264-SHREDDiE.mp4"
+        expect_episode: "Main Card"
+      - value: "UFC.284.Pay.Per.View.WEB-DL.H264-SHREDDiE.mp4"
+        expect_episode: "Main Card"
+      - value: "UFC.284.Pay-Per-View.WEB-DL.H264-Fight.BB.mkv"
+        expect_episode: "Main Card"
+      - value: "UFC.284.Pay_Per_View.WEB-DL.1080p.SHREDDiE.ts"
+        expect_episode: "Main Card"
+      - value: "UFC.284.PayPerView.WEBRip.720p.Fight-BB.mp4"
+        expect_episode: "Main Card"
+      - value: "UFC 284 Pay Per View 1080p WEB SHREDDiE.mp4"
+        expect_episode: "Main Card"
+      - value: "UFC 284 Fight-BB 1080p WEB.mp4"
+        expect_episode: "Main Card"
+      - value: "UFC 284 SHREDDiE 1080p WEB.mp4"
+        expect_episode: "Main Card"

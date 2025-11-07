@@ -232,19 +232,28 @@ def _select_episode(
     def add_lookup(label: str, value: Optional[str]) -> None:
         if not value:
             return
-        variants = {value}
+
+        variants: List[str] = []
+
+        def push_variant(candidate: Optional[str]) -> None:
+            if not candidate:
+                return
+            if candidate in variants:
+                return
+            variants.append(candidate)
+
+        push_variant(value)
+
         split_variants = [segment for segment in re.split(r"[\s._-]+", value) if segment]
         if split_variants:
-            variants.add(" ".join(split_variants))
+            push_variant(" ".join(split_variants))
             without_noise_words = " ".join(
                 word for word in split_variants if _strip_noise(normalize_token(word))
             )
-            if without_noise_words:
-                variants.add(without_noise_words)
+            push_variant(without_noise_words)
             for index in range(1, len(split_variants)):
                 truncated = " ".join(split_variants[index:])
-                if truncated:
-                    variants.add(truncated)
+                push_variant(truncated)
 
         for variant in variants:
             normalized_variant = _strip_noise(normalize_token(variant))
