@@ -42,7 +42,7 @@ settings:
 
 pattern_sets:
   # Built-in pattern templates load automatically from `pattern_templates.yaml`.
-  # Available names: formula1, formula_e, indycar, motogp, moto2, moto3, world_superbike, world_supersport, isle_of_man_tt, football, premier_league, ufc.
+  # Available names: formula1, formula_e, indycar, motogp, moto2, moto3, world_superbike, world_supersport, isle_of_man_tt, football, premier_league, ufc, uefa_champions_league.
   # Add custom sets below if you need overrides or extra matchers.
   # Example:
   #   my_custom_pack:
@@ -325,6 +325,27 @@ sports:
     # Use the built-in NFL template (pattern set name `nfl`).
     pattern_sets:
       - nfl
+
+  - id: uefa_champions_league
+    name: UEFA Champions League
+    enabled: true
+
+    metadata:
+      url: https://raw.githubusercontent.com/s0len/meta-manager-config/refs/heads/main/metadata-files/uefa-champions-league-2025-26.yaml
+      show_key: UEFA Champions League 2025-26
+      ttl_hours: 24
+
+    source_globs:
+      - "UEFA Champions League *"
+      - "UEFA Champions League*"
+      - "UEFA.Champions.League.*"
+      - "UEFA.Champions.League*"
+      - "UEFA-Champions-League-*"
+      - "UCL.*"
+      - "UCL *"
+
+    pattern_sets:
+      - uefa_champions_league
 
   - id: premier_league
     name: Premier League
