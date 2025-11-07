@@ -404,6 +404,7 @@ pip install -r requirements.txt
 - Follow standard Python formatting (e.g., `ruff`, `black`) to keep diffs tidy.
 - Install test tooling: `pip install -r requirements-dev.txt`.
 - Run the automated tests: `pytest`.
+- Validate filename samples: edit `tests/data/pattern_samples.yaml` and run `pytest tests/test_pattern_samples.py` to confirm new or modified patterns resolve correctly.
 - Open a draft pull request early—sample configs and matching logic benefit from collaborative review.
 
 ## Roadmap
