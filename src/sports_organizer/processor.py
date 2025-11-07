@@ -334,6 +334,21 @@ class Processor:
             unique_items = list(dict.fromkeys(items))
             return "\n".join(f"    - {item}" for item in unique_items)
 
+        ignored_details = stats.ignored_details
+        suppressed_count = 0
+        if level >= logging.INFO:
+            filtered_ignored: List[str] = []
+            for detail in ignored_details:
+                if "No configured sport accepts extension" in detail:
+                    suppressed_count += 1
+                else:
+                    filtered_ignored.append(detail)
+            ignored_details = filtered_ignored
+
+        ignored_suffix = ""
+        if suppressed_count:
+            ignored_suffix = f", {suppressed_count} suppressed non-video"
+
         summary_lines = [
             "Detailed Summary",
             f"  Errors ({len(stats.errors)}):",
@@ -342,8 +357,8 @@ class Processor:
             _format_lines(stats.warnings),
             f"  Skipped ({len(stats.skipped_details)}):",
             _format_lines(stats.skipped_details),
-            f"  Ignored ({len(stats.ignored_details)}):",
-            _format_lines(stats.ignored_details),
+            f"  Ignored ({len(ignored_details)}{ignored_suffix}):",
+            _format_lines(ignored_details),
         ]
 
         LOGGER.log(level, "\n".join(summary_lines))
