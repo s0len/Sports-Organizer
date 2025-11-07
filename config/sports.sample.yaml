@@ -1,0 +1,392 @@
+######################################################################
+# Sports Organizer Sample Configuration
+######################################################################
+# This annotated example is designed to be copied to `sports.yaml`
+# and tweaked for your environment. Comments call out what each block
+# controls so you can quickly adapt it for new sports or release formats.
+#
+# Key ideas:
+#   * `settings` control the global behavior of the organizer.
+#   * `pattern_sets` describe how to recognize and normalize filenames.
+#   * `sports` tie pattern sets to metadata sources and per-sport tweaks.
+#
+# Tips for customization:
+#   * Strings like ${SOURCE_DIR:-/data/source} can be overridden via env vars.
+#   * Templates such as "{season_number:02d}" use Python's format syntax.
+#   * Regular expressions use Python-style syntax; `(?i)` makes them case-insensitive.
+######################################################################
+
+settings:
+  source_dir: ${SOURCE_DIR:-/data/source} # Where Sports Organizer looks for newly downloaded media files.
+  destination_dir: ${DESTINATION_DIR:-/data/destination} # Destination root for organized media. Files are written here (or hard-linked).
+  cache_dir: ${CACHE_DIR:-/var/cache/sports-organizer} # Directory that holds cached metadata responses and other temp files.
+  dry_run: false # Enable for "what would happen" runs without touching the filesystem.
+  skip_existing: true # Skip files that already exist at the destination path when true.
+  poll_interval: 0 # Seconds between scans when running continuously; 0 disables polling.
+  link_mode: hardlink # Use `hardlink` to avoid copies on the same filesystem; switch to `copy` otherwise.
+  discord_webhook_url: ${DISCORD_WEBHOOK_URL:-} # Optional Discord webhook for notifications when a file is processed.
+  destination:
+    root_template: "{show_title}" # Top-level folder pattern for each sport/show.
+    season_dir_template: "{season_number:02d} {season_title}" # Sub-folder per season or round. Zero-padded for neat ordering.
+    episode_template: "{show_title} - S{season_number:02d}E{episode_number:02d} - {episode_title}.{extension}" # Final filename applied to every organized episode/session.
+
+
+######################################################################
+# Pattern Sets - reusable filename matchers grouped by sport
+#
+# Each entry is a list of regex-driven matchers. Captured groups feed into
+# `season_selector` and `episode_selector`. Built-in templates live in
+# `pattern_templates.yaml` and are referenced from `sports` via the
+# `pattern_sets` list.
+######################################################################
+
+pattern_sets:
+  # Built-in pattern templates load automatically from `pattern_templates.yaml`.
+  # Available names: formula1, formula_e, indycar, motogp, moto2, moto3, world_superbike, world_supersport, isle_of_man_tt, football, premier_league, ufc, uefa_champions_league.
+  # Add custom sets below if you need overrides or extra matchers.
+  # Example:
+  #   my_custom_pack:
+  #     - description: Custom fallback matcher
+  #       regex: >-
+  #         (?i)^Example\.(?P<year>\d{4})\.(?P<session>.+)$
+  #       season_selector:
+  #         mode: round
+  #         group: year
+  #       episode_selector:
+  #         group: session
+
+######################################################################
+# Sports - tie pattern sets to metadata, variants, and overrides
+#
+# Each sport declares:
+#   * `source_globs` to pick up matching downloads.
+#   * `pattern_sets` to pull in built-in matchers (or `file_patterns` for inline setups).
+#   * Optional metadata endpoints and per-year overrides.
+######################################################################
+
+sports:
+  - id: formula1
+    name: Formula 1
+    enabled: true
+
+    # Filenames that should be considered for Formula 1 processing.
+    source_globs:
+      - "Formula.1.*"
+      - "Formula1.*"
+      - "Formula1 *"
+      - "Formula 1 *"
+      - "formula1.*"
+      - "formula1 *"
+      - "formula 1 *"
+
+    # Use the built-in Formula 1 pattern template.
+    pattern_sets:
+      - formula1
+
+    # Optional per-season metadata sources. Useful when schedules change.
+    variants:
+      - year: 2025
+        metadata:
+          url: https://raw.githubusercontent.com/s0len/meta-manager-config/refs/heads/main/metadata-files/formula1-2025.yaml
+          show_key: Formula1 2025
+          ttl_hours: 24
+          season_overrides:
+            Pre-Season Testing:
+              season_number: 0
+              round: 0
+
+  - id: formula_e
+    name: Formula E
+    enabled: true
+
+    source_globs:
+      - "FormulaE.*"
+      - "FormulaE *"
+      - "Formula.E.*"
+      - "Formula E *"
+      - "formulae.*"
+      - "formulae *"
+      - "formula.e.*"
+      - "formula e *"
+
+    pattern_sets:
+      - formula_e
+
+    variants:
+      - year: 2025
+        metadata:
+          url: https://raw.githubusercontent.com/s0len/meta-manager-config/refs/heads/main/metadata-files/formulae-2025.yaml
+          show_key: Formula E 2025
+          ttl_hours: 24
+
+  - id: indycar
+    name: NTT IndyCar Series
+    enabled: true
+
+    source_globs:
+      - "IndyCar.*"
+      - "IndyCar *"
+      - "IndyCar.Series.*"
+      - "IndyCar Series *"
+      - "indycar.*"
+      - "indycar *"
+      - "indycar.series.*"
+      - "indycar series *"
+
+    pattern_sets:
+      - indycar
+
+    variants:
+      - year: 2025
+        metadata:
+          url: https://raw.githubusercontent.com/s0len/meta-manager-config/refs/heads/main/metadata-files/indycar-2025.yaml
+          show_key: NTT IndyCar Series 2025
+          ttl_hours: 24
+
+  - id: motogp
+    name: MotoGP
+    enabled: true
+
+    source_globs:
+      - "MotoGP.*"
+      - "MotoGP *"
+      - "motogp.*"
+      - "motogp *"
+
+    # Use the built-in MotoGP pattern template.
+    pattern_sets:
+      - motogp
+
+    variants:
+      - year: 2025
+        metadata:
+          url: https://raw.githubusercontent.com/s0len/meta-manager-config/refs/heads/main/metadata-files/motogp-2025.yaml
+          show_key: MotoGP 2025
+          ttl_hours: 24
+      - year: 2024
+        metadata:
+          url: https://raw.githubusercontent.com/s0len/meta-manager-config/refs/heads/main/metadata-files/motogp-2024.yaml
+          show_key: MotoGP 2024
+          ttl_hours: 24
+      - year: 2023
+        metadata:
+          url: https://raw.githubusercontent.com/s0len/meta-manager-config/refs/heads/main/metadata-files/motogp-2023.yaml
+          show_key: MotoGP 2023
+          ttl_hours: 24
+
+  - id: moto2
+    name: Moto2
+    enabled: true
+
+    source_globs:
+      - "Moto2.*"
+      - "Moto2 *"
+      - "moto2.*"
+      - "moto2 *"
+
+    # Use the built-in Moto2 pattern template.
+    pattern_sets:
+      - moto2
+
+    variants:
+      - year: 2025
+        metadata:
+          url: https://raw.githubusercontent.com/s0len/meta-manager-config/refs/heads/main/metadata-files/moto2-2025.yaml
+          show_key: Moto2 2025
+          ttl_hours: 24
+
+  - id: moto3
+    name: Moto3
+    enabled: true
+
+    source_globs:
+      - "Moto3.*"
+      - "Moto3 *"
+      - "moto3.*"
+      - "moto3 *"
+
+    # Use the built-in Moto3 pattern template.
+    pattern_sets:
+      - moto3
+
+    variants:
+      - year: 2025
+        metadata:
+          url: https://raw.githubusercontent.com/s0len/meta-manager-config/refs/heads/main/metadata-files/moto3-2025.yaml
+          show_key: Moto3 2025
+          ttl_hours: 24
+
+  - id: world_supersport
+    name: World Supersport
+    enabled: true
+
+    source_globs:
+      - "WSSP.*"
+      - "WSSP *"
+      - "World.Supersport.*"
+      - "World Supersport *"
+      - "world.supersport.*"
+      - "world supersport *"
+
+    pattern_sets:
+      - world_supersport
+
+    variants:
+      - year: 2025
+        metadata:
+          url: https://raw.githubusercontent.com/s0len/meta-manager-config/refs/heads/main/metadata-files/wssp-2025.yaml
+          show_key: World Supersport 2025
+          ttl_hours: 24
+      - year: 2024
+        metadata:
+          url: https://raw.githubusercontent.com/s0len/meta-manager-config/refs/heads/main/metadata-files/wssp-2024.yaml
+          show_key: World Supersport 2024
+          ttl_hours: 24
+      - year: 2023
+        metadata:
+          url: https://raw.githubusercontent.com/s0len/meta-manager-config/refs/heads/main/metadata-files/wssp-2023.yaml
+          show_key: World Supersport 2023
+          ttl_hours: 24
+
+  - id: world_superbike
+    name: World Superbike
+    enabled: true
+
+    source_globs:
+      - "WSBK.*"
+      - "WSBK *"
+      - "wsbk.*"
+      - "wsbk *"
+      - "World.Superbike.*"
+      - "World Superbike *"
+      - "WorldSuperbike.*"
+      - "WorldSuperbike *"
+      - "world.superbike.*"
+      - "world superbike *"
+
+    pattern_sets:
+      - world_superbike
+
+    variants:
+      - year: 2025
+        metadata:
+          url: https://raw.githubusercontent.com/s0len/meta-manager-config/refs/heads/main/metadata-files/wsbk-2025.yaml
+          show_key: World Superbike 2025
+          ttl_hours: 24
+      - year: 2024
+        metadata:
+          url: https://raw.githubusercontent.com/s0len/meta-manager-config/refs/heads/main/metadata-files/wsbk-2024.yaml
+          show_key: World Superbike 2024
+          ttl_hours: 24
+      - year: 2023
+        metadata:
+          url: https://raw.githubusercontent.com/s0len/meta-manager-config/refs/heads/main/metadata-files/wsbk-2023.yaml
+          show_key: World Superbike 2023
+          ttl_hours: 24
+
+  - id: isle_of_man_tt
+    name: Isle of Man TT
+    enabled: true
+
+    metadata:
+      url: https://raw.githubusercontent.com/s0len/meta-manager-config/refs/heads/main/metadata-files/isle-of-man-tt.yaml
+      show_key: Isle of Man TT
+      ttl_hours: 24
+
+    source_globs:
+      - "Isle*TT*"
+      - "isle*tt*"
+      - "IOMTT*"
+      - "iomtt*"
+
+    # Use the built-in Isle of Man TT template.
+    pattern_sets:
+      - isle_of_man_tt
+
+    destination:
+      season_dir_template: "{season_title}"
+      episode_template: "{show_title} - S{season_number:02d}E{episode_number:02d} - {episode_title}.{extension}"
+
+  - id: nfl
+    name: NFL
+    enabled: true
+
+    metadata:
+      url: https://raw.githubusercontent.com/s0len/meta-manager-config/refs/heads/main/metadata-files/nfl-2025-26.yaml
+      show_key: NFL 2025-26
+      ttl_hours: 24
+
+    source_globs:
+      - "NFL.*"
+      - "NFL *"
+      - "nfl.*"
+      - "nfl *"
+
+    # Use the built-in NFL template (pattern set name `nfl`).
+    pattern_sets:
+      - nfl
+
+  - id: uefa_champions_league
+    name: UEFA Champions League
+    enabled: true
+
+    metadata:
+      url: https://raw.githubusercontent.com/s0len/meta-manager-config/refs/heads/main/metadata-files/uefa-champions-league-2025-26.yaml
+      show_key: UEFA Champions League 2025-26
+      ttl_hours: 24
+
+    source_globs:
+      - "UEFA Champions League *"
+      - "UEFA Champions League*"
+      - "UEFA.Champions.League.*"
+      - "UEFA.Champions.League*"
+      - "UEFA-Champions-League-*"
+      - "UCL.*"
+      - "UCL *"
+
+    pattern_sets:
+      - uefa_champions_league
+
+  - id: premier_league
+    name: Premier League
+    enabled: true
+
+    metadata:
+      url: https://raw.githubusercontent.com/s0len/meta-manager-config/refs/heads/main/metadata-files/premier-league-2025-26.yaml
+      show_key: Premier League 2025-26
+      ttl_hours: 24
+
+    source_globs:
+      - "EPL.*"
+      - "EPL *"
+      - "epl.*"
+      - "epl *"
+      - "Premier.League.*"
+      - "Premier League *"
+      - "premier.league.*"
+      - "premier league *"
+      - "English.Premier.League.*"
+      - "English Premier League *"
+
+    # Use the built-in Premier League pattern template.
+    pattern_sets:
+      - premier_league
+
+  - id: ufc
+    name: UFC
+    enabled: true
+
+    metadata:
+      url: https://raw.githubusercontent.com/s0len/meta-manager-config/refs/heads/main/metadata-files/ufc.yaml
+      show_key: UFC
+      ttl_hours: 24
+
+    source_globs:
+      - "UFC.*"
+      - "UFC *"
+      - "ufc.*"
+      - "ufc *"
+
+    # Use the built-in UFC pattern template.
+    pattern_sets:
+      - ufc

@@ -1,0 +1,129 @@
+# Drop new entries here to validate filenames against pattern definitions.
+# Each sample defines a sport configuration (patterns + selectors), the show
+# metadata needed for matching, and the filenames that should resolve.
+
+samples:
+  - description: "Round/session capture resolves session aliases"
+    sport:
+      id: "generic_round_session"
+      name: "Generic Round/Session"
+      file_patterns:
+        - regex: "(?i)^(?P<round>\\d+)[._-](?P<session>[A-Za-z0-9]+)"
+          priority: 10
+          season_selector:
+            mode: "round"
+            group: "round"
+          episode_selector:
+            group: "session"
+          session_aliases:
+            Practice: ["Practice", "WarmUp", "FP1"]
+            Finals: ["Final", "Finals"]
+    show:
+      key: "generic"
+      title: "Generic Championship"
+      seasons:
+        - title: "Round 1 Desert Event"
+          round_number: 1
+          display_number: 1
+          episodes:
+            - title: "Practice"
+              aliases: ["warmup", "fp1"]
+            - title: "Finals"
+              aliases: ["final"]
+    filenames:
+      - value: "01.fp1.team-release.mkv"
+        expect_episode: "Practice"
+      - value: "01.final.hdtv.mp4"
+        expect_episode: "Finals"
+
+  - description: "UFC release groups resolve to sessions"
+    sport:
+      id: "ufc_release_groups"
+      name: "UFC Release Groups"
+      pattern_sets:
+        - ufc
+    show:
+      key: "ufc"
+      title: "Ultimate Fighting Championship"
+      seasons:
+        - key: "321"
+          title: "UFC 321"
+          episodes:
+            - title: "Early Prelims"
+            - title: "Prelims"
+            - title: "Main Card"
+        - key: "284"
+          title: "UFC 284"
+          episodes:
+            - title: "Early Prelims"
+            - title: "Prelims"
+            - title: "Main Card"
+    filenames:
+      - value: "UFC.321.1080p.WEB-DL.H264.Fight-BB.mkv"
+        expect_episode: "Main Card"
+      - value: "UFC.284.Early.Prelims.WEB-DL.H264-SHREDDiE.mp4"
+        expect_episode: "Early Prelims"
+      - value: "UFC.284.Prelims.WEB-DL.H264-SHREDDiE.mp4"
+        expect_episode: "Prelims"
+      - value: "UFC.284.Main.Card.WEB-DL.H264-SHREDDiE.mkv"
+        expect_episode: "Main Card"
+      - value: "UFC.284.MainCard.WEB-DL.H264.SHREDDiE.mkv"
+        expect_episode: "Main Card"
+      - value: "UFC.284.PPV.WEB-DL.H264-SHREDDiE.mp4"
+        expect_episode: "Main Card"
+      - value: "UFC.284.Pay.Per.View.WEB-DL.H264-SHREDDiE.mp4"
+        expect_episode: "Main Card"
+      - value: "UFC.284.Pay-Per-View.WEB-DL.H264-Fight.BB.mkv"
+        expect_episode: "Main Card"
+      - value: "UFC.284.Pay_Per_View.WEB-DL.1080p.SHREDDiE.ts"
+        expect_episode: "Main Card"
+      - value: "UFC.284.PayPerView.WEBRip.720p.Fight-BB.mp4"
+        expect_episode: "Main Card"
+      - value: "UFC 284 Pay Per View 1080p WEB SHREDDiE.mp4"
+        expect_episode: "Main Card"
+      - value: "UFC 284 Fight-BB 1080p WEB.mp4"
+        expect_episode: "Main Card"
+      - value: "UFC 284 SHREDDiE 1080p WEB.mp4"
+        expect_episode: "Main Card"
+
+  - description: "UEFA Champions League 2025 match samples"
+    sport:
+      id: "uefa_cl_samples"
+      name: "UEFA Champions League Samples"
+      pattern_sets:
+        - uefa_champions_league
+    show:
+      key: "uefa_cl_2025_26"
+      title: "UEFA Champions League 2025-26"
+      seasons:
+        - title: "Matchday 1"
+          round_number: 1
+          display_number: 1
+          episodes:
+            - title: "Bayern Munich vs Chelsea"
+            - title: "MC vs Napoli"
+        - title: "Matchday 2"
+          round_number: 2
+          display_number: 2
+          episodes:
+            - title: "Chelsea vs Benfica"
+        - title: "Matchday 4"
+          round_number: 4
+          display_number: 4
+          episodes:
+            - title: "Club Brugge vs Barcelona"
+            - title: "MC vs Borussia"
+            - title: "Slavia vs Arsenal"
+    filenames:
+      - value: "UEFA Champions League 2025 Bayern Munich vs Chelsea 17 09 2025 1080EN50fps.mkv"
+        expect_episode: "Bayern Munich vs Chelsea"
+      - value: "UEFA Champions League 2025 MC vs Napoli 18 09 2025 1080EN50fps.mkv"
+        expect_episode: "MC vs Napoli"
+      - value: "UEFA.Champions.League.2025.Chelsea.vs.Benfica.1080pEN50fps.mkv"
+        expect_episode: "Chelsea vs Benfica"
+      - value: "UEFA.Champions.League.2025.Club.Brugge.vs.Barcelona.1080pEN50fps.mkv"
+        expect_episode: "Club Brugge vs Barcelona"
+      - value: "UEFA.Champions.League.2025.MC.vs.Borussia.1080pEN50fps.mkv"
+        expect_episode: "MC vs Borussia"
+      - value: "UEFA.Champions.League.2025.Slavia.vs.Arsenal.1080pEN50fps.mkv"
+        expect_episode: "Slavia vs Arsenal"
