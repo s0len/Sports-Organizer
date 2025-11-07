@@ -148,7 +148,7 @@ class Processor:
                     )
                 )
 
-            with Progress() as progress:
+            with Progress(disable=not LOGGER.isEnabledFor(logging.DEBUG)) as progress:
                 task_id = progress.add_task("Processing", total=file_count)
                 for source_path in filtered_source_files:
                     handled, diagnostics = self._process_single_file(source_path, runtimes, stats)
