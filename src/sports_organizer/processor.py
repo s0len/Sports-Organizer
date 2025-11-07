@@ -153,8 +153,11 @@ class Processor:
                 for source_path in filtered_source_files:
                     handled, diagnostics = self._process_single_file(source_path, runtimes, stats)
                     if not handled:
-                        detail = self._format_ignored_detail(source_path, diagnostics)
-                        stats.register_ignored(detail)
+                        if self._should_suppress_sample_ignored(source_path):
+                            stats.register_ignored(suppressed_reason="sample")
+                        else:
+                            detail = self._format_ignored_detail(source_path, diagnostics)
+                            stats.register_ignored(detail)
                     progress.advance(task_id, 1)
 
             summary_counts = (stats.processed, stats.skipped, stats.ignored)
@@ -314,6 +317,16 @@ class Processor:
 
         return False, ignored_reasons
 
+    @staticmethod
+    def _should_suppress_sample_ignored(source_path: Path) -> bool:
+        name = source_path.name.lower()
+        if not name.startswith("sample"):
+            return False
+        if len(name) == len("sample"):
+            return True
+        next_char = name[len("sample") : len("sample") + 1]
+        return bool(next_char and not next_char.isalpha())
+
     def _format_ignored_detail(self, source_path: Path, diagnostics: List[Tuple[str, str]]) -> str:
         if not diagnostics:
             return f"{source_path.name}: ignored with no diagnostics"
@@ -335,19 +348,27 @@ class Processor:
             return "\n".join(f"    - {item}" for item in unique_items)
 
         ignored_details = stats.ignored_details
-        suppressed_count = 0
+        suppressed_non_video_count = 0
         if level >= logging.INFO:
             filtered_ignored: List[str] = []
             for detail in ignored_details:
                 if "No configured sport accepts extension" in detail:
-                    suppressed_count += 1
+                    suppressed_non_video_count += 1
                 else:
                     filtered_ignored.append(detail)
             ignored_details = filtered_ignored
 
+        suppressed_labels: List[str] = []
+        if suppressed_non_video_count:
+            suppressed_labels.append(f"{suppressed_non_video_count} suppressed non-video")
+        suppressed_samples = stats.suppressed_ignored_samples
+        if suppressed_samples:
+            label = "sample" if suppressed_samples == 1 else "samples"
+            suppressed_labels.append(f"{suppressed_samples} suppressed {label}")
+
         ignored_suffix = ""
-        if suppressed_count:
-            ignored_suffix = f", {suppressed_count} suppressed non-video"
+        if suppressed_labels:
+            ignored_suffix = ", " + ", ".join(suppressed_labels)
 
         summary_lines = [
             "Detailed Summary",

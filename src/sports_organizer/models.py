@@ -63,6 +63,7 @@ class ProcessingStats:
     warnings: List[str] = field(default_factory=list)
     skipped_details: List[str] = field(default_factory=list)
     ignored_details: List[str] = field(default_factory=list)
+    suppressed_ignored_samples: int = 0
 
     def register_processed(self) -> None:
         self.processed += 1
@@ -77,6 +78,9 @@ class ProcessingStats:
         if message not in self.warnings:
             self.warnings.append(message)
 
-    def register_ignored(self, detail: str) -> None:
+    def register_ignored(self, detail: Optional[str] = None, *, suppressed_reason: Optional[str] = None) -> None:
         self.ignored += 1
-        self.ignored_details.append(detail)
+        if detail:
+            self.ignored_details.append(detail)
+        if suppressed_reason == "sample":
+            self.suppressed_ignored_samples += 1
