@@ -1000,737 +1000,4042 @@ pattern_sets:
   uefa_champions_league: &uefa_champions_league_patterns
     - description: UEFA Champions League dot releases
       regex: >-
-        (?i)^UEFA[._\s-]*Champions[._\s-]*League[._\s-]*(?P<season_year>\d{4})(?:[._-]\d{2})?[._\s-]+(?P<matchup>(?P<away>[A-Za-z0-9&'’À-ÖØ-öø-ÿ]+(?:[._\s-]+[A-Za-z0-9&'’À-ÖØ-öø-ÿ]+){0,4}))[._\s-]+(?:vs?|VS?|V)[._\s-]+(?P<home>[A-Za-z0-9&'’À-ÖØ-öø-ÿ]+(?:[._\s-]+[A-Za-z0-9&'’À-ÖØ-öø-ÿ]+){0,4})(?:[._\s-]+(?P<match_date>\d{2}[.-]\d{2}[.-]\d{4}|\d{4}[.-]\d{2}[.-]\d{2}))?(?:[._\s-]+[A-Za-z0-9]+)*\.(?P<extension>mkv|mp4|ts|m4v|avi)$
+        (?i)^UEFA[._\\s-]*Champions[._\\s-]*League[._\\s-]*(?P<season_year>\\d{4})(?:[._-]\\d{2})?[._\\s-]+(?P<matchup>(?P<away>[A-Za-z&'’À-ÖØ-öø-ÿ]+(?:[._\\s-]+[A-Za-z&'’À-ÖØ-öø-ÿ]+){0,4})[._\\s-]+(?:vs?|VS?|V)[._\\s-]+(?P<home>[A-Za-z&'’À-ÖØ-öø-ÿ]+(?:[._\\s-]+[A-Za-z&'’À-ÖØ-öø-ÿ]+){0,4}))(?=[._\\s-]+(?:\\d{3,4}p|1080|720|2160|4K|HDR|HEVC|H264|H265|x264|x265|WEB|Blu|HDTV|AMZN|STAN|PROPER|REPACK|MULTI|EN|ENG|AAC|DDP|Atmos|Rip|Pack)\\b|\.(?:mkv|mp4|ts|m4v|avi)$)
       season_selector:
         mode: title
         group: matchup
         mapping:
+          AFC Ajax v Benfica: 5
+          AFC Ajax v Galatasaray: 4
+          AFC Ajax v Inter: 1
+          AFC Ajax v Olympiakos: 8
+          AFC Ajax vs Benfica: 5
+          AFC Ajax vs Galatasaray: 4
+          AFC Ajax vs Inter: 1
+          AFC Ajax vs Olympiakos: 8
+          AFC.Ajax.v.Benfica: 5
+          AFC.Ajax.v.Galatasaray: 4
+          AFC.Ajax.v.Inter: 1
+          AFC.Ajax.v.Olympiakos: 8
+          AFC.Ajax.vs.Benfica: 5
+          AFC.Ajax.vs.Galatasaray: 4
+          AFC.Ajax.vs.Inter: 1
+          AFC.Ajax.vs.Olympiakos: 8
           AS Monaco v Galatasaray: 6
+          AS Monaco v Juve: 8
           AS Monaco v Juventus: 8
+          AS Monaco v MC: 2
           AS Monaco v Man City: 2
+          AS Monaco v Manchester City: 2
+          AS Monaco v Spurs: 3
           AS Monaco v Tottenham: 3
+          AS Monaco v Tottenham Hotspur: 3
           AS Monaco vs Galatasaray: 6
+          AS Monaco vs Juve: 8
           AS Monaco vs Juventus: 8
+          AS Monaco vs MC: 2
           AS Monaco vs Man City: 2
+          AS Monaco vs Manchester City: 2
+          AS Monaco vs Spurs: 3
           AS Monaco vs Tottenham: 3
-          AS.Monaco.Galatasaray: 6
-          AS.Monaco.Juventus: 8
-          AS.Monaco.Man.City: 2
-          AS.Monaco.Tottenham: 3
+          AS Monaco vs Tottenham Hotspur: 3
           AS.Monaco.v.Galatasaray: 6
+          AS.Monaco.v.Juve: 8
           AS.Monaco.v.Juventus: 8
+          AS.Monaco.v.MC: 2
           AS.Monaco.v.Man.City: 2
+          AS.Monaco.v.Manchester.City: 2
+          AS.Monaco.v.Spurs: 3
           AS.Monaco.v.Tottenham: 3
+          AS.Monaco.v.Tottenham.Hotspur: 3
           AS.Monaco.vs.Galatasaray: 6
+          AS.Monaco.vs.Juve: 8
           AS.Monaco.vs.Juventus: 8
+          AS.Monaco.vs.MC: 2
           AS.Monaco.vs.Man.City: 2
+          AS.Monaco.vs.Manchester.City: 2
+          AS.Monaco.vs.Spurs: 3
           AS.Monaco.vs.Tottenham: 3
+          AS.Monaco.vs.Tottenham.Hotspur: 3
           Ajax v Benfica: 5
           Ajax v Galatasaray: 4
           Ajax v Inter: 1
+          Ajax v Inter Milan: 1
+          Ajax v Olympiacos: 8
           Ajax v Olympiakos: 8
+          Ajax v SL Benfica: 5
           Ajax vs Benfica: 5
           Ajax vs Galatasaray: 4
           Ajax vs Inter: 1
+          Ajax vs Inter Milan: 1
+          Ajax vs Olympiacos: 8
           Ajax vs Olympiakos: 8
-          Ajax.Benfica: 5
-          Ajax.Galatasaray: 4
-          Ajax.Inter: 1
-          Ajax.Olympiakos: 8
+          Ajax vs SL Benfica: 5
           Ajax.v.Benfica: 5
           Ajax.v.Galatasaray: 4
           Ajax.v.Inter: 1
+          Ajax.v.Inter.Milan: 1
+          Ajax.v.Olympiacos: 8
           Ajax.v.Olympiakos: 8
+          Ajax.v.SL.Benfica: 5
           Ajax.vs.Benfica: 5
           Ajax.vs.Galatasaray: 4
           Ajax.vs.Inter: 1
+          Ajax.vs.Inter.Milan: 1
+          Ajax.vs.Olympiacos: 8
           Ajax.vs.Olympiakos: 8
+          Ajax.vs.SL.Benfica: 5
+          Arsenal FC v Atlético Madrid: 3
+          Arsenal FC v Bayern: 5
+          Arsenal FC v FC Kairat: 8
+          Arsenal FC v Olympiakos: 2
+          Arsenal FC vs Atlético Madrid: 3
+          Arsenal FC vs Bayern: 5
+          Arsenal FC vs FC Kairat: 8
+          Arsenal FC vs Olympiakos: 2
+          Arsenal v Atletico Madrid: 3
           Arsenal v Atlético Madrid: 3
           Arsenal v Bayern: 5
+          Arsenal v Bayern Munich: 5
+          Arsenal v FC Bayern: 5
           Arsenal v FC Kairat: 8
+          Arsenal v Olympiacos: 2
           Arsenal v Olympiakos: 2
+          Arsenal vs Atletico Madrid: 3
           Arsenal vs Atlético Madrid: 3
           Arsenal vs Bayern: 5
+          Arsenal vs Bayern Munich: 5
+          Arsenal vs FC Bayern: 5
           Arsenal vs FC Kairat: 8
+          Arsenal vs Olympiacos: 2
           Arsenal vs Olympiakos: 2
-          Arsenal.Atlético.Madrid: 3
-          Arsenal.Bayern: 5
-          Arsenal.FC.Kairat: 8
-          Arsenal.Olympiakos: 2
+          Arsenal.FC.v.Atlético.Madrid: 3
+          Arsenal.FC.v.Bayern: 5
+          Arsenal.FC.v.FC.Kairat: 8
+          Arsenal.FC.v.Olympiakos: 2
+          Arsenal.FC.vs.Atlético.Madrid: 3
+          Arsenal.FC.vs.Bayern: 5
+          Arsenal.FC.vs.FC.Kairat: 8
+          Arsenal.FC.vs.Olympiakos: 2
+          Arsenal.v.Atletico.Madrid: 3
           Arsenal.v.Atlético.Madrid: 3
           Arsenal.v.Bayern: 5
+          Arsenal.v.Bayern.Munich: 5
+          Arsenal.v.FC.Bayern: 5
           Arsenal.v.FC.Kairat: 8
+          Arsenal.v.Olympiacos: 2
           Arsenal.v.Olympiakos: 2
+          Arsenal.vs.Atletico.Madrid: 3
           Arsenal.vs.Atlético.Madrid: 3
           Arsenal.vs.Bayern: 5
+          Arsenal.vs.Bayern.Munich: 5
+          Arsenal.vs.FC.Bayern: 5
           Arsenal.vs.FC.Kairat: 8
+          Arsenal.vs.Olympiacos: 2
           Arsenal.vs.Olympiakos: 2
+          Atalanta BC v Bilbao: 7
+          Atalanta BC v Brügge: 2
+          Atalanta BC v Chelsea: 6
+          Atalanta BC v Slavia Prag: 3
+          Atalanta BC vs Bilbao: 7
+          Atalanta BC vs Brügge: 2
+          Atalanta BC vs Chelsea: 6
+          Atalanta BC vs Slavia Prag: 3
           Atalanta v Bilbao: 7
+          Atalanta v Brugge: 2
           Atalanta v Brügge: 2
           Atalanta v Chelsea: 6
+          Atalanta v Chelsea FC: 6
+          Atalanta v Club Brugge: 2
+          Atalanta v Slavia: 3
           Atalanta v Slavia Prag: 3
+          Atalanta v Slavia Prague: 3
           Atalanta vs Bilbao: 7
+          Atalanta vs Brugge: 2
           Atalanta vs Brügge: 2
           Atalanta vs Chelsea: 6
+          Atalanta vs Chelsea FC: 6
+          Atalanta vs Club Brugge: 2
+          Atalanta vs Slavia: 3
           Atalanta vs Slavia Prag: 3
-          Atalanta.Bilbao: 7
-          Atalanta.Brügge: 2
-          Atalanta.Chelsea: 6
-          Atalanta.Slavia.Prag: 3
+          Atalanta vs Slavia Prague: 3
+          Atalanta.BC.v.Bilbao: 7
+          Atalanta.BC.v.Brügge: 2
+          Atalanta.BC.v.Chelsea: 6
+          Atalanta.BC.v.Slavia.Prag: 3
+          Atalanta.BC.vs.Bilbao: 7
+          Atalanta.BC.vs.Brügge: 2
+          Atalanta.BC.vs.Chelsea: 6
+          Atalanta.BC.vs.Slavia.Prag: 3
           Atalanta.v.Bilbao: 7
+          Atalanta.v.Brugge: 2
           Atalanta.v.Brügge: 2
           Atalanta.v.Chelsea: 6
+          Atalanta.v.Chelsea.FC: 6
+          Atalanta.v.Club.Brugge: 2
+          Atalanta.v.Slavia: 3
           Atalanta.v.Slavia.Prag: 3
+          Atalanta.v.Slavia.Prague: 3
           Atalanta.vs.Bilbao: 7
+          Atalanta.vs.Brugge: 2
           Atalanta.vs.Brügge: 2
           Atalanta.vs.Chelsea: 6
+          Atalanta.vs.Chelsea.FC: 6
+          Atalanta.vs.Club.Brugge: 2
+          Atalanta.vs.Slavia: 3
           Atalanta.vs.Slavia.Prag: 3
+          Atalanta.vs.Slavia.Prague: 3
+          Atletico Madrid v Bodø/Glimt: 8
+          Atletico Madrid v Eintracht Frankfurt: 2
+          Atletico Madrid v Inter: 5
+          Atletico Madrid v Union Saint-Gilloise: 4
+          Atletico Madrid vs Bodø/Glimt: 8
+          Atletico Madrid vs Eintracht Frankfurt: 2
+          Atletico Madrid vs Inter: 5
+          Atletico Madrid vs Union Saint-Gilloise: 4
+          Atletico.Madrid.v.Bodø.Glimt: 8
+          Atletico.Madrid.v.Eintracht.Frankfurt: 2
+          Atletico.Madrid.v.Inter: 5
+          Atletico.Madrid.v.Union.Saint.Gilloise: 4
+          Atletico.Madrid.vs.Bodø.Glimt: 8
+          Atletico.Madrid.vs.Eintracht.Frankfurt: 2
+          Atletico.Madrid.vs.Inter: 5
+          Atletico.Madrid.vs.Union.Saint.Gilloise: 4
+          Atlético Madrid v Bodo Glimt: 8
+          Atlético Madrid v Bodo/Glimt: 8
+          Atlético Madrid v Bodø Glimt: 8
+          Atlético Madrid v Bodø-Glimt: 8
           Atlético Madrid v Bodø/Glimt: 8
           Atlético Madrid v Eintracht Frankfurt: 2
+          Atlético Madrid v Frankfurt: 2
           Atlético Madrid v Inter: 5
+          Atlético Madrid v Inter Milan: 5
+          Atlético Madrid v Union SG: 4
+          Atlético Madrid v Union Saint Gilloise: 4
           Atlético Madrid v Union Saint-Gilloise: 4
+          Atlético Madrid vs Bodo Glimt: 8
+          Atlético Madrid vs Bodo/Glimt: 8
+          Atlético Madrid vs Bodø Glimt: 8
+          Atlético Madrid vs Bodø-Glimt: 8
           Atlético Madrid vs Bodø/Glimt: 8
           Atlético Madrid vs Eintracht Frankfurt: 2
+          Atlético Madrid vs Frankfurt: 2
           Atlético Madrid vs Inter: 5
+          Atlético Madrid vs Inter Milan: 5
+          Atlético Madrid vs Union SG: 4
+          Atlético Madrid vs Union Saint Gilloise: 4
           Atlético Madrid vs Union Saint-Gilloise: 4
-          Atlético.Madrid.Bodø/Glimt: 8
-          Atlético.Madrid.Eintracht.Frankfurt: 2
-          Atlético.Madrid.Inter: 5
-          Atlético.Madrid.Union.Saint-Gilloise: 4
-          Atlético.Madrid.v.Bodø/Glimt: 8
+          Atlético.Madrid.v.Bodo.Glimt: 8
+          Atlético.Madrid.v.Bodø.Glimt: 8
           Atlético.Madrid.v.Eintracht.Frankfurt: 2
+          Atlético.Madrid.v.Frankfurt: 2
           Atlético.Madrid.v.Inter: 5
-          Atlético.Madrid.v.Union.Saint-Gilloise: 4
-          Atlético.Madrid.vs.Bodø/Glimt: 8
+          Atlético.Madrid.v.Inter.Milan: 5
+          Atlético.Madrid.v.Union.SG: 4
+          Atlético.Madrid.v.Union.Saint.Gilloise: 4
+          Atlético.Madrid.vs.Bodo.Glimt: 8
+          Atlético.Madrid.vs.Bodø.Glimt: 8
           Atlético.Madrid.vs.Eintracht.Frankfurt: 2
+          Atlético.Madrid.vs.Frankfurt: 2
           Atlético.Madrid.vs.Inter: 5
-          Atlético.Madrid.vs.Union.Saint-Gilloise: 4
+          Atlético.Madrid.vs.Inter.Milan: 5
+          Atlético.Madrid.vs.Union.SG: 4
+          Atlético.Madrid.vs.Union.Saint.Gilloise: 4
+          BVB v Bilbao: 2
+          BVB v Bodø/Glimt: 6
+          BVB v Inter: 8
+          BVB v Villarreal: 5
+          BVB vs Bilbao: 2
+          BVB vs Bodø/Glimt: 6
+          BVB vs Inter: 8
+          BVB vs Villarreal: 5
+          BVB.v.Bilbao: 2
+          BVB.v.Bodø.Glimt: 6
+          BVB.v.Inter: 8
+          BVB.v.Villarreal: 5
+          BVB.vs.Bilbao: 2
+          BVB.vs.Bodø.Glimt: 6
+          BVB.vs.Inter: 8
+          BVB.vs.Villarreal: 5
+          Barcelona v Copenhagen: 8
           Barcelona v Eintracht Frankfurt: 6
+          Barcelona v FC Copenhagen: 8
+          Barcelona v Frankfurt: 6
+          Barcelona v Kopenhamn: 8
           Barcelona v Köpenhamn: 8
+          Barcelona v Olympiacos: 3
           Barcelona v Olympiakos: 3
           Barcelona v PSG: 2
+          Barcelona v Paris SG: 2
+          Barcelona v Paris Saint-Germain: 2
+          Barcelona vs Copenhagen: 8
           Barcelona vs Eintracht Frankfurt: 6
+          Barcelona vs FC Copenhagen: 8
+          Barcelona vs Frankfurt: 6
+          Barcelona vs Kopenhamn: 8
           Barcelona vs Köpenhamn: 8
+          Barcelona vs Olympiacos: 3
           Barcelona vs Olympiakos: 3
           Barcelona vs PSG: 2
-          Barcelona.Eintracht.Frankfurt: 6
-          Barcelona.Köpenhamn: 8
-          Barcelona.Olympiakos: 3
-          Barcelona.PSG: 2
+          Barcelona vs Paris SG: 2
+          Barcelona vs Paris Saint-Germain: 2
+          Barcelona.v.Copenhagen: 8
           Barcelona.v.Eintracht.Frankfurt: 6
+          Barcelona.v.FC.Copenhagen: 8
+          Barcelona.v.Frankfurt: 6
+          Barcelona.v.Kopenhamn: 8
           Barcelona.v.Köpenhamn: 8
+          Barcelona.v.Olympiacos: 3
           Barcelona.v.Olympiakos: 3
           Barcelona.v.PSG: 2
+          Barcelona.v.Paris.SG: 2
+          Barcelona.v.Paris.Saint.Germain: 2
+          Barcelona.vs.Copenhagen: 8
           Barcelona.vs.Eintracht.Frankfurt: 6
+          Barcelona.vs.FC.Copenhagen: 8
+          Barcelona.vs.Frankfurt: 6
+          Barcelona.vs.Kopenhamn: 8
           Barcelona.vs.Köpenhamn: 8
+          Barcelona.vs.Olympiacos: 3
           Barcelona.vs.Olympiakos: 3
           Barcelona.vs.PSG: 2
+          Barcelona.vs.Paris.SG: 2
+          Barcelona.vs.Paris.Saint.Germain: 2
+          Bayern Munich v Brügge: 3
+          Bayern Munich v Chelsea: 1
+          Bayern Munich v Sporting: 6
+          Bayern Munich v Union Saint-Gilloise: 7
+          Bayern Munich vs Brügge: 3
+          Bayern Munich vs Chelsea: 1
+          Bayern Munich vs Sporting: 6
+          Bayern Munich vs Union Saint-Gilloise: 7
+          Bayern v Brugge: 3
           Bayern v Brügge: 3
           Bayern v Chelsea: 1
+          Bayern v Chelsea FC: 1
+          Bayern v Club Brugge: 3
           Bayern v Sporting: 6
+          Bayern v Sporting CP: 6
+          Bayern v Union SG: 7
+          Bayern v Union Saint Gilloise: 7
           Bayern v Union Saint-Gilloise: 7
+          Bayern vs Brugge: 3
           Bayern vs Brügge: 3
           Bayern vs Chelsea: 1
+          Bayern vs Chelsea FC: 1
+          Bayern vs Club Brugge: 3
           Bayern vs Sporting: 6
+          Bayern vs Sporting CP: 6
+          Bayern vs Union SG: 7
+          Bayern vs Union Saint Gilloise: 7
           Bayern vs Union Saint-Gilloise: 7
-          Bayern.Brügge: 3
-          Bayern.Chelsea: 1
-          Bayern.Sporting: 6
-          Bayern.Union.Saint-Gilloise: 7
+          Bayern.Munich.v.Brügge: 3
+          Bayern.Munich.v.Chelsea: 1
+          Bayern.Munich.v.Sporting: 6
+          Bayern.Munich.v.Union.Saint.Gilloise: 7
+          Bayern.Munich.vs.Brügge: 3
+          Bayern.Munich.vs.Chelsea: 1
+          Bayern.Munich.vs.Sporting: 6
+          Bayern.Munich.vs.Union.Saint.Gilloise: 7
+          Bayern.v.Brugge: 3
           Bayern.v.Brügge: 3
           Bayern.v.Chelsea: 1
+          Bayern.v.Chelsea.FC: 1
+          Bayern.v.Club.Brugge: 3
           Bayern.v.Sporting: 6
-          Bayern.v.Union.Saint-Gilloise: 7
+          Bayern.v.Sporting.CP: 6
+          Bayern.v.Union.SG: 7
+          Bayern.v.Union.Saint.Gilloise: 7
+          Bayern.vs.Brugge: 3
           Bayern.vs.Brügge: 3
           Bayern.vs.Chelsea: 1
+          Bayern.vs.Chelsea.FC: 1
+          Bayern.vs.Club.Brugge: 3
           Bayern.vs.Sporting: 6
-          Bayern.vs.Union.Saint-Gilloise: 7
+          Bayern.vs.Sporting.CP: 6
+          Bayern.vs.Union.SG: 7
+          Bayern.vs.Union.Saint.Gilloise: 7
           Benfica v Leverkusen: 4
           Benfica v Napoli: 6
+          Benfica v Qarabag: 1
           Benfica v Qarabağ: 1
+          Benfica v Real: 8
           Benfica v Real Madrid: 8
+          Benfica v SSC Napoli: 6
           Benfica vs Leverkusen: 4
           Benfica vs Napoli: 6
+          Benfica vs Qarabag: 1
           Benfica vs Qarabağ: 1
+          Benfica vs Real: 8
           Benfica vs Real Madrid: 8
-          Benfica.Leverkusen: 4
-          Benfica.Napoli: 6
-          Benfica.Qarabağ: 1
-          Benfica.Real.Madrid: 8
+          Benfica vs SSC Napoli: 6
           Benfica.v.Leverkusen: 4
           Benfica.v.Napoli: 6
+          Benfica.v.Qarabag: 1
           Benfica.v.Qarabağ: 1
+          Benfica.v.Real: 8
           Benfica.v.Real.Madrid: 8
+          Benfica.v.SSC.Napoli: 6
           Benfica.vs.Leverkusen: 4
           Benfica.vs.Napoli: 6
+          Benfica.vs.Qarabag: 1
           Benfica.vs.Qarabağ: 1
+          Benfica.vs.Real: 8
           Benfica.vs.Real.Madrid: 8
+          Benfica.vs.SSC.Napoli: 6
           Bilbao v Arsenal: 1
+          Bilbao v Arsenal FC: 1
           Bilbao v PSG: 6
+          Bilbao v Paris SG: 6
+          Bilbao v Paris Saint-Germain: 6
+          Bilbao v Qarabag: 3
           Bilbao v Qarabağ: 3
           Bilbao v Sporting: 8
+          Bilbao v Sporting CP: 8
           Bilbao vs Arsenal: 1
+          Bilbao vs Arsenal FC: 1
           Bilbao vs PSG: 6
+          Bilbao vs Paris SG: 6
+          Bilbao vs Paris Saint-Germain: 6
+          Bilbao vs Qarabag: 3
           Bilbao vs Qarabağ: 3
           Bilbao vs Sporting: 8
-          Bilbao.Arsenal: 1
-          Bilbao.PSG: 6
-          Bilbao.Qarabağ: 3
-          Bilbao.Sporting: 8
+          Bilbao vs Sporting CP: 8
           Bilbao.v.Arsenal: 1
+          Bilbao.v.Arsenal.FC: 1
           Bilbao.v.PSG: 6
+          Bilbao.v.Paris.SG: 6
+          Bilbao.v.Paris.Saint.Germain: 6
+          Bilbao.v.Qarabag: 3
           Bilbao.v.Qarabağ: 3
           Bilbao.v.Sporting: 8
+          Bilbao.v.Sporting.CP: 8
           Bilbao.vs.Arsenal: 1
+          Bilbao.vs.Arsenal.FC: 1
           Bilbao.vs.PSG: 6
+          Bilbao.vs.Paris.SG: 6
+          Bilbao.vs.Paris.Saint.Germain: 6
+          Bilbao.vs.Qarabag: 3
           Bilbao.vs.Qarabağ: 3
           Bilbao.vs.Sporting: 8
+          Bilbao.vs.Sporting.CP: 8
+          Bodo Glimt v AS Monaco: 4
+          Bodo Glimt v Juventus: 5
+          Bodo Glimt v Man City: 7
+          Bodo Glimt v Tottenham: 2
+          Bodo Glimt vs AS Monaco: 4
+          Bodo Glimt vs Juventus: 5
+          Bodo Glimt vs Man City: 7
+          Bodo Glimt vs Tottenham: 2
+          Bodo.Glimt.v.AS.Monaco: 4
+          Bodo.Glimt.v.Juventus: 5
+          Bodo.Glimt.v.Man.City: 7
+          Bodo.Glimt.v.Tottenham: 2
+          Bodo.Glimt.vs.AS.Monaco: 4
+          Bodo.Glimt.vs.Juventus: 5
+          Bodo.Glimt.vs.Man.City: 7
+          Bodo.Glimt.vs.Tottenham: 2
+          Bodo/Glimt v AS Monaco: 4
+          Bodo/Glimt v Juventus: 5
+          Bodo/Glimt v Man City: 7
+          Bodo/Glimt v Tottenham: 2
+          Bodo/Glimt vs AS Monaco: 4
+          Bodo/Glimt vs Juventus: 5
+          Bodo/Glimt vs Man City: 7
+          Bodo/Glimt vs Tottenham: 2
+          Bodø Glimt v AS Monaco: 4
+          Bodø Glimt v Juventus: 5
+          Bodø Glimt v Man City: 7
+          Bodø Glimt v Tottenham: 2
+          Bodø Glimt vs AS Monaco: 4
+          Bodø Glimt vs Juventus: 5
+          Bodø Glimt vs Man City: 7
+          Bodø Glimt vs Tottenham: 2
+          Bodø-Glimt v AS Monaco: 4
+          Bodø-Glimt v Juventus: 5
+          Bodø-Glimt v Man City: 7
+          Bodø-Glimt v Tottenham: 2
+          Bodø-Glimt vs AS Monaco: 4
+          Bodø-Glimt vs Juventus: 5
+          Bodø-Glimt vs Man City: 7
+          Bodø-Glimt vs Tottenham: 2
+          Bodø.Glimt.v.AS.Monaco: 4
+          Bodø.Glimt.v.Juve: 5
+          Bodø.Glimt.v.Juventus: 5
+          Bodø.Glimt.v.MC: 7
+          Bodø.Glimt.v.Man.City: 7
+          Bodø.Glimt.v.Manchester.City: 7
+          Bodø.Glimt.v.Monaco: 4
+          Bodø.Glimt.v.Spurs: 2
+          Bodø.Glimt.v.Tottenham: 2
+          Bodø.Glimt.v.Tottenham.Hotspur: 2
+          Bodø.Glimt.vs.AS.Monaco: 4
+          Bodø.Glimt.vs.Juve: 5
+          Bodø.Glimt.vs.Juventus: 5
+          Bodø.Glimt.vs.MC: 7
+          Bodø.Glimt.vs.Man.City: 7
+          Bodø.Glimt.vs.Manchester.City: 7
+          Bodø.Glimt.vs.Monaco: 4
+          Bodø.Glimt.vs.Spurs: 2
+          Bodø.Glimt.vs.Tottenham: 2
+          Bodø.Glimt.vs.Tottenham.Hotspur: 2
           Bodø/Glimt v AS Monaco: 4
+          Bodø/Glimt v Juve: 5
           Bodø/Glimt v Juventus: 5
+          Bodø/Glimt v MC: 7
           Bodø/Glimt v Man City: 7
+          Bodø/Glimt v Manchester City: 7
+          Bodø/Glimt v Monaco: 4
+          Bodø/Glimt v Spurs: 2
           Bodø/Glimt v Tottenham: 2
+          Bodø/Glimt v Tottenham Hotspur: 2
           Bodø/Glimt vs AS Monaco: 4
+          Bodø/Glimt vs Juve: 5
           Bodø/Glimt vs Juventus: 5
+          Bodø/Glimt vs MC: 7
           Bodø/Glimt vs Man City: 7
+          Bodø/Glimt vs Manchester City: 7
+          Bodø/Glimt vs Monaco: 4
+          Bodø/Glimt vs Spurs: 2
           Bodø/Glimt vs Tottenham: 2
-          Bodø/Glimt.AS.Monaco: 4
-          Bodø/Glimt.Juventus: 5
-          Bodø/Glimt.Man.City: 7
-          Bodø/Glimt.Tottenham: 2
-          Bodø/Glimt.v.AS.Monaco: 4
-          Bodø/Glimt.v.Juventus: 5
-          Bodø/Glimt.v.Man.City: 7
-          Bodø/Glimt.v.Tottenham: 2
-          Bodø/Glimt.vs.AS.Monaco: 4
-          Bodø/Glimt.vs.Juventus: 5
-          Bodø/Glimt.vs.Man.City: 7
-          Bodø/Glimt.vs.Tottenham: 2
+          Bodø/Glimt vs Tottenham Hotspur: 2
+          Borussia Dortmund v Bilbao: 2
+          Borussia Dortmund v Bodø/Glimt: 6
+          Borussia Dortmund v Inter: 8
+          Borussia Dortmund v Villarreal: 5
+          Borussia Dortmund vs Bilbao: 2
+          Borussia Dortmund vs Bodø/Glimt: 6
+          Borussia Dortmund vs Inter: 8
+          Borussia Dortmund vs Villarreal: 5
+          Borussia v Bilbao: 2
+          Borussia v Bodø/Glimt: 6
+          Borussia v Inter: 8
+          Borussia v Villarreal: 5
+          Borussia vs Bilbao: 2
+          Borussia vs Bodø/Glimt: 6
+          Borussia vs Inter: 8
+          Borussia vs Villarreal: 5
+          Borussia.Dortmund.v.Bilbao: 2
+          Borussia.Dortmund.v.Bodø.Glimt: 6
+          Borussia.Dortmund.v.Inter: 8
+          Borussia.Dortmund.v.Villarreal: 5
+          Borussia.Dortmund.vs.Bilbao: 2
+          Borussia.Dortmund.vs.Bodø.Glimt: 6
+          Borussia.Dortmund.vs.Inter: 8
+          Borussia.Dortmund.vs.Villarreal: 5
+          Borussia.v.Bilbao: 2
+          Borussia.v.Bodø.Glimt: 6
+          Borussia.v.Inter: 8
+          Borussia.v.Villarreal: 5
+          Borussia.vs.Bilbao: 2
+          Borussia.vs.Bodø.Glimt: 6
+          Borussia.vs.Inter: 8
+          Borussia.vs.Villarreal: 5
+          Brugge v AS Monaco: 1
+          Brugge v Arsenal: 6
+          Brugge v Barcelona: 4
+          Brugge v L'OM: 8
+          Brugge vs AS Monaco: 1
+          Brugge vs Arsenal: 6
+          Brugge vs Barcelona: 4
+          Brugge vs L'OM: 8
+          Brugge.v.AS.Monaco: 1
+          Brugge.v.Arsenal: 6
+          Brugge.v.Barcelona: 4
+          Brugge.v.LOM: 8
+          Brugge.vs.AS.Monaco: 1
+          Brugge.vs.Arsenal: 6
+          Brugge.vs.Barcelona: 4
+          Brugge.vs.LOM: 8
           Brügge v AS Monaco: 1
           Brügge v Arsenal: 6
+          Brügge v Arsenal FC: 6
           Brügge v Barcelona: 4
+          Brügge v FC Barcelona: 4
           Brügge v L'OM: 8
+          Brügge v LOM: 8
+          Brügge v Marseille: 8
+          Brügge v Monaco: 1
+          Brügge v OM: 8
+          Brügge v Olympique Marseille: 8
           Brügge vs AS Monaco: 1
           Brügge vs Arsenal: 6
+          Brügge vs Arsenal FC: 6
           Brügge vs Barcelona: 4
+          Brügge vs FC Barcelona: 4
           Brügge vs L'OM: 8
-          Brügge.AS.Monaco: 1
-          Brügge.Arsenal: 6
-          Brügge.Barcelona: 4
-          Brügge.L.OM: 8
+          Brügge vs LOM: 8
+          Brügge vs Marseille: 8
+          Brügge vs Monaco: 1
+          Brügge vs OM: 8
+          Brügge vs Olympique Marseille: 8
           Brügge.v.AS.Monaco: 1
           Brügge.v.Arsenal: 6
+          Brügge.v.Arsenal.FC: 6
           Brügge.v.Barcelona: 4
-          Brügge.v.L.OM: 8
+          Brügge.v.FC.Barcelona: 4
+          Brügge.v.LOM: 8
+          Brügge.v.Marseille: 8
+          Brügge.v.Monaco: 1
+          Brügge.v.OM: 8
+          Brügge.v.Olympique.Marseille: 8
           Brügge.vs.AS.Monaco: 1
           Brügge.vs.Arsenal: 6
+          Brügge.vs.Arsenal.FC: 6
           Brügge.vs.Barcelona: 4
-          Brügge.vs.L.OM: 8
+          Brügge.vs.FC.Barcelona: 4
+          Brügge.vs.LOM: 8
+          Brügge.vs.Marseille: 8
+          Brügge.vs.Monaco: 1
+          Brügge.vs.OM: 8
+          Brügge.vs.Olympique.Marseille: 8
+          Chelsea FC v Ajax: 3
+          Chelsea FC v Barcelona: 5
+          Chelsea FC v Benfica: 2
+          Chelsea FC v Pafos: 7
+          Chelsea FC vs Ajax: 3
+          Chelsea FC vs Barcelona: 5
+          Chelsea FC vs Benfica: 2
+          Chelsea FC vs Pafos: 7
+          Chelsea v AFC Ajax: 3
           Chelsea v Ajax: 3
           Chelsea v Barcelona: 5
           Chelsea v Benfica: 2
+          Chelsea v FC Barcelona: 5
           Chelsea v Pafos: 7
+          Chelsea v SL Benfica: 2
+          Chelsea vs AFC Ajax: 3
           Chelsea vs Ajax: 3
           Chelsea vs Barcelona: 5
           Chelsea vs Benfica: 2
+          Chelsea vs FC Barcelona: 5
           Chelsea vs Pafos: 7
-          Chelsea.Ajax: 3
-          Chelsea.Barcelona: 5
-          Chelsea.Benfica: 2
-          Chelsea.Pafos: 7
+          Chelsea vs SL Benfica: 2
+          Chelsea.FC.v.Ajax: 3
+          Chelsea.FC.v.Barcelona: 5
+          Chelsea.FC.v.Benfica: 2
+          Chelsea.FC.v.Pafos: 7
+          Chelsea.FC.vs.Ajax: 3
+          Chelsea.FC.vs.Barcelona: 5
+          Chelsea.FC.vs.Benfica: 2
+          Chelsea.FC.vs.Pafos: 7
+          Chelsea.v.AFC.Ajax: 3
           Chelsea.v.Ajax: 3
           Chelsea.v.Barcelona: 5
           Chelsea.v.Benfica: 2
+          Chelsea.v.FC.Barcelona: 5
           Chelsea.v.Pafos: 7
+          Chelsea.v.SL.Benfica: 2
+          Chelsea.vs.AFC.Ajax: 3
           Chelsea.vs.Ajax: 3
           Chelsea.vs.Barcelona: 5
           Chelsea.vs.Benfica: 2
+          Chelsea.vs.FC.Barcelona: 5
           Chelsea.vs.Pafos: 7
+          Chelsea.vs.SL.Benfica: 2
+          Club Brugge v AS Monaco: 1
+          Club Brugge v Arsenal: 6
+          Club Brugge v Barcelona: 4
+          Club Brugge v L'OM: 8
+          Club Brugge vs AS Monaco: 1
+          Club Brugge vs Arsenal: 6
+          Club Brugge vs Barcelona: 4
+          Club Brugge vs L'OM: 8
+          Club.Brugge.v.AS.Monaco: 1
+          Club.Brugge.v.Arsenal: 6
+          Club.Brugge.v.Barcelona: 4
+          Club.Brugge.v.LOM: 8
+          Club.Brugge.vs.AS.Monaco: 1
+          Club.Brugge.vs.Arsenal: 6
+          Club.Brugge.vs.Barcelona: 4
+          Club.Brugge.vs.LOM: 8
+          Copenhagen v Dortmund: 3
+          Copenhagen v FC Kairat: 5
+          Copenhagen v Leverkusen: 1
+          Copenhagen v Napoli: 7
+          Copenhagen vs Dortmund: 3
+          Copenhagen vs FC Kairat: 5
+          Copenhagen vs Leverkusen: 1
+          Copenhagen vs Napoli: 7
+          Copenhagen.v.Dortmund: 3
+          Copenhagen.v.FC.Kairat: 5
+          Copenhagen.v.Leverkusen: 1
+          Copenhagen.v.Napoli: 7
+          Copenhagen.vs.Dortmund: 3
+          Copenhagen.vs.FC.Kairat: 5
+          Copenhagen.vs.Leverkusen: 1
+          Copenhagen.vs.Napoli: 7
           Dortmund v Bilbao: 2
+          Dortmund v Bodo Glimt: 6
+          Dortmund v Bodo/Glimt: 6
+          Dortmund v Bodø Glimt: 6
+          Dortmund v Bodø-Glimt: 6
           Dortmund v Bodø/Glimt: 6
           Dortmund v Inter: 8
+          Dortmund v Inter Milan: 8
           Dortmund v Villarreal: 5
+          Dortmund v Villarreal CF: 5
           Dortmund vs Bilbao: 2
+          Dortmund vs Bodo Glimt: 6
+          Dortmund vs Bodo/Glimt: 6
+          Dortmund vs Bodø Glimt: 6
+          Dortmund vs Bodø-Glimt: 6
           Dortmund vs Bodø/Glimt: 6
           Dortmund vs Inter: 8
+          Dortmund vs Inter Milan: 8
           Dortmund vs Villarreal: 5
-          Dortmund.Bilbao: 2
-          Dortmund.Bodø/Glimt: 6
-          Dortmund.Inter: 8
-          Dortmund.Villarreal: 5
+          Dortmund vs Villarreal CF: 5
           Dortmund.v.Bilbao: 2
-          Dortmund.v.Bodø/Glimt: 6
+          Dortmund.v.Bodo.Glimt: 6
+          Dortmund.v.Bodø.Glimt: 6
           Dortmund.v.Inter: 8
+          Dortmund.v.Inter.Milan: 8
           Dortmund.v.Villarreal: 5
+          Dortmund.v.Villarreal.CF: 5
           Dortmund.vs.Bilbao: 2
-          Dortmund.vs.Bodø/Glimt: 6
+          Dortmund.vs.Bodo.Glimt: 6
+          Dortmund.vs.Bodø.Glimt: 6
           Dortmund.vs.Inter: 8
+          Dortmund.vs.Inter.Milan: 8
           Dortmund.vs.Villarreal: 5
+          Dortmund.vs.Villarreal.CF: 5
           Eintracht Frankfurt v Atalanta: 5
+          Eintracht Frankfurt v Atalanta BC: 5
           Eintracht Frankfurt v Galatasaray: 1
           Eintracht Frankfurt v Liverpool: 3
+          Eintracht Frankfurt v Spurs: 8
           Eintracht Frankfurt v Tottenham: 8
+          Eintracht Frankfurt v Tottenham Hotspur: 8
           Eintracht Frankfurt vs Atalanta: 5
+          Eintracht Frankfurt vs Atalanta BC: 5
           Eintracht Frankfurt vs Galatasaray: 1
           Eintracht Frankfurt vs Liverpool: 3
+          Eintracht Frankfurt vs Spurs: 8
           Eintracht Frankfurt vs Tottenham: 8
-          Eintracht.Frankfurt.Atalanta: 5
-          Eintracht.Frankfurt.Galatasaray: 1
-          Eintracht.Frankfurt.Liverpool: 3
-          Eintracht.Frankfurt.Tottenham: 8
+          Eintracht Frankfurt vs Tottenham Hotspur: 8
           Eintracht.Frankfurt.v.Atalanta: 5
+          Eintracht.Frankfurt.v.Atalanta.BC: 5
           Eintracht.Frankfurt.v.Galatasaray: 1
           Eintracht.Frankfurt.v.Liverpool: 3
+          Eintracht.Frankfurt.v.Spurs: 8
           Eintracht.Frankfurt.v.Tottenham: 8
+          Eintracht.Frankfurt.v.Tottenham.Hotspur: 8
           Eintracht.Frankfurt.vs.Atalanta: 5
+          Eintracht.Frankfurt.vs.Atalanta.BC: 5
           Eintracht.Frankfurt.vs.Galatasaray: 1
           Eintracht.Frankfurt.vs.Liverpool: 3
+          Eintracht.Frankfurt.vs.Spurs: 8
           Eintracht.Frankfurt.vs.Tottenham: 8
+          Eintracht.Frankfurt.vs.Tottenham.Hotspur: 8
+          FC Barcelona v Eintracht Frankfurt: 6
+          FC Barcelona v Köpenhamn: 8
+          FC Barcelona v Olympiakos: 3
+          FC Barcelona v PSG: 2
+          FC Barcelona vs Eintracht Frankfurt: 6
+          FC Barcelona vs Köpenhamn: 8
+          FC Barcelona vs Olympiakos: 3
+          FC Barcelona vs PSG: 2
+          FC Bayern v Brügge: 3
+          FC Bayern v Chelsea: 1
+          FC Bayern v Sporting: 6
+          FC Bayern v Union Saint-Gilloise: 7
+          FC Bayern vs Brügge: 3
+          FC Bayern vs Chelsea: 1
+          FC Bayern vs Sporting: 6
+          FC Bayern vs Union Saint-Gilloise: 7
+          FC Copenhagen v Dortmund: 3
+          FC Copenhagen v FC Kairat: 5
+          FC Copenhagen v Leverkusen: 1
+          FC Copenhagen v Napoli: 7
+          FC Copenhagen vs Dortmund: 3
+          FC Copenhagen vs FC Kairat: 5
+          FC Copenhagen vs Leverkusen: 1
+          FC Copenhagen vs Napoli: 7
+          FC Kairat v Brugge: 7
           FC Kairat v Brügge: 7
+          FC Kairat v Club Brugge: 7
+          FC Kairat v Olympiacos: 6
           FC Kairat v Olympiakos: 6
           FC Kairat v Pafos: 3
+          FC Kairat v Real: 2
           FC Kairat v Real Madrid: 2
+          FC Kairat vs Brugge: 7
           FC Kairat vs Brügge: 7
+          FC Kairat vs Club Brugge: 7
+          FC Kairat vs Olympiacos: 6
           FC Kairat vs Olympiakos: 6
           FC Kairat vs Pafos: 3
+          FC Kairat vs Real: 2
           FC Kairat vs Real Madrid: 2
-          FC.Kairat.Brügge: 7
-          FC.Kairat.Olympiakos: 6
-          FC.Kairat.Pafos: 3
-          FC.Kairat.Real.Madrid: 2
+          FC.Barcelona.v.Eintracht.Frankfurt: 6
+          FC.Barcelona.v.Köpenhamn: 8
+          FC.Barcelona.v.Olympiakos: 3
+          FC.Barcelona.v.PSG: 2
+          FC.Barcelona.vs.Eintracht.Frankfurt: 6
+          FC.Barcelona.vs.Köpenhamn: 8
+          FC.Barcelona.vs.Olympiakos: 3
+          FC.Barcelona.vs.PSG: 2
+          FC.Bayern.v.Brügge: 3
+          FC.Bayern.v.Chelsea: 1
+          FC.Bayern.v.Sporting: 6
+          FC.Bayern.v.Union.Saint.Gilloise: 7
+          FC.Bayern.vs.Brügge: 3
+          FC.Bayern.vs.Chelsea: 1
+          FC.Bayern.vs.Sporting: 6
+          FC.Bayern.vs.Union.Saint.Gilloise: 7
+          FC.Copenhagen.v.Dortmund: 3
+          FC.Copenhagen.v.FC.Kairat: 5
+          FC.Copenhagen.v.Leverkusen: 1
+          FC.Copenhagen.v.Napoli: 7
+          FC.Copenhagen.vs.Dortmund: 3
+          FC.Copenhagen.vs.FC.Kairat: 5
+          FC.Copenhagen.vs.Leverkusen: 1
+          FC.Copenhagen.vs.Napoli: 7
+          FC.Kairat.v.Brugge: 7
           FC.Kairat.v.Brügge: 7
+          FC.Kairat.v.Club.Brugge: 7
+          FC.Kairat.v.Olympiacos: 6
           FC.Kairat.v.Olympiakos: 6
           FC.Kairat.v.Pafos: 3
+          FC.Kairat.v.Real: 2
           FC.Kairat.v.Real.Madrid: 2
+          FC.Kairat.vs.Brugge: 7
           FC.Kairat.vs.Brügge: 7
+          FC.Kairat.vs.Club.Brugge: 7
+          FC.Kairat.vs.Olympiacos: 6
           FC.Kairat.vs.Olympiakos: 6
           FC.Kairat.vs.Pafos: 3
+          FC.Kairat.vs.Real: 2
           FC.Kairat.vs.Real.Madrid: 2
+          Frankfurt v Atalanta: 5
+          Frankfurt v Galatasaray: 1
+          Frankfurt v Liverpool: 3
+          Frankfurt v Tottenham: 8
+          Frankfurt vs Atalanta: 5
+          Frankfurt vs Galatasaray: 1
+          Frankfurt vs Liverpool: 3
+          Frankfurt vs Tottenham: 8
+          Frankfurt.v.Atalanta: 5
+          Frankfurt.v.Galatasaray: 1
+          Frankfurt.v.Liverpool: 3
+          Frankfurt.v.Tottenham: 8
+          Frankfurt.vs.Atalanta: 5
+          Frankfurt.vs.Galatasaray: 1
+          Frankfurt.vs.Liverpool: 3
+          Frankfurt.vs.Tottenham: 8
+          Galatasaray v Atletico Madrid: 7
           Galatasaray v Atlético Madrid: 7
+          Galatasaray v Bodo Glimt: 3
+          Galatasaray v Bodo/Glimt: 3
+          Galatasaray v Bodø Glimt: 3
+          Galatasaray v Bodø-Glimt: 3
           Galatasaray v Bodø/Glimt: 3
           Galatasaray v Liverpool: 2
+          Galatasaray v Union SG: 5
+          Galatasaray v Union Saint Gilloise: 5
           Galatasaray v Union Saint-Gilloise: 5
+          Galatasaray vs Atletico Madrid: 7
           Galatasaray vs Atlético Madrid: 7
+          Galatasaray vs Bodo Glimt: 3
+          Galatasaray vs Bodo/Glimt: 3
+          Galatasaray vs Bodø Glimt: 3
+          Galatasaray vs Bodø-Glimt: 3
           Galatasaray vs Bodø/Glimt: 3
           Galatasaray vs Liverpool: 2
+          Galatasaray vs Union SG: 5
+          Galatasaray vs Union Saint Gilloise: 5
           Galatasaray vs Union Saint-Gilloise: 5
-          Galatasaray.Atlético.Madrid: 7
-          Galatasaray.Bodø/Glimt: 3
-          Galatasaray.Liverpool: 2
-          Galatasaray.Union.Saint-Gilloise: 5
+          Galatasaray.v.Atletico.Madrid: 7
           Galatasaray.v.Atlético.Madrid: 7
-          Galatasaray.v.Bodø/Glimt: 3
+          Galatasaray.v.Bodo.Glimt: 3
+          Galatasaray.v.Bodø.Glimt: 3
           Galatasaray.v.Liverpool: 2
-          Galatasaray.v.Union.Saint-Gilloise: 5
+          Galatasaray.v.Union.SG: 5
+          Galatasaray.v.Union.Saint.Gilloise: 5
+          Galatasaray.vs.Atletico.Madrid: 7
           Galatasaray.vs.Atlético.Madrid: 7
-          Galatasaray.vs.Bodø/Glimt: 3
+          Galatasaray.vs.Bodo.Glimt: 3
+          Galatasaray.vs.Bodø.Glimt: 3
           Galatasaray.vs.Liverpool: 2
-          Galatasaray.vs.Union.Saint-Gilloise: 5
+          Galatasaray.vs.Union.SG: 5
+          Galatasaray.vs.Union.Saint.Gilloise: 5
+          Inter Milan v Arsenal: 7
+          Inter Milan v FC Kairat: 4
+          Inter Milan v Liverpool: 6
+          Inter Milan v Slavia Prag: 2
+          Inter Milan vs Arsenal: 7
+          Inter Milan vs FC Kairat: 4
+          Inter Milan vs Liverpool: 6
+          Inter Milan vs Slavia Prag: 2
           Inter v Arsenal: 7
+          Inter v Arsenal FC: 7
           Inter v FC Kairat: 4
           Inter v Liverpool: 6
+          Inter v Slavia: 2
           Inter v Slavia Prag: 2
+          Inter v Slavia Prague: 2
           Inter vs Arsenal: 7
+          Inter vs Arsenal FC: 7
           Inter vs FC Kairat: 4
           Inter vs Liverpool: 6
+          Inter vs Slavia: 2
           Inter vs Slavia Prag: 2
-          Inter.Arsenal: 7
-          Inter.FC.Kairat: 4
-          Inter.Liverpool: 6
-          Inter.Slavia.Prag: 2
+          Inter vs Slavia Prague: 2
+          Inter.Milan.v.Arsenal: 7
+          Inter.Milan.v.FC.Kairat: 4
+          Inter.Milan.v.Liverpool: 6
+          Inter.Milan.v.Slavia.Prag: 2
+          Inter.Milan.vs.Arsenal: 7
+          Inter.Milan.vs.FC.Kairat: 4
+          Inter.Milan.vs.Liverpool: 6
+          Inter.Milan.vs.Slavia.Prag: 2
           Inter.v.Arsenal: 7
+          Inter.v.Arsenal.FC: 7
           Inter.v.FC.Kairat: 4
           Inter.v.Liverpool: 6
+          Inter.v.Slavia: 2
           Inter.v.Slavia.Prag: 2
+          Inter.v.Slavia.Prague: 2
           Inter.vs.Arsenal: 7
+          Inter.vs.Arsenal.FC: 7
           Inter.vs.FC.Kairat: 4
           Inter.vs.Liverpool: 6
+          Inter.vs.Slavia: 2
           Inter.vs.Slavia.Prag: 2
+          Inter.vs.Slavia.Prague: 2
+          Juve v Benfica: 7
+          Juve v Dortmund: 1
+          Juve v Pafos: 6
+          Juve v Sporting: 4
+          Juve vs Benfica: 7
+          Juve vs Dortmund: 1
+          Juve vs Pafos: 6
+          Juve vs Sporting: 4
+          Juve.v.Benfica: 7
+          Juve.v.Dortmund: 1
+          Juve.v.Pafos: 6
+          Juve.v.Sporting: 4
+          Juve.vs.Benfica: 7
+          Juve.vs.Dortmund: 1
+          Juve.vs.Pafos: 6
+          Juve.vs.Sporting: 4
+          Juventus v BVB: 1
           Juventus v Benfica: 7
+          Juventus v Borussia: 1
+          Juventus v Borussia Dortmund: 1
           Juventus v Dortmund: 1
           Juventus v Pafos: 6
+          Juventus v SL Benfica: 7
           Juventus v Sporting: 4
+          Juventus v Sporting CP: 4
+          Juventus vs BVB: 1
           Juventus vs Benfica: 7
+          Juventus vs Borussia: 1
+          Juventus vs Borussia Dortmund: 1
           Juventus vs Dortmund: 1
           Juventus vs Pafos: 6
+          Juventus vs SL Benfica: 7
           Juventus vs Sporting: 4
-          Juventus.Benfica: 7
-          Juventus.Dortmund: 1
-          Juventus.Pafos: 6
-          Juventus.Sporting: 4
+          Juventus vs Sporting CP: 4
+          Juventus.v.BVB: 1
           Juventus.v.Benfica: 7
+          Juventus.v.Borussia: 1
+          Juventus.v.Borussia.Dortmund: 1
           Juventus.v.Dortmund: 1
           Juventus.v.Pafos: 6
+          Juventus.v.SL.Benfica: 7
           Juventus.v.Sporting: 4
+          Juventus.v.Sporting.CP: 4
+          Juventus.vs.BVB: 1
           Juventus.vs.Benfica: 7
+          Juventus.vs.Borussia: 1
+          Juventus.vs.Borussia.Dortmund: 1
           Juventus.vs.Dortmund: 1
           Juventus.vs.Pafos: 6
+          Juventus.vs.SL.Benfica: 7
           Juventus.vs.Sporting: 4
+          Juventus.vs.Sporting.CP: 4
+          Kopenhamn v Dortmund: 3
+          Kopenhamn v FC Kairat: 5
+          Kopenhamn v Leverkusen: 1
+          Kopenhamn v Napoli: 7
+          Kopenhamn vs Dortmund: 3
+          Kopenhamn vs FC Kairat: 5
+          Kopenhamn vs Leverkusen: 1
+          Kopenhamn vs Napoli: 7
+          Kopenhamn.v.Dortmund: 3
+          Kopenhamn.v.FC.Kairat: 5
+          Kopenhamn.v.Leverkusen: 1
+          Kopenhamn.v.Napoli: 7
+          Kopenhamn.vs.Dortmund: 3
+          Kopenhamn.vs.FC.Kairat: 5
+          Kopenhamn.vs.Leverkusen: 1
+          Kopenhamn.vs.Napoli: 7
+          Köpenhamn v BVB: 3
+          Köpenhamn v Borussia: 3
+          Köpenhamn v Borussia Dortmund: 3
           Köpenhamn v Dortmund: 3
           Köpenhamn v FC Kairat: 5
           Köpenhamn v Leverkusen: 1
           Köpenhamn v Napoli: 7
+          Köpenhamn v SSC Napoli: 7
+          Köpenhamn vs BVB: 3
+          Köpenhamn vs Borussia: 3
+          Köpenhamn vs Borussia Dortmund: 3
           Köpenhamn vs Dortmund: 3
           Köpenhamn vs FC Kairat: 5
           Köpenhamn vs Leverkusen: 1
           Köpenhamn vs Napoli: 7
-          Köpenhamn.Dortmund: 3
-          Köpenhamn.FC.Kairat: 5
-          Köpenhamn.Leverkusen: 1
-          Köpenhamn.Napoli: 7
+          Köpenhamn vs SSC Napoli: 7
+          Köpenhamn.v.BVB: 3
+          Köpenhamn.v.Borussia: 3
+          Köpenhamn.v.Borussia.Dortmund: 3
           Köpenhamn.v.Dortmund: 3
           Köpenhamn.v.FC.Kairat: 5
           Köpenhamn.v.Leverkusen: 1
           Köpenhamn.v.Napoli: 7
+          Köpenhamn.v.SSC.Napoli: 7
+          Köpenhamn.vs.BVB: 3
+          Köpenhamn.vs.Borussia: 3
+          Köpenhamn.vs.Borussia.Dortmund: 3
           Köpenhamn.vs.Dortmund: 3
           Köpenhamn.vs.FC.Kairat: 5
           Köpenhamn.vs.Leverkusen: 1
           Köpenhamn.vs.Napoli: 7
+          Köpenhamn.vs.SSC.Napoli: 7
+          L'OM v AFC Ajax: 2
           L'OM v Ajax: 2
           L'OM v Atalanta: 4
+          L'OM v Atalanta BC: 4
           L'OM v Liverpool: 7
           L'OM v Newcastle: 5
+          L'OM v Newcastle United: 5
+          L'OM vs AFC Ajax: 2
           L'OM vs Ajax: 2
           L'OM vs Atalanta: 4
+          L'OM vs Atalanta BC: 4
           L'OM vs Liverpool: 7
           L'OM vs Newcastle: 5
-          L.OM.Ajax: 2
-          L.OM.Atalanta: 4
-          L.OM.Liverpool: 7
-          L.OM.Newcastle: 5
-          L.OM.v.Ajax: 2
-          L.OM.v.Atalanta: 4
-          L.OM.v.Liverpool: 7
-          L.OM.v.Newcastle: 5
-          L.OM.vs.Ajax: 2
-          L.OM.vs.Atalanta: 4
-          L.OM.vs.Liverpool: 7
-          L.OM.vs.Newcastle: 5
+          L'OM vs Newcastle United: 5
+          LOM v Ajax: 2
+          LOM v Atalanta: 4
+          LOM v Liverpool: 7
+          LOM v Newcastle: 5
+          LOM vs Ajax: 2
+          LOM vs Atalanta: 4
+          LOM vs Liverpool: 7
+          LOM vs Newcastle: 5
+          LOM.v.AFC.Ajax: 2
+          LOM.v.Ajax: 2
+          LOM.v.Atalanta: 4
+          LOM.v.Atalanta.BC: 4
+          LOM.v.Liverpool: 7
+          LOM.v.Newcastle: 5
+          LOM.v.Newcastle.United: 5
+          LOM.vs.AFC.Ajax: 2
+          LOM.vs.Ajax: 2
+          LOM.vs.Atalanta: 4
+          LOM.vs.Atalanta.BC: 4
+          LOM.vs.Liverpool: 7
+          LOM.vs.Newcastle: 5
+          LOM.vs.Newcastle.United: 5
           Leverkusen v Newcastle: 6
+          Leverkusen v Newcastle United: 6
           Leverkusen v PSG: 3
+          Leverkusen v PSV: 2
           Leverkusen v PSV Eindhoven: 2
+          Leverkusen v Paris SG: 3
+          Leverkusen v Paris Saint-Germain: 3
           Leverkusen v Villarreal: 8
+          Leverkusen v Villarreal CF: 8
           Leverkusen vs Newcastle: 6
+          Leverkusen vs Newcastle United: 6
           Leverkusen vs PSG: 3
+          Leverkusen vs PSV: 2
           Leverkusen vs PSV Eindhoven: 2
+          Leverkusen vs Paris SG: 3
+          Leverkusen vs Paris Saint-Germain: 3
           Leverkusen vs Villarreal: 8
-          Leverkusen.Newcastle: 6
-          Leverkusen.PSG: 3
-          Leverkusen.PSV.Eindhoven: 2
-          Leverkusen.Villarreal: 8
+          Leverkusen vs Villarreal CF: 8
           Leverkusen.v.Newcastle: 6
+          Leverkusen.v.Newcastle.United: 6
           Leverkusen.v.PSG: 3
+          Leverkusen.v.PSV: 2
           Leverkusen.v.PSV.Eindhoven: 2
+          Leverkusen.v.Paris.SG: 3
+          Leverkusen.v.Paris.Saint.Germain: 3
           Leverkusen.v.Villarreal: 8
+          Leverkusen.v.Villarreal.CF: 8
           Leverkusen.vs.Newcastle: 6
+          Leverkusen.vs.Newcastle.United: 6
           Leverkusen.vs.PSG: 3
+          Leverkusen.vs.PSV: 2
           Leverkusen.vs.PSV.Eindhoven: 2
+          Leverkusen.vs.Paris.SG: 3
+          Leverkusen.vs.Paris.Saint.Germain: 3
           Leverkusen.vs.Villarreal: 8
+          Leverkusen.vs.Villarreal.CF: 8
+          Liverpool v Atletico Madrid: 1
           Liverpool v Atlético Madrid: 1
+          Liverpool v PSV: 5
           Liverpool v PSV Eindhoven: 5
+          Liverpool v Qarabag: 8
           Liverpool v Qarabağ: 8
+          Liverpool v Real: 4
           Liverpool v Real Madrid: 4
+          Liverpool vs Atletico Madrid: 1
           Liverpool vs Atlético Madrid: 1
+          Liverpool vs PSV: 5
           Liverpool vs PSV Eindhoven: 5
+          Liverpool vs Qarabag: 8
           Liverpool vs Qarabağ: 8
+          Liverpool vs Real: 4
           Liverpool vs Real Madrid: 4
-          Liverpool.Atlético.Madrid: 1
-          Liverpool.PSV.Eindhoven: 5
-          Liverpool.Qarabağ: 8
-          Liverpool.Real.Madrid: 4
+          Liverpool.v.Atletico.Madrid: 1
           Liverpool.v.Atlético.Madrid: 1
+          Liverpool.v.PSV: 5
           Liverpool.v.PSV.Eindhoven: 5
+          Liverpool.v.Qarabag: 8
           Liverpool.v.Qarabağ: 8
+          Liverpool.v.Real: 4
           Liverpool.v.Real.Madrid: 4
+          Liverpool.vs.Atletico.Madrid: 1
           Liverpool.vs.Atlético.Madrid: 1
+          Liverpool.vs.PSV: 5
           Liverpool.vs.PSV.Eindhoven: 5
+          Liverpool.vs.Qarabag: 8
           Liverpool.vs.Qarabağ: 8
+          Liverpool.vs.Real: 4
           Liverpool.vs.Real.Madrid: 4
+          MC v Borussia: 4
+          MC v Borussia Dortmund: 4
+          MC v Dortmund: 4
+          MC v Galatasaray: 8
+          MC v Leverkusen: 5
+          MC v Napoli: 1
+          MC vs Borussia: 4
+          MC vs Borussia Dortmund: 4
+          MC vs Dortmund: 4
+          MC vs Galatasaray: 8
+          MC vs Leverkusen: 5
+          MC vs Napoli: 1
+          MC.v.Borussia: 4
+          MC.v.Borussia.Dortmund: 4
+          MC.v.Dortmund: 4
+          MC.v.Galatasaray: 8
+          MC.v.Leverkusen: 5
+          MC.v.Napoli: 1
+          MC.vs.Borussia: 4
+          MC.vs.Borussia.Dortmund: 4
+          MC.vs.Dortmund: 4
+          MC.vs.Galatasaray: 8
+          MC.vs.Leverkusen: 5
+          MC.vs.Napoli: 1
+          Man City v BVB: 4
+          Man City v Borussia: 4
+          Man City v Borussia Dortmund: 4
           Man City v Dortmund: 4
           Man City v Galatasaray: 8
           Man City v Leverkusen: 5
           Man City v Napoli: 1
+          Man City v SSC Napoli: 1
+          Man City vs BVB: 4
+          Man City vs Borussia: 4
+          Man City vs Borussia Dortmund: 4
           Man City vs Dortmund: 4
           Man City vs Galatasaray: 8
           Man City vs Leverkusen: 5
           Man City vs Napoli: 1
-          Man.City.Dortmund: 4
-          Man.City.Galatasaray: 8
-          Man.City.Leverkusen: 5
-          Man.City.Napoli: 1
+          Man City vs SSC Napoli: 1
+          Man.City.v.BVB: 4
+          Man.City.v.Borussia: 4
+          Man.City.v.Borussia.Dortmund: 4
           Man.City.v.Dortmund: 4
           Man.City.v.Galatasaray: 8
           Man.City.v.Leverkusen: 5
           Man.City.v.Napoli: 1
+          Man.City.v.SSC.Napoli: 1
+          Man.City.vs.BVB: 4
+          Man.City.vs.Borussia: 4
+          Man.City.vs.Borussia.Dortmund: 4
           Man.City.vs.Dortmund: 4
           Man.City.vs.Galatasaray: 8
           Man.City.vs.Leverkusen: 5
           Man.City.vs.Napoli: 1
+          Man.City.vs.SSC.Napoli: 1
+          Manchester City v Borussia: 4
+          Manchester City v Dortmund: 4
+          Manchester City v Galatasaray: 8
+          Manchester City v Leverkusen: 5
+          Manchester City v Napoli: 1
+          Manchester City vs Borussia: 4
+          Manchester City vs Dortmund: 4
+          Manchester City vs Galatasaray: 8
+          Manchester City vs Leverkusen: 5
+          Manchester City vs Napoli: 1
+          Manchester.City.v.Borussia: 4
+          Manchester.City.v.Dortmund: 4
+          Manchester.City.v.Galatasaray: 8
+          Manchester.City.v.Leverkusen: 5
+          Manchester.City.v.Napoli: 1
+          Manchester.City.vs.Borussia: 4
+          Manchester.City.vs.Dortmund: 4
+          Manchester.City.vs.Galatasaray: 8
+          Manchester.City.vs.Leverkusen: 5
+          Manchester.City.vs.Napoli: 1
+          Marseille v Ajax: 2
+          Marseille v Atalanta: 4
+          Marseille v Liverpool: 7
+          Marseille v Newcastle: 5
+          Marseille vs Ajax: 2
+          Marseille vs Atalanta: 4
+          Marseille vs Liverpool: 7
+          Marseille vs Newcastle: 5
+          Marseille.v.Ajax: 2
+          Marseille.v.Atalanta: 4
+          Marseille.v.Liverpool: 7
+          Marseille.v.Newcastle: 5
+          Marseille.vs.Ajax: 2
+          Marseille.vs.Atalanta: 4
+          Marseille.vs.Liverpool: 7
+          Marseille.vs.Newcastle: 5
+          Monaco v Galatasaray: 6
+          Monaco v Juventus: 8
+          Monaco v Man City: 2
+          Monaco v Tottenham: 3
+          Monaco vs Galatasaray: 6
+          Monaco vs Juventus: 8
+          Monaco vs Man City: 2
+          Monaco vs Tottenham: 3
+          Monaco.v.Galatasaray: 6
+          Monaco.v.Juventus: 8
+          Monaco.v.Man.City: 2
+          Monaco.v.Tottenham: 3
+          Monaco.vs.Galatasaray: 6
+          Monaco.vs.Juventus: 8
+          Monaco.vs.Man.City: 2
+          Monaco.vs.Tottenham: 3
           Napoli v Chelsea: 8
+          Napoli v Chelsea FC: 8
           Napoli v Eintracht Frankfurt: 4
+          Napoli v Frankfurt: 4
+          Napoli v Qarabag: 5
           Napoli v Qarabağ: 5
           Napoli v Sporting: 2
+          Napoli v Sporting CP: 2
           Napoli vs Chelsea: 8
+          Napoli vs Chelsea FC: 8
           Napoli vs Eintracht Frankfurt: 4
+          Napoli vs Frankfurt: 4
+          Napoli vs Qarabag: 5
           Napoli vs Qarabağ: 5
           Napoli vs Sporting: 2
-          Napoli.Chelsea: 8
-          Napoli.Eintracht.Frankfurt: 4
-          Napoli.Qarabağ: 5
-          Napoli.Sporting: 2
+          Napoli vs Sporting CP: 2
           Napoli.v.Chelsea: 8
+          Napoli.v.Chelsea.FC: 8
           Napoli.v.Eintracht.Frankfurt: 4
+          Napoli.v.Frankfurt: 4
+          Napoli.v.Qarabag: 5
           Napoli.v.Qarabağ: 5
           Napoli.v.Sporting: 2
+          Napoli.v.Sporting.CP: 2
           Napoli.vs.Chelsea: 8
+          Napoli.vs.Chelsea.FC: 8
           Napoli.vs.Eintracht.Frankfurt: 4
+          Napoli.vs.Frankfurt: 4
+          Napoli.vs.Qarabag: 5
           Napoli.vs.Qarabağ: 5
           Napoli.vs.Sporting: 2
+          Napoli.vs.Sporting.CP: 2
+          Newcastle United v Barcelona: 1
+          Newcastle United v Benfica: 3
+          Newcastle United v Bilbao: 4
+          Newcastle United v PSV Eindhoven: 7
+          Newcastle United vs Barcelona: 1
+          Newcastle United vs Benfica: 3
+          Newcastle United vs Bilbao: 4
+          Newcastle United vs PSV Eindhoven: 7
           Newcastle v Barcelona: 1
           Newcastle v Benfica: 3
           Newcastle v Bilbao: 4
+          Newcastle v FC Barcelona: 1
+          Newcastle v PSV: 7
           Newcastle v PSV Eindhoven: 7
+          Newcastle v SL Benfica: 3
           Newcastle vs Barcelona: 1
           Newcastle vs Benfica: 3
           Newcastle vs Bilbao: 4
+          Newcastle vs FC Barcelona: 1
+          Newcastle vs PSV: 7
           Newcastle vs PSV Eindhoven: 7
-          Newcastle.Barcelona: 1
-          Newcastle.Benfica: 3
-          Newcastle.Bilbao: 4
-          Newcastle.PSV.Eindhoven: 7
+          Newcastle vs SL Benfica: 3
+          Newcastle.United.v.Barcelona: 1
+          Newcastle.United.v.Benfica: 3
+          Newcastle.United.v.Bilbao: 4
+          Newcastle.United.v.PSV.Eindhoven: 7
+          Newcastle.United.vs.Barcelona: 1
+          Newcastle.United.vs.Benfica: 3
+          Newcastle.United.vs.Bilbao: 4
+          Newcastle.United.vs.PSV.Eindhoven: 7
           Newcastle.v.Barcelona: 1
           Newcastle.v.Benfica: 3
           Newcastle.v.Bilbao: 4
+          Newcastle.v.FC.Barcelona: 1
+          Newcastle.v.PSV: 7
           Newcastle.v.PSV.Eindhoven: 7
+          Newcastle.v.SL.Benfica: 3
           Newcastle.vs.Barcelona: 1
           Newcastle.vs.Benfica: 3
           Newcastle.vs.Bilbao: 4
+          Newcastle.vs.FC.Barcelona: 1
+          Newcastle.vs.PSV: 7
           Newcastle.vs.PSV.Eindhoven: 7
+          Newcastle.vs.SL.Benfica: 3
+          OM v Ajax: 2
+          OM v Atalanta: 4
+          OM v Liverpool: 7
+          OM v Newcastle: 5
+          OM vs Ajax: 2
+          OM vs Atalanta: 4
+          OM vs Liverpool: 7
+          OM vs Newcastle: 5
+          OM.v.Ajax: 2
+          OM.v.Atalanta: 4
+          OM.v.Liverpool: 7
+          OM.v.Newcastle: 5
+          OM.vs.Ajax: 2
+          OM.vs.Atalanta: 4
+          OM.vs.Liverpool: 7
+          OM.vs.Newcastle: 5
+          Olympiacos v Leverkusen: 7
+          Olympiacos v PSV Eindhoven: 4
+          Olympiacos v Pafos: 1
+          Olympiacos v Real Madrid: 5
+          Olympiacos vs Leverkusen: 7
+          Olympiacos vs PSV Eindhoven: 4
+          Olympiacos vs Pafos: 1
+          Olympiacos vs Real Madrid: 5
+          Olympiacos.v.Leverkusen: 7
+          Olympiacos.v.PSV.Eindhoven: 4
+          Olympiacos.v.Pafos: 1
+          Olympiacos.v.Real.Madrid: 5
+          Olympiacos.vs.Leverkusen: 7
+          Olympiacos.vs.PSV.Eindhoven: 4
+          Olympiacos.vs.Pafos: 1
+          Olympiacos.vs.Real.Madrid: 5
           Olympiakos v Leverkusen: 7
+          Olympiakos v PSV: 4
           Olympiakos v PSV Eindhoven: 4
           Olympiakos v Pafos: 1
+          Olympiakos v Real: 5
           Olympiakos v Real Madrid: 5
           Olympiakos vs Leverkusen: 7
+          Olympiakos vs PSV: 4
           Olympiakos vs PSV Eindhoven: 4
           Olympiakos vs Pafos: 1
+          Olympiakos vs Real: 5
           Olympiakos vs Real Madrid: 5
-          Olympiakos.Leverkusen: 7
-          Olympiakos.PSV.Eindhoven: 4
-          Olympiakos.Pafos: 1
-          Olympiakos.Real.Madrid: 5
           Olympiakos.v.Leverkusen: 7
+          Olympiakos.v.PSV: 4
           Olympiakos.v.PSV.Eindhoven: 4
           Olympiakos.v.Pafos: 1
+          Olympiakos.v.Real: 5
           Olympiakos.v.Real.Madrid: 5
           Olympiakos.vs.Leverkusen: 7
+          Olympiakos.vs.PSV: 4
           Olympiakos.vs.PSV.Eindhoven: 4
           Olympiakos.vs.Pafos: 1
+          Olympiakos.vs.Real: 5
           Olympiakos.vs.Real.Madrid: 5
+          Olympique Marseille v Ajax: 2
+          Olympique Marseille v Atalanta: 4
+          Olympique Marseille v Liverpool: 7
+          Olympique Marseille v Newcastle: 5
+          Olympique Marseille vs Ajax: 2
+          Olympique Marseille vs Atalanta: 4
+          Olympique Marseille vs Liverpool: 7
+          Olympique Marseille vs Newcastle: 5
+          Olympique.Marseille.v.Ajax: 2
+          Olympique.Marseille.v.Atalanta: 4
+          Olympique.Marseille.v.Liverpool: 7
+          Olympique.Marseille.v.Newcastle: 5
+          Olympique.Marseille.vs.Ajax: 2
+          Olympique.Marseille.vs.Atalanta: 4
+          Olympique.Marseille.vs.Liverpool: 7
+          Olympique.Marseille.vs.Newcastle: 5
           PSG v Atalanta: 1
+          PSG v Atalanta BC: 1
           PSG v Bayern: 4
+          PSG v Bayern Munich: 4
+          PSG v FC Bayern: 4
           PSG v Newcastle: 8
+          PSG v Newcastle United: 8
+          PSG v Spurs: 5
           PSG v Tottenham: 5
+          PSG v Tottenham Hotspur: 5
           PSG vs Atalanta: 1
+          PSG vs Atalanta BC: 1
           PSG vs Bayern: 4
+          PSG vs Bayern Munich: 4
+          PSG vs FC Bayern: 4
           PSG vs Newcastle: 8
+          PSG vs Newcastle United: 8
+          PSG vs Spurs: 5
           PSG vs Tottenham: 5
-          PSG.Atalanta: 1
-          PSG.Bayern: 4
-          PSG.Newcastle: 8
-          PSG.Tottenham: 5
+          PSG vs Tottenham Hotspur: 5
           PSG.v.Atalanta: 1
+          PSG.v.Atalanta.BC: 1
           PSG.v.Bayern: 4
+          PSG.v.Bayern.Munich: 4
+          PSG.v.FC.Bayern: 4
           PSG.v.Newcastle: 8
+          PSG.v.Newcastle.United: 8
+          PSG.v.Spurs: 5
           PSG.v.Tottenham: 5
+          PSG.v.Tottenham.Hotspur: 5
           PSG.vs.Atalanta: 1
+          PSG.vs.Atalanta.BC: 1
           PSG.vs.Bayern: 4
+          PSG.vs.Bayern.Munich: 4
+          PSG.vs.FC.Bayern: 4
           PSG.vs.Newcastle: 8
+          PSG.vs.Newcastle.United: 8
+          PSG.vs.Spurs: 5
           PSG.vs.Tottenham: 5
+          PSG.vs.Tottenham.Hotspur: 5
+          PSV Eindhoven v Atletico Madrid: 6
           PSV Eindhoven v Atlético Madrid: 6
           PSV Eindhoven v Bayern: 8
+          PSV Eindhoven v Bayern Munich: 8
+          PSV Eindhoven v FC Bayern: 8
           PSV Eindhoven v Napoli: 3
+          PSV Eindhoven v SSC Napoli: 3
+          PSV Eindhoven v Union SG: 1
+          PSV Eindhoven v Union Saint Gilloise: 1
           PSV Eindhoven v Union Saint-Gilloise: 1
+          PSV Eindhoven vs Atletico Madrid: 6
           PSV Eindhoven vs Atlético Madrid: 6
           PSV Eindhoven vs Bayern: 8
+          PSV Eindhoven vs Bayern Munich: 8
+          PSV Eindhoven vs FC Bayern: 8
           PSV Eindhoven vs Napoli: 3
+          PSV Eindhoven vs SSC Napoli: 3
+          PSV Eindhoven vs Union SG: 1
+          PSV Eindhoven vs Union Saint Gilloise: 1
           PSV Eindhoven vs Union Saint-Gilloise: 1
-          PSV.Eindhoven.Atlético.Madrid: 6
-          PSV.Eindhoven.Bayern: 8
-          PSV.Eindhoven.Napoli: 3
-          PSV.Eindhoven.Union.Saint-Gilloise: 1
+          PSV v Atlético Madrid: 6
+          PSV v Bayern: 8
+          PSV v Napoli: 3
+          PSV v Union Saint-Gilloise: 1
+          PSV vs Atlético Madrid: 6
+          PSV vs Bayern: 8
+          PSV vs Napoli: 3
+          PSV vs Union Saint-Gilloise: 1
+          PSV.Eindhoven.v.Atletico.Madrid: 6
           PSV.Eindhoven.v.Atlético.Madrid: 6
           PSV.Eindhoven.v.Bayern: 8
+          PSV.Eindhoven.v.Bayern.Munich: 8
+          PSV.Eindhoven.v.FC.Bayern: 8
           PSV.Eindhoven.v.Napoli: 3
-          PSV.Eindhoven.v.Union.Saint-Gilloise: 1
+          PSV.Eindhoven.v.SSC.Napoli: 3
+          PSV.Eindhoven.v.Union.SG: 1
+          PSV.Eindhoven.v.Union.Saint.Gilloise: 1
+          PSV.Eindhoven.vs.Atletico.Madrid: 6
           PSV.Eindhoven.vs.Atlético.Madrid: 6
           PSV.Eindhoven.vs.Bayern: 8
+          PSV.Eindhoven.vs.Bayern.Munich: 8
+          PSV.Eindhoven.vs.FC.Bayern: 8
           PSV.Eindhoven.vs.Napoli: 3
-          PSV.Eindhoven.vs.Union.Saint-Gilloise: 1
+          PSV.Eindhoven.vs.SSC.Napoli: 3
+          PSV.Eindhoven.vs.Union.SG: 1
+          PSV.Eindhoven.vs.Union.Saint.Gilloise: 1
+          PSV.v.Atlético.Madrid: 6
+          PSV.v.Bayern: 8
+          PSV.v.Napoli: 3
+          PSV.v.Union.Saint.Gilloise: 1
+          PSV.vs.Atlético.Madrid: 6
+          PSV.vs.Bayern: 8
+          PSV.vs.Napoli: 3
+          PSV.vs.Union.Saint.Gilloise: 1
           Pafos v AS Monaco: 5
           Pafos v Bayern: 2
+          Pafos v Bayern Munich: 2
+          Pafos v FC Bayern: 2
+          Pafos v Monaco: 5
+          Pafos v Slavia: 8
           Pafos v Slavia Prag: 8
+          Pafos v Slavia Prague: 8
           Pafos v Villarreal: 4
+          Pafos v Villarreal CF: 4
           Pafos vs AS Monaco: 5
           Pafos vs Bayern: 2
+          Pafos vs Bayern Munich: 2
+          Pafos vs FC Bayern: 2
+          Pafos vs Monaco: 5
+          Pafos vs Slavia: 8
           Pafos vs Slavia Prag: 8
+          Pafos vs Slavia Prague: 8
           Pafos vs Villarreal: 4
-          Pafos.AS.Monaco: 5
-          Pafos.Bayern: 2
-          Pafos.Slavia.Prag: 8
-          Pafos.Villarreal: 4
+          Pafos vs Villarreal CF: 4
           Pafos.v.AS.Monaco: 5
           Pafos.v.Bayern: 2
+          Pafos.v.Bayern.Munich: 2
+          Pafos.v.FC.Bayern: 2
+          Pafos.v.Monaco: 5
+          Pafos.v.Slavia: 8
           Pafos.v.Slavia.Prag: 8
+          Pafos.v.Slavia.Prague: 8
           Pafos.v.Villarreal: 4
+          Pafos.v.Villarreal.CF: 4
           Pafos.vs.AS.Monaco: 5
           Pafos.vs.Bayern: 2
+          Pafos.vs.Bayern.Munich: 2
+          Pafos.vs.FC.Bayern: 2
+          Pafos.vs.Monaco: 5
+          Pafos.vs.Slavia: 8
           Pafos.vs.Slavia.Prag: 8
+          Pafos.vs.Slavia.Prague: 8
           Pafos.vs.Villarreal: 4
+          Pafos.vs.Villarreal.CF: 4
+          Paris SG v Atalanta: 1
+          Paris SG v Bayern: 4
+          Paris SG v Newcastle: 8
+          Paris SG v Tottenham: 5
+          Paris SG vs Atalanta: 1
+          Paris SG vs Bayern: 4
+          Paris SG vs Newcastle: 8
+          Paris SG vs Tottenham: 5
+          Paris Saint-Germain v Atalanta: 1
+          Paris Saint-Germain v Bayern: 4
+          Paris Saint-Germain v Newcastle: 8
+          Paris Saint-Germain v Tottenham: 5
+          Paris Saint-Germain vs Atalanta: 1
+          Paris Saint-Germain vs Bayern: 4
+          Paris Saint-Germain vs Newcastle: 8
+          Paris Saint-Germain vs Tottenham: 5
+          Paris.SG.v.Atalanta: 1
+          Paris.SG.v.Bayern: 4
+          Paris.SG.v.Newcastle: 8
+          Paris.SG.v.Tottenham: 5
+          Paris.SG.vs.Atalanta: 1
+          Paris.SG.vs.Bayern: 4
+          Paris.SG.vs.Newcastle: 8
+          Paris.SG.vs.Tottenham: 5
+          Paris.Saint.Germain.v.Atalanta: 1
+          Paris.Saint.Germain.v.Bayern: 4
+          Paris.Saint.Germain.v.Newcastle: 8
+          Paris.Saint.Germain.v.Tottenham: 5
+          Paris.Saint.Germain.vs.Atalanta: 1
+          Paris.Saint.Germain.vs.Bayern: 4
+          Paris.Saint.Germain.vs.Newcastle: 8
+          Paris.Saint.Germain.vs.Tottenham: 5
+          Qarabag v Ajax: 6
+          Qarabag v Chelsea: 4
+          Qarabag v Eintracht Frankfurt: 7
+          Qarabag v Köpenhamn: 2
+          Qarabag vs Ajax: 6
+          Qarabag vs Chelsea: 4
+          Qarabag vs Eintracht Frankfurt: 7
+          Qarabag vs Köpenhamn: 2
+          Qarabag.v.Ajax: 6
+          Qarabag.v.Chelsea: 4
+          Qarabag.v.Eintracht.Frankfurt: 7
+          Qarabag.v.Köpenhamn: 2
+          Qarabag.vs.Ajax: 6
+          Qarabag.vs.Chelsea: 4
+          Qarabag.vs.Eintracht.Frankfurt: 7
+          Qarabag.vs.Köpenhamn: 2
+          Qarabağ v AFC Ajax: 6
           Qarabağ v Ajax: 6
           Qarabağ v Chelsea: 4
+          Qarabağ v Chelsea FC: 4
+          Qarabağ v Copenhagen: 2
           Qarabağ v Eintracht Frankfurt: 7
+          Qarabağ v FC Copenhagen: 2
+          Qarabağ v Frankfurt: 7
+          Qarabağ v Kopenhamn: 2
           Qarabağ v Köpenhamn: 2
+          Qarabağ vs AFC Ajax: 6
           Qarabağ vs Ajax: 6
           Qarabağ vs Chelsea: 4
+          Qarabağ vs Chelsea FC: 4
+          Qarabağ vs Copenhagen: 2
           Qarabağ vs Eintracht Frankfurt: 7
+          Qarabağ vs FC Copenhagen: 2
+          Qarabağ vs Frankfurt: 7
+          Qarabağ vs Kopenhamn: 2
           Qarabağ vs Köpenhamn: 2
-          Qarabağ.Ajax: 6
-          Qarabağ.Chelsea: 4
-          Qarabağ.Eintracht.Frankfurt: 7
-          Qarabağ.Köpenhamn: 2
+          Qarabağ.v.AFC.Ajax: 6
           Qarabağ.v.Ajax: 6
           Qarabağ.v.Chelsea: 4
+          Qarabağ.v.Chelsea.FC: 4
+          Qarabağ.v.Copenhagen: 2
           Qarabağ.v.Eintracht.Frankfurt: 7
+          Qarabağ.v.FC.Copenhagen: 2
+          Qarabağ.v.Frankfurt: 7
+          Qarabağ.v.Kopenhamn: 2
           Qarabağ.v.Köpenhamn: 2
+          Qarabağ.vs.AFC.Ajax: 6
           Qarabağ.vs.Ajax: 6
           Qarabağ.vs.Chelsea: 4
+          Qarabağ.vs.Chelsea.FC: 4
+          Qarabağ.vs.Copenhagen: 2
           Qarabağ.vs.Eintracht.Frankfurt: 7
+          Qarabağ.vs.FC.Copenhagen: 2
+          Qarabağ.vs.Frankfurt: 7
+          Qarabağ.vs.Kopenhamn: 2
           Qarabağ.vs.Köpenhamn: 2
           Real Madrid v AS Monaco: 7
+          Real Madrid v Juve: 3
           Real Madrid v Juventus: 3
           Real Madrid v L'OM: 1
+          Real Madrid v LOM: 1
+          Real Madrid v MC: 6
           Real Madrid v Man City: 6
+          Real Madrid v Manchester City: 6
+          Real Madrid v Marseille: 1
+          Real Madrid v Monaco: 7
+          Real Madrid v OM: 1
+          Real Madrid v Olympique Marseille: 1
           Real Madrid vs AS Monaco: 7
+          Real Madrid vs Juve: 3
           Real Madrid vs Juventus: 3
           Real Madrid vs L'OM: 1
+          Real Madrid vs LOM: 1
+          Real Madrid vs MC: 6
           Real Madrid vs Man City: 6
-          Real.Madrid.AS.Monaco: 7
-          Real.Madrid.Juventus: 3
-          Real.Madrid.L.OM: 1
-          Real.Madrid.Man.City: 6
+          Real Madrid vs Manchester City: 6
+          Real Madrid vs Marseille: 1
+          Real Madrid vs Monaco: 7
+          Real Madrid vs OM: 1
+          Real Madrid vs Olympique Marseille: 1
+          Real v AS Monaco: 7
+          Real v Juventus: 3
+          Real v L'OM: 1
+          Real v Man City: 6
+          Real vs AS Monaco: 7
+          Real vs Juventus: 3
+          Real vs L'OM: 1
+          Real vs Man City: 6
           Real.Madrid.v.AS.Monaco: 7
+          Real.Madrid.v.Juve: 3
           Real.Madrid.v.Juventus: 3
-          Real.Madrid.v.L.OM: 1
+          Real.Madrid.v.LOM: 1
+          Real.Madrid.v.MC: 6
           Real.Madrid.v.Man.City: 6
+          Real.Madrid.v.Manchester.City: 6
+          Real.Madrid.v.Marseille: 1
+          Real.Madrid.v.Monaco: 7
+          Real.Madrid.v.OM: 1
+          Real.Madrid.v.Olympique.Marseille: 1
           Real.Madrid.vs.AS.Monaco: 7
+          Real.Madrid.vs.Juve: 3
           Real.Madrid.vs.Juventus: 3
-          Real.Madrid.vs.L.OM: 1
+          Real.Madrid.vs.LOM: 1
+          Real.Madrid.vs.MC: 6
           Real.Madrid.vs.Man.City: 6
+          Real.Madrid.vs.Manchester.City: 6
+          Real.Madrid.vs.Marseille: 1
+          Real.Madrid.vs.Monaco: 7
+          Real.Madrid.vs.OM: 1
+          Real.Madrid.vs.Olympique.Marseille: 1
+          Real.v.AS.Monaco: 7
+          Real.v.Juventus: 3
+          Real.v.LOM: 1
+          Real.v.Man.City: 6
+          Real.vs.AS.Monaco: 7
+          Real.vs.Juventus: 3
+          Real.vs.LOM: 1
+          Real.vs.Man.City: 6
+          SL Benfica v Leverkusen: 4
+          SL Benfica v Napoli: 6
+          SL Benfica v Qarabağ: 1
+          SL Benfica v Real Madrid: 8
+          SL Benfica vs Leverkusen: 4
+          SL Benfica vs Napoli: 6
+          SL Benfica vs Qarabağ: 1
+          SL Benfica vs Real Madrid: 8
+          SL.Benfica.v.Leverkusen: 4
+          SL.Benfica.v.Napoli: 6
+          SL.Benfica.v.Qarabağ: 1
+          SL.Benfica.v.Real.Madrid: 8
+          SL.Benfica.vs.Leverkusen: 4
+          SL.Benfica.vs.Napoli: 6
+          SL.Benfica.vs.Qarabağ: 1
+          SL.Benfica.vs.Real.Madrid: 8
+          SSC Napoli v Chelsea: 8
+          SSC Napoli v Eintracht Frankfurt: 4
+          SSC Napoli v Qarabağ: 5
+          SSC Napoli v Sporting: 2
+          SSC Napoli vs Chelsea: 8
+          SSC Napoli vs Eintracht Frankfurt: 4
+          SSC Napoli vs Qarabağ: 5
+          SSC Napoli vs Sporting: 2
+          SSC.Napoli.v.Chelsea: 8
+          SSC.Napoli.v.Eintracht.Frankfurt: 4
+          SSC.Napoli.v.Qarabağ: 5
+          SSC.Napoli.v.Sporting: 2
+          SSC.Napoli.vs.Chelsea: 8
+          SSC.Napoli.vs.Eintracht.Frankfurt: 4
+          SSC.Napoli.vs.Qarabağ: 5
+          SSC.Napoli.vs.Sporting: 2
           Slavia Prag v Arsenal: 4
+          Slavia Prag v Arsenal FC: 4
           Slavia Prag v Barcelona: 7
           Slavia Prag v Bilbao: 5
+          Slavia Prag v Bodo Glimt: 1
+          Slavia Prag v Bodo/Glimt: 1
+          Slavia Prag v Bodø Glimt: 1
+          Slavia Prag v Bodø-Glimt: 1
           Slavia Prag v Bodø/Glimt: 1
+          Slavia Prag v FC Barcelona: 7
           Slavia Prag vs Arsenal: 4
+          Slavia Prag vs Arsenal FC: 4
           Slavia Prag vs Barcelona: 7
           Slavia Prag vs Bilbao: 5
+          Slavia Prag vs Bodo Glimt: 1
+          Slavia Prag vs Bodo/Glimt: 1
+          Slavia Prag vs Bodø Glimt: 1
+          Slavia Prag vs Bodø-Glimt: 1
           Slavia Prag vs Bodø/Glimt: 1
-          Slavia.Prag.Arsenal: 4
-          Slavia.Prag.Barcelona: 7
-          Slavia.Prag.Bilbao: 5
-          Slavia.Prag.Bodø/Glimt: 1
+          Slavia Prag vs FC Barcelona: 7
+          Slavia Prague v Arsenal: 4
+          Slavia Prague v Barcelona: 7
+          Slavia Prague v Bilbao: 5
+          Slavia Prague v Bodø/Glimt: 1
+          Slavia Prague vs Arsenal: 4
+          Slavia Prague vs Barcelona: 7
+          Slavia Prague vs Bilbao: 5
+          Slavia Prague vs Bodø/Glimt: 1
+          Slavia v Arsenal: 4
+          Slavia v Barcelona: 7
+          Slavia v Bilbao: 5
+          Slavia v Bodø/Glimt: 1
+          Slavia vs Arsenal: 4
+          Slavia vs Barcelona: 7
+          Slavia vs Bilbao: 5
+          Slavia vs Bodø/Glimt: 1
           Slavia.Prag.v.Arsenal: 4
+          Slavia.Prag.v.Arsenal.FC: 4
           Slavia.Prag.v.Barcelona: 7
           Slavia.Prag.v.Bilbao: 5
-          Slavia.Prag.v.Bodø/Glimt: 1
+          Slavia.Prag.v.Bodo.Glimt: 1
+          Slavia.Prag.v.Bodø.Glimt: 1
+          Slavia.Prag.v.FC.Barcelona: 7
           Slavia.Prag.vs.Arsenal: 4
+          Slavia.Prag.vs.Arsenal.FC: 4
           Slavia.Prag.vs.Barcelona: 7
           Slavia.Prag.vs.Bilbao: 5
-          Slavia.Prag.vs.Bodø/Glimt: 1
+          Slavia.Prag.vs.Bodo.Glimt: 1
+          Slavia.Prag.vs.Bodø.Glimt: 1
+          Slavia.Prag.vs.FC.Barcelona: 7
+          Slavia.Prague.v.Arsenal: 4
+          Slavia.Prague.v.Barcelona: 7
+          Slavia.Prague.v.Bilbao: 5
+          Slavia.Prague.v.Bodø.Glimt: 1
+          Slavia.Prague.vs.Arsenal: 4
+          Slavia.Prague.vs.Barcelona: 7
+          Slavia.Prague.vs.Bilbao: 5
+          Slavia.Prague.vs.Bodø.Glimt: 1
+          Slavia.v.Arsenal: 4
+          Slavia.v.Barcelona: 7
+          Slavia.v.Bilbao: 5
+          Slavia.v.Bodø.Glimt: 1
+          Slavia.vs.Arsenal: 4
+          Slavia.vs.Barcelona: 7
+          Slavia.vs.Bilbao: 5
+          Slavia.vs.Bodø.Glimt: 1
+          Sporting CP v Brügge: 5
+          Sporting CP v FC Kairat: 1
+          Sporting CP v L'OM: 3
+          Sporting CP v PSG: 7
+          Sporting CP vs Brügge: 5
+          Sporting CP vs FC Kairat: 1
+          Sporting CP vs L'OM: 3
+          Sporting CP vs PSG: 7
+          Sporting v Brugge: 5
           Sporting v Brügge: 5
+          Sporting v Club Brugge: 5
           Sporting v FC Kairat: 1
           Sporting v L'OM: 3
+          Sporting v LOM: 3
+          Sporting v Marseille: 3
+          Sporting v OM: 3
+          Sporting v Olympique Marseille: 3
           Sporting v PSG: 7
+          Sporting v Paris SG: 7
+          Sporting v Paris Saint-Germain: 7
+          Sporting vs Brugge: 5
           Sporting vs Brügge: 5
+          Sporting vs Club Brugge: 5
           Sporting vs FC Kairat: 1
           Sporting vs L'OM: 3
+          Sporting vs LOM: 3
+          Sporting vs Marseille: 3
+          Sporting vs OM: 3
+          Sporting vs Olympique Marseille: 3
           Sporting vs PSG: 7
-          Sporting.Brügge: 5
-          Sporting.FC.Kairat: 1
-          Sporting.L.OM: 3
-          Sporting.PSG: 7
+          Sporting vs Paris SG: 7
+          Sporting vs Paris Saint-Germain: 7
+          Sporting.CP.v.Brügge: 5
+          Sporting.CP.v.FC.Kairat: 1
+          Sporting.CP.v.LOM: 3
+          Sporting.CP.v.PSG: 7
+          Sporting.CP.vs.Brügge: 5
+          Sporting.CP.vs.FC.Kairat: 1
+          Sporting.CP.vs.LOM: 3
+          Sporting.CP.vs.PSG: 7
+          Sporting.v.Brugge: 5
           Sporting.v.Brügge: 5
+          Sporting.v.Club.Brugge: 5
           Sporting.v.FC.Kairat: 1
-          Sporting.v.L.OM: 3
+          Sporting.v.LOM: 3
+          Sporting.v.Marseille: 3
+          Sporting.v.OM: 3
+          Sporting.v.Olympique.Marseille: 3
           Sporting.v.PSG: 7
+          Sporting.v.Paris.SG: 7
+          Sporting.v.Paris.Saint.Germain: 7
+          Sporting.vs.Brugge: 5
           Sporting.vs.Brügge: 5
+          Sporting.vs.Club.Brugge: 5
           Sporting.vs.FC.Kairat: 1
-          Sporting.vs.L.OM: 3
+          Sporting.vs.LOM: 3
+          Sporting.vs.Marseille: 3
+          Sporting.vs.OM: 3
+          Sporting.vs.Olympique.Marseille: 3
           Sporting.vs.PSG: 7
+          Sporting.vs.Paris.SG: 7
+          Sporting.vs.Paris.Saint.Germain: 7
+          Spurs v Dortmund: 7
+          Spurs v Köpenhamn: 4
+          Spurs v Slavia Prag: 6
+          Spurs v Villarreal: 1
+          Spurs vs Dortmund: 7
+          Spurs vs Köpenhamn: 4
+          Spurs vs Slavia Prag: 6
+          Spurs vs Villarreal: 1
+          Spurs.v.Dortmund: 7
+          Spurs.v.Köpenhamn: 4
+          Spurs.v.Slavia.Prag: 6
+          Spurs.v.Villarreal: 1
+          Spurs.vs.Dortmund: 7
+          Spurs.vs.Köpenhamn: 4
+          Spurs.vs.Slavia.Prag: 6
+          Spurs.vs.Villarreal: 1
+          Tottenham Hotspur v Dortmund: 7
+          Tottenham Hotspur v Köpenhamn: 4
+          Tottenham Hotspur v Slavia Prag: 6
+          Tottenham Hotspur v Villarreal: 1
+          Tottenham Hotspur vs Dortmund: 7
+          Tottenham Hotspur vs Köpenhamn: 4
+          Tottenham Hotspur vs Slavia Prag: 6
+          Tottenham Hotspur vs Villarreal: 1
+          Tottenham v BVB: 7
+          Tottenham v Borussia: 7
+          Tottenham v Borussia Dortmund: 7
+          Tottenham v Copenhagen: 4
           Tottenham v Dortmund: 7
+          Tottenham v FC Copenhagen: 4
+          Tottenham v Kopenhamn: 4
           Tottenham v Köpenhamn: 4
+          Tottenham v Slavia: 6
           Tottenham v Slavia Prag: 6
+          Tottenham v Slavia Prague: 6
           Tottenham v Villarreal: 1
+          Tottenham v Villarreal CF: 1
+          Tottenham vs BVB: 7
+          Tottenham vs Borussia: 7
+          Tottenham vs Borussia Dortmund: 7
+          Tottenham vs Copenhagen: 4
           Tottenham vs Dortmund: 7
+          Tottenham vs FC Copenhagen: 4
+          Tottenham vs Kopenhamn: 4
           Tottenham vs Köpenhamn: 4
+          Tottenham vs Slavia: 6
           Tottenham vs Slavia Prag: 6
+          Tottenham vs Slavia Prague: 6
           Tottenham vs Villarreal: 1
-          Tottenham.Dortmund: 7
-          Tottenham.Köpenhamn: 4
-          Tottenham.Slavia.Prag: 6
-          Tottenham.Villarreal: 1
+          Tottenham vs Villarreal CF: 1
+          Tottenham.Hotspur.v.Dortmund: 7
+          Tottenham.Hotspur.v.Köpenhamn: 4
+          Tottenham.Hotspur.v.Slavia.Prag: 6
+          Tottenham.Hotspur.v.Villarreal: 1
+          Tottenham.Hotspur.vs.Dortmund: 7
+          Tottenham.Hotspur.vs.Köpenhamn: 4
+          Tottenham.Hotspur.vs.Slavia.Prag: 6
+          Tottenham.Hotspur.vs.Villarreal: 1
+          Tottenham.v.BVB: 7
+          Tottenham.v.Borussia: 7
+          Tottenham.v.Borussia.Dortmund: 7
+          Tottenham.v.Copenhagen: 4
           Tottenham.v.Dortmund: 7
+          Tottenham.v.FC.Copenhagen: 4
+          Tottenham.v.Kopenhamn: 4
           Tottenham.v.Köpenhamn: 4
+          Tottenham.v.Slavia: 6
           Tottenham.v.Slavia.Prag: 6
+          Tottenham.v.Slavia.Prague: 6
           Tottenham.v.Villarreal: 1
+          Tottenham.v.Villarreal.CF: 1
+          Tottenham.vs.BVB: 7
+          Tottenham.vs.Borussia: 7
+          Tottenham.vs.Borussia.Dortmund: 7
+          Tottenham.vs.Copenhagen: 4
           Tottenham.vs.Dortmund: 7
+          Tottenham.vs.FC.Copenhagen: 4
+          Tottenham.vs.Kopenhamn: 4
           Tottenham.vs.Köpenhamn: 4
+          Tottenham.vs.Slavia: 6
           Tottenham.vs.Slavia.Prag: 6
+          Tottenham.vs.Slavia.Prague: 6
           Tottenham.vs.Villarreal: 1
+          Tottenham.vs.Villarreal.CF: 1
+          Union SG v Atalanta: 8
+          Union SG v Inter: 3
+          Union SG v L'OM: 6
+          Union SG v Newcastle: 2
+          Union SG vs Atalanta: 8
+          Union SG vs Inter: 3
+          Union SG vs L'OM: 6
+          Union SG vs Newcastle: 2
+          Union Saint Gilloise v Atalanta: 8
+          Union Saint Gilloise v Inter: 3
+          Union Saint Gilloise v L'OM: 6
+          Union Saint Gilloise v Newcastle: 2
+          Union Saint Gilloise vs Atalanta: 8
+          Union Saint Gilloise vs Inter: 3
+          Union Saint Gilloise vs L'OM: 6
+          Union Saint Gilloise vs Newcastle: 2
           Union Saint-Gilloise v Atalanta: 8
+          Union Saint-Gilloise v Atalanta BC: 8
           Union Saint-Gilloise v Inter: 3
+          Union Saint-Gilloise v Inter Milan: 3
           Union Saint-Gilloise v L'OM: 6
+          Union Saint-Gilloise v LOM: 6
+          Union Saint-Gilloise v Marseille: 6
           Union Saint-Gilloise v Newcastle: 2
+          Union Saint-Gilloise v Newcastle United: 2
+          Union Saint-Gilloise v OM: 6
+          Union Saint-Gilloise v Olympique Marseille: 6
           Union Saint-Gilloise vs Atalanta: 8
+          Union Saint-Gilloise vs Atalanta BC: 8
           Union Saint-Gilloise vs Inter: 3
+          Union Saint-Gilloise vs Inter Milan: 3
           Union Saint-Gilloise vs L'OM: 6
+          Union Saint-Gilloise vs LOM: 6
+          Union Saint-Gilloise vs Marseille: 6
           Union Saint-Gilloise vs Newcastle: 2
-          Union.Saint-Gilloise.Atalanta: 8
-          Union.Saint-Gilloise.Inter: 3
-          Union.Saint-Gilloise.L.OM: 6
-          Union.Saint-Gilloise.Newcastle: 2
-          Union.Saint-Gilloise.v.Atalanta: 8
-          Union.Saint-Gilloise.v.Inter: 3
-          Union.Saint-Gilloise.v.L.OM: 6
-          Union.Saint-Gilloise.v.Newcastle: 2
-          Union.Saint-Gilloise.vs.Atalanta: 8
-          Union.Saint-Gilloise.vs.Inter: 3
-          Union.Saint-Gilloise.vs.L.OM: 6
-          Union.Saint-Gilloise.vs.Newcastle: 2
+          Union Saint-Gilloise vs Newcastle United: 2
+          Union Saint-Gilloise vs OM: 6
+          Union Saint-Gilloise vs Olympique Marseille: 6
+          Union.SG.v.Atalanta: 8
+          Union.SG.v.Inter: 3
+          Union.SG.v.LOM: 6
+          Union.SG.v.Newcastle: 2
+          Union.SG.vs.Atalanta: 8
+          Union.SG.vs.Inter: 3
+          Union.SG.vs.LOM: 6
+          Union.SG.vs.Newcastle: 2
+          Union.Saint.Gilloise.v.Atalanta: 8
+          Union.Saint.Gilloise.v.Atalanta.BC: 8
+          Union.Saint.Gilloise.v.Inter: 3
+          Union.Saint.Gilloise.v.Inter.Milan: 3
+          Union.Saint.Gilloise.v.LOM: 6
+          Union.Saint.Gilloise.v.Marseille: 6
+          Union.Saint.Gilloise.v.Newcastle: 2
+          Union.Saint.Gilloise.v.Newcastle.United: 2
+          Union.Saint.Gilloise.v.OM: 6
+          Union.Saint.Gilloise.v.Olympique.Marseille: 6
+          Union.Saint.Gilloise.vs.Atalanta: 8
+          Union.Saint.Gilloise.vs.Atalanta.BC: 8
+          Union.Saint.Gilloise.vs.Inter: 3
+          Union.Saint.Gilloise.vs.Inter.Milan: 3
+          Union.Saint.Gilloise.vs.LOM: 6
+          Union.Saint.Gilloise.vs.Marseille: 6
+          Union.Saint.Gilloise.vs.Newcastle: 2
+          Union.Saint.Gilloise.vs.Newcastle.United: 2
+          Union.Saint.Gilloise.vs.OM: 6
+          Union.Saint.Gilloise.vs.Olympique.Marseille: 6
+          Villarreal CF v Ajax: 7
+          Villarreal CF v Juventus: 2
+          Villarreal CF v Köpenhamn: 6
+          Villarreal CF v Man City: 3
+          Villarreal CF vs Ajax: 7
+          Villarreal CF vs Juventus: 2
+          Villarreal CF vs Köpenhamn: 6
+          Villarreal CF vs Man City: 3
+          Villarreal v AFC Ajax: 7
           Villarreal v Ajax: 7
+          Villarreal v Copenhagen: 6
+          Villarreal v FC Copenhagen: 6
+          Villarreal v Juve: 2
           Villarreal v Juventus: 2
+          Villarreal v Kopenhamn: 6
           Villarreal v Köpenhamn: 6
+          Villarreal v MC: 3
           Villarreal v Man City: 3
+          Villarreal v Manchester City: 3
+          Villarreal vs AFC Ajax: 7
           Villarreal vs Ajax: 7
+          Villarreal vs Copenhagen: 6
+          Villarreal vs FC Copenhagen: 6
+          Villarreal vs Juve: 2
           Villarreal vs Juventus: 2
+          Villarreal vs Kopenhamn: 6
           Villarreal vs Köpenhamn: 6
+          Villarreal vs MC: 3
           Villarreal vs Man City: 3
-          Villarreal.Ajax: 7
-          Villarreal.Juventus: 2
-          Villarreal.Köpenhamn: 6
-          Villarreal.Man.City: 3
+          Villarreal vs Manchester City: 3
+          Villarreal.CF.v.Ajax: 7
+          Villarreal.CF.v.Juventus: 2
+          Villarreal.CF.v.Köpenhamn: 6
+          Villarreal.CF.v.Man.City: 3
+          Villarreal.CF.vs.Ajax: 7
+          Villarreal.CF.vs.Juventus: 2
+          Villarreal.CF.vs.Köpenhamn: 6
+          Villarreal.CF.vs.Man.City: 3
+          Villarreal.v.AFC.Ajax: 7
           Villarreal.v.Ajax: 7
+          Villarreal.v.Copenhagen: 6
+          Villarreal.v.FC.Copenhagen: 6
+          Villarreal.v.Juve: 2
           Villarreal.v.Juventus: 2
+          Villarreal.v.Kopenhamn: 6
           Villarreal.v.Köpenhamn: 6
+          Villarreal.v.MC: 3
           Villarreal.v.Man.City: 3
+          Villarreal.v.Manchester.City: 3
+          Villarreal.vs.AFC.Ajax: 7
           Villarreal.vs.Ajax: 7
+          Villarreal.vs.Copenhagen: 6
+          Villarreal.vs.FC.Copenhagen: 6
+          Villarreal.vs.Juve: 2
           Villarreal.vs.Juventus: 2
+          Villarreal.vs.Kopenhamn: 6
           Villarreal.vs.Köpenhamn: 6
+          Villarreal.vs.MC: 3
           Villarreal.vs.Man.City: 3
+          Villarreal.vs.Manchester.City: 3
       episode_selector:
         group: matchup
         allow_fallback_to_title: true
+      session_aliases: &uefa_cl_aliases
+        AS Monaco vs Galatasaray:
+        - AS Monaco v Galatasaray
+        - AS.Monaco.v.Galatasaray
+        - AS.Monaco.vs.Galatasaray
+        - Monaco v Galatasaray
+        - Monaco vs Galatasaray
+        - Monaco.v.Galatasaray
+        - Monaco.vs.Galatasaray
+        AS Monaco vs Juventus:
+        - AS Monaco v Juve
+        - AS Monaco v Juventus
+        - AS Monaco vs Juve
+        - AS.Monaco.v.Juve
+        - AS.Monaco.v.Juventus
+        - AS.Monaco.vs.Juve
+        - AS.Monaco.vs.Juventus
+        - Monaco v Juventus
+        - Monaco vs Juventus
+        - Monaco.v.Juventus
+        - Monaco.vs.Juventus
+        AS Monaco vs Man City:
+        - AS Monaco v MC
+        - AS Monaco v Man City
+        - AS Monaco v Manchester City
+        - AS Monaco vs MC
+        - AS Monaco vs Manchester City
+        - AS.Monaco.v.MC
+        - AS.Monaco.v.Man.City
+        - AS.Monaco.v.Manchester.City
+        - AS.Monaco.vs.MC
+        - AS.Monaco.vs.Man.City
+        - AS.Monaco.vs.Manchester.City
+        - Monaco v Man City
+        - Monaco vs Man City
+        - Monaco.v.Man.City
+        - Monaco.vs.Man.City
+        AS Monaco vs Tottenham:
+        - AS Monaco v Spurs
+        - AS Monaco v Tottenham
+        - AS Monaco v Tottenham Hotspur
+        - AS Monaco vs Spurs
+        - AS Monaco vs Tottenham Hotspur
+        - AS.Monaco.v.Spurs
+        - AS.Monaco.v.Tottenham
+        - AS.Monaco.v.Tottenham.Hotspur
+        - AS.Monaco.vs.Spurs
+        - AS.Monaco.vs.Tottenham
+        - AS.Monaco.vs.Tottenham.Hotspur
+        - Monaco v Tottenham
+        - Monaco vs Tottenham
+        - Monaco.v.Tottenham
+        - Monaco.vs.Tottenham
+        Ajax vs Benfica:
+        - AFC Ajax v Benfica
+        - AFC Ajax vs Benfica
+        - AFC.Ajax.v.Benfica
+        - AFC.Ajax.vs.Benfica
+        - Ajax v Benfica
+        - Ajax v SL Benfica
+        - Ajax vs SL Benfica
+        - Ajax.v.Benfica
+        - Ajax.v.SL.Benfica
+        - Ajax.vs.Benfica
+        - Ajax.vs.SL.Benfica
+        Ajax vs Galatasaray:
+        - AFC Ajax v Galatasaray
+        - AFC Ajax vs Galatasaray
+        - AFC.Ajax.v.Galatasaray
+        - AFC.Ajax.vs.Galatasaray
+        - Ajax v Galatasaray
+        - Ajax.v.Galatasaray
+        - Ajax.vs.Galatasaray
+        Ajax vs Inter:
+        - AFC Ajax v Inter
+        - AFC Ajax vs Inter
+        - AFC.Ajax.v.Inter
+        - AFC.Ajax.vs.Inter
+        - Ajax v Inter
+        - Ajax v Inter Milan
+        - Ajax vs Inter Milan
+        - Ajax.v.Inter
+        - Ajax.v.Inter.Milan
+        - Ajax.vs.Inter
+        - Ajax.vs.Inter.Milan
+        Ajax vs Olympiakos:
+        - AFC Ajax v Olympiakos
+        - AFC Ajax vs Olympiakos
+        - AFC.Ajax.v.Olympiakos
+        - AFC.Ajax.vs.Olympiakos
+        - Ajax v Olympiacos
+        - Ajax v Olympiakos
+        - Ajax vs Olympiacos
+        - Ajax.v.Olympiacos
+        - Ajax.v.Olympiakos
+        - Ajax.vs.Olympiacos
+        - Ajax.vs.Olympiakos
+        Arsenal vs Atlético Madrid:
+        - Arsenal FC v Atlético Madrid
+        - Arsenal FC vs Atlético Madrid
+        - Arsenal v Atletico Madrid
+        - Arsenal v Atlético Madrid
+        - Arsenal vs Atletico Madrid
+        - Arsenal.FC.v.Atlético.Madrid
+        - Arsenal.FC.vs.Atlético.Madrid
+        - Arsenal.v.Atletico.Madrid
+        - Arsenal.v.Atlético.Madrid
+        - Arsenal.vs.Atletico.Madrid
+        - Arsenal.vs.Atlético.Madrid
+        Arsenal vs Bayern:
+        - Arsenal FC v Bayern
+        - Arsenal FC vs Bayern
+        - Arsenal v Bayern
+        - Arsenal v Bayern Munich
+        - Arsenal v FC Bayern
+        - Arsenal vs Bayern Munich
+        - Arsenal vs FC Bayern
+        - Arsenal.FC.v.Bayern
+        - Arsenal.FC.vs.Bayern
+        - Arsenal.v.Bayern
+        - Arsenal.v.Bayern.Munich
+        - Arsenal.v.FC.Bayern
+        - Arsenal.vs.Bayern
+        - Arsenal.vs.Bayern.Munich
+        - Arsenal.vs.FC.Bayern
+        Arsenal vs FC Kairat:
+        - Arsenal FC v FC Kairat
+        - Arsenal FC vs FC Kairat
+        - Arsenal v FC Kairat
+        - Arsenal.FC.v.FC.Kairat
+        - Arsenal.FC.vs.FC.Kairat
+        - Arsenal.v.FC.Kairat
+        - Arsenal.vs.FC.Kairat
+        Arsenal vs Olympiakos:
+        - Arsenal FC v Olympiakos
+        - Arsenal FC vs Olympiakos
+        - Arsenal v Olympiacos
+        - Arsenal v Olympiakos
+        - Arsenal vs Olympiacos
+        - Arsenal.FC.v.Olympiakos
+        - Arsenal.FC.vs.Olympiakos
+        - Arsenal.v.Olympiacos
+        - Arsenal.v.Olympiakos
+        - Arsenal.vs.Olympiacos
+        - Arsenal.vs.Olympiakos
+        Atalanta vs Bilbao:
+        - Atalanta BC v Bilbao
+        - Atalanta BC vs Bilbao
+        - Atalanta v Bilbao
+        - Atalanta.BC.v.Bilbao
+        - Atalanta.BC.vs.Bilbao
+        - Atalanta.v.Bilbao
+        - Atalanta.vs.Bilbao
+        Atalanta vs Brügge:
+        - Atalanta BC v Brügge
+        - Atalanta BC vs Brügge
+        - Atalanta v Brugge
+        - Atalanta v Brügge
+        - Atalanta v Club Brugge
+        - Atalanta vs Brugge
+        - Atalanta vs Club Brugge
+        - Atalanta.BC.v.Brügge
+        - Atalanta.BC.vs.Brügge
+        - Atalanta.v.Brugge
+        - Atalanta.v.Brügge
+        - Atalanta.v.Club.Brugge
+        - Atalanta.vs.Brugge
+        - Atalanta.vs.Brügge
+        - Atalanta.vs.Club.Brugge
+        Atalanta vs Chelsea:
+        - Atalanta BC v Chelsea
+        - Atalanta BC vs Chelsea
+        - Atalanta v Chelsea
+        - Atalanta v Chelsea FC
+        - Atalanta vs Chelsea FC
+        - Atalanta.BC.v.Chelsea
+        - Atalanta.BC.vs.Chelsea
+        - Atalanta.v.Chelsea
+        - Atalanta.v.Chelsea.FC
+        - Atalanta.vs.Chelsea
+        - Atalanta.vs.Chelsea.FC
+        Atalanta vs Slavia Prag:
+        - Atalanta BC v Slavia Prag
+        - Atalanta BC vs Slavia Prag
+        - Atalanta v Slavia
+        - Atalanta v Slavia Prag
+        - Atalanta v Slavia Prague
+        - Atalanta vs Slavia
+        - Atalanta vs Slavia Prague
+        - Atalanta.BC.v.Slavia.Prag
+        - Atalanta.BC.vs.Slavia.Prag
+        - Atalanta.v.Slavia
+        - Atalanta.v.Slavia.Prag
+        - Atalanta.v.Slavia.Prague
+        - Atalanta.vs.Slavia
+        - Atalanta.vs.Slavia.Prag
+        - Atalanta.vs.Slavia.Prague
+        Atlético Madrid vs Bodø/Glimt:
+        - Atletico Madrid v Bodø/Glimt
+        - Atletico Madrid vs Bodø/Glimt
+        - Atletico.Madrid.v.Bodø.Glimt
+        - Atletico.Madrid.vs.Bodø.Glimt
+        - Atlético Madrid v Bodo Glimt
+        - Atlético Madrid v Bodo/Glimt
+        - Atlético Madrid v Bodø Glimt
+        - Atlético Madrid v Bodø-Glimt
+        - Atlético Madrid v Bodø/Glimt
+        - Atlético Madrid vs Bodo Glimt
+        - Atlético Madrid vs Bodo/Glimt
+        - Atlético Madrid vs Bodø Glimt
+        - Atlético Madrid vs Bodø-Glimt
+        - Atlético.Madrid.v.Bodo.Glimt
+        - Atlético.Madrid.v.Bodø.Glimt
+        - Atlético.Madrid.vs.Bodo.Glimt
+        - Atlético.Madrid.vs.Bodø.Glimt
+        Atlético Madrid vs Eintracht Frankfurt:
+        - Atletico Madrid v Eintracht Frankfurt
+        - Atletico Madrid vs Eintracht Frankfurt
+        - Atletico.Madrid.v.Eintracht.Frankfurt
+        - Atletico.Madrid.vs.Eintracht.Frankfurt
+        - Atlético Madrid v Eintracht Frankfurt
+        - Atlético Madrid v Frankfurt
+        - Atlético Madrid vs Frankfurt
+        - Atlético.Madrid.v.Eintracht.Frankfurt
+        - Atlético.Madrid.v.Frankfurt
+        - Atlético.Madrid.vs.Eintracht.Frankfurt
+        - Atlético.Madrid.vs.Frankfurt
+        Atlético Madrid vs Inter:
+        - Atletico Madrid v Inter
+        - Atletico Madrid vs Inter
+        - Atletico.Madrid.v.Inter
+        - Atletico.Madrid.vs.Inter
+        - Atlético Madrid v Inter
+        - Atlético Madrid v Inter Milan
+        - Atlético Madrid vs Inter Milan
+        - Atlético.Madrid.v.Inter
+        - Atlético.Madrid.v.Inter.Milan
+        - Atlético.Madrid.vs.Inter
+        - Atlético.Madrid.vs.Inter.Milan
+        Atlético Madrid vs Union Saint-Gilloise:
+        - Atletico Madrid v Union Saint-Gilloise
+        - Atletico Madrid vs Union Saint-Gilloise
+        - Atletico.Madrid.v.Union.Saint.Gilloise
+        - Atletico.Madrid.vs.Union.Saint.Gilloise
+        - Atlético Madrid v Union SG
+        - Atlético Madrid v Union Saint Gilloise
+        - Atlético Madrid v Union Saint-Gilloise
+        - Atlético Madrid vs Union SG
+        - Atlético Madrid vs Union Saint Gilloise
+        - Atlético.Madrid.v.Union.SG
+        - Atlético.Madrid.v.Union.Saint.Gilloise
+        - Atlético.Madrid.vs.Union.SG
+        - Atlético.Madrid.vs.Union.Saint.Gilloise
+        Barcelona vs Eintracht Frankfurt:
+        - Barcelona v Eintracht Frankfurt
+        - Barcelona v Frankfurt
+        - Barcelona vs Frankfurt
+        - Barcelona.v.Eintracht.Frankfurt
+        - Barcelona.v.Frankfurt
+        - Barcelona.vs.Eintracht.Frankfurt
+        - Barcelona.vs.Frankfurt
+        - FC Barcelona v Eintracht Frankfurt
+        - FC Barcelona vs Eintracht Frankfurt
+        - FC.Barcelona.v.Eintracht.Frankfurt
+        - FC.Barcelona.vs.Eintracht.Frankfurt
+        Barcelona vs Köpenhamn:
+        - Barcelona v Copenhagen
+        - Barcelona v FC Copenhagen
+        - Barcelona v Kopenhamn
+        - Barcelona v Köpenhamn
+        - Barcelona vs Copenhagen
+        - Barcelona vs FC Copenhagen
+        - Barcelona vs Kopenhamn
+        - Barcelona.v.Copenhagen
+        - Barcelona.v.FC.Copenhagen
+        - Barcelona.v.Kopenhamn
+        - Barcelona.v.Köpenhamn
+        - Barcelona.vs.Copenhagen
+        - Barcelona.vs.FC.Copenhagen
+        - Barcelona.vs.Kopenhamn
+        - Barcelona.vs.Köpenhamn
+        - FC Barcelona v Köpenhamn
+        - FC Barcelona vs Köpenhamn
+        - FC.Barcelona.v.Köpenhamn
+        - FC.Barcelona.vs.Köpenhamn
+        Barcelona vs Olympiakos:
+        - Barcelona v Olympiacos
+        - Barcelona v Olympiakos
+        - Barcelona vs Olympiacos
+        - Barcelona.v.Olympiacos
+        - Barcelona.v.Olympiakos
+        - Barcelona.vs.Olympiacos
+        - Barcelona.vs.Olympiakos
+        - FC Barcelona v Olympiakos
+        - FC Barcelona vs Olympiakos
+        - FC.Barcelona.v.Olympiakos
+        - FC.Barcelona.vs.Olympiakos
+        Barcelona vs PSG:
+        - Barcelona v PSG
+        - Barcelona v Paris SG
+        - Barcelona v Paris Saint-Germain
+        - Barcelona vs Paris SG
+        - Barcelona vs Paris Saint-Germain
+        - Barcelona.v.PSG
+        - Barcelona.v.Paris.SG
+        - Barcelona.v.Paris.Saint.Germain
+        - Barcelona.vs.PSG
+        - Barcelona.vs.Paris.SG
+        - Barcelona.vs.Paris.Saint.Germain
+        - FC Barcelona v PSG
+        - FC Barcelona vs PSG
+        - FC.Barcelona.v.PSG
+        - FC.Barcelona.vs.PSG
+        Bayern vs Brügge:
+        - Bayern Munich v Brügge
+        - Bayern Munich vs Brügge
+        - Bayern v Brugge
+        - Bayern v Brügge
+        - Bayern v Club Brugge
+        - Bayern vs Brugge
+        - Bayern vs Club Brugge
+        - Bayern.Munich.v.Brügge
+        - Bayern.Munich.vs.Brügge
+        - Bayern.v.Brugge
+        - Bayern.v.Brügge
+        - Bayern.v.Club.Brugge
+        - Bayern.vs.Brugge
+        - Bayern.vs.Brügge
+        - Bayern.vs.Club.Brugge
+        - FC Bayern v Brügge
+        - FC Bayern vs Brügge
+        - FC.Bayern.v.Brügge
+        - FC.Bayern.vs.Brügge
+        Bayern vs Chelsea:
+        - Bayern Munich v Chelsea
+        - Bayern Munich vs Chelsea
+        - Bayern v Chelsea
+        - Bayern v Chelsea FC
+        - Bayern vs Chelsea FC
+        - Bayern.Munich.v.Chelsea
+        - Bayern.Munich.vs.Chelsea
+        - Bayern.v.Chelsea
+        - Bayern.v.Chelsea.FC
+        - Bayern.vs.Chelsea
+        - Bayern.vs.Chelsea.FC
+        - FC Bayern v Chelsea
+        - FC Bayern vs Chelsea
+        - FC.Bayern.v.Chelsea
+        - FC.Bayern.vs.Chelsea
+        Bayern vs Sporting:
+        - Bayern Munich v Sporting
+        - Bayern Munich vs Sporting
+        - Bayern v Sporting
+        - Bayern v Sporting CP
+        - Bayern vs Sporting CP
+        - Bayern.Munich.v.Sporting
+        - Bayern.Munich.vs.Sporting
+        - Bayern.v.Sporting
+        - Bayern.v.Sporting.CP
+        - Bayern.vs.Sporting
+        - Bayern.vs.Sporting.CP
+        - FC Bayern v Sporting
+        - FC Bayern vs Sporting
+        - FC.Bayern.v.Sporting
+        - FC.Bayern.vs.Sporting
+        Bayern vs Union Saint-Gilloise:
+        - Bayern Munich v Union Saint-Gilloise
+        - Bayern Munich vs Union Saint-Gilloise
+        - Bayern v Union SG
+        - Bayern v Union Saint Gilloise
+        - Bayern v Union Saint-Gilloise
+        - Bayern vs Union SG
+        - Bayern vs Union Saint Gilloise
+        - Bayern.Munich.v.Union.Saint.Gilloise
+        - Bayern.Munich.vs.Union.Saint.Gilloise
+        - Bayern.v.Union.SG
+        - Bayern.v.Union.Saint.Gilloise
+        - Bayern.vs.Union.SG
+        - Bayern.vs.Union.Saint.Gilloise
+        - FC Bayern v Union Saint-Gilloise
+        - FC Bayern vs Union Saint-Gilloise
+        - FC.Bayern.v.Union.Saint.Gilloise
+        - FC.Bayern.vs.Union.Saint.Gilloise
+        Benfica vs Leverkusen:
+        - Benfica v Leverkusen
+        - Benfica.v.Leverkusen
+        - Benfica.vs.Leverkusen
+        - SL Benfica v Leverkusen
+        - SL Benfica vs Leverkusen
+        - SL.Benfica.v.Leverkusen
+        - SL.Benfica.vs.Leverkusen
+        Benfica vs Napoli:
+        - Benfica v Napoli
+        - Benfica v SSC Napoli
+        - Benfica vs SSC Napoli
+        - Benfica.v.Napoli
+        - Benfica.v.SSC.Napoli
+        - Benfica.vs.Napoli
+        - Benfica.vs.SSC.Napoli
+        - SL Benfica v Napoli
+        - SL Benfica vs Napoli
+        - SL.Benfica.v.Napoli
+        - SL.Benfica.vs.Napoli
+        Benfica vs Qarabağ:
+        - Benfica v Qarabag
+        - Benfica v Qarabağ
+        - Benfica vs Qarabag
+        - Benfica.v.Qarabag
+        - Benfica.v.Qarabağ
+        - Benfica.vs.Qarabag
+        - Benfica.vs.Qarabağ
+        - SL Benfica v Qarabağ
+        - SL Benfica vs Qarabağ
+        - SL.Benfica.v.Qarabağ
+        - SL.Benfica.vs.Qarabağ
+        Benfica vs Real Madrid:
+        - Benfica v Real
+        - Benfica v Real Madrid
+        - Benfica vs Real
+        - Benfica.v.Real
+        - Benfica.v.Real.Madrid
+        - Benfica.vs.Real
+        - Benfica.vs.Real.Madrid
+        - SL Benfica v Real Madrid
+        - SL Benfica vs Real Madrid
+        - SL.Benfica.v.Real.Madrid
+        - SL.Benfica.vs.Real.Madrid
+        Bilbao vs Arsenal:
+        - Bilbao v Arsenal
+        - Bilbao v Arsenal FC
+        - Bilbao vs Arsenal FC
+        - Bilbao.v.Arsenal
+        - Bilbao.v.Arsenal.FC
+        - Bilbao.vs.Arsenal
+        - Bilbao.vs.Arsenal.FC
+        Bilbao vs PSG:
+        - Bilbao v PSG
+        - Bilbao v Paris SG
+        - Bilbao v Paris Saint-Germain
+        - Bilbao vs Paris SG
+        - Bilbao vs Paris Saint-Germain
+        - Bilbao.v.PSG
+        - Bilbao.v.Paris.SG
+        - Bilbao.v.Paris.Saint.Germain
+        - Bilbao.vs.PSG
+        - Bilbao.vs.Paris.SG
+        - Bilbao.vs.Paris.Saint.Germain
+        Bilbao vs Qarabağ:
+        - Bilbao v Qarabag
+        - Bilbao v Qarabağ
+        - Bilbao vs Qarabag
+        - Bilbao.v.Qarabag
+        - Bilbao.v.Qarabağ
+        - Bilbao.vs.Qarabag
+        - Bilbao.vs.Qarabağ
+        Bilbao vs Sporting:
+        - Bilbao v Sporting
+        - Bilbao v Sporting CP
+        - Bilbao vs Sporting CP
+        - Bilbao.v.Sporting
+        - Bilbao.v.Sporting.CP
+        - Bilbao.vs.Sporting
+        - Bilbao.vs.Sporting.CP
+        Bodø/Glimt vs AS Monaco:
+        - Bodo Glimt v AS Monaco
+        - Bodo Glimt vs AS Monaco
+        - Bodo.Glimt.v.AS.Monaco
+        - Bodo.Glimt.vs.AS.Monaco
+        - Bodo/Glimt v AS Monaco
+        - Bodo/Glimt vs AS Monaco
+        - Bodø Glimt v AS Monaco
+        - Bodø Glimt vs AS Monaco
+        - Bodø-Glimt v AS Monaco
+        - Bodø-Glimt vs AS Monaco
+        - Bodø.Glimt.v.AS.Monaco
+        - Bodø.Glimt.v.Monaco
+        - Bodø.Glimt.vs.AS.Monaco
+        - Bodø.Glimt.vs.Monaco
+        - Bodø/Glimt v AS Monaco
+        - Bodø/Glimt v Monaco
+        - Bodø/Glimt vs Monaco
+        Bodø/Glimt vs Juventus:
+        - Bodo Glimt v Juventus
+        - Bodo Glimt vs Juventus
+        - Bodo.Glimt.v.Juventus
+        - Bodo.Glimt.vs.Juventus
+        - Bodo/Glimt v Juventus
+        - Bodo/Glimt vs Juventus
+        - Bodø Glimt v Juventus
+        - Bodø Glimt vs Juventus
+        - Bodø-Glimt v Juventus
+        - Bodø-Glimt vs Juventus
+        - Bodø.Glimt.v.Juve
+        - Bodø.Glimt.v.Juventus
+        - Bodø.Glimt.vs.Juve
+        - Bodø.Glimt.vs.Juventus
+        - Bodø/Glimt v Juve
+        - Bodø/Glimt v Juventus
+        - Bodø/Glimt vs Juve
+        Bodø/Glimt vs Man City:
+        - Bodo Glimt v Man City
+        - Bodo Glimt vs Man City
+        - Bodo.Glimt.v.Man.City
+        - Bodo.Glimt.vs.Man.City
+        - Bodo/Glimt v Man City
+        - Bodo/Glimt vs Man City
+        - Bodø Glimt v Man City
+        - Bodø Glimt vs Man City
+        - Bodø-Glimt v Man City
+        - Bodø-Glimt vs Man City
+        - Bodø.Glimt.v.MC
+        - Bodø.Glimt.v.Man.City
+        - Bodø.Glimt.v.Manchester.City
+        - Bodø.Glimt.vs.MC
+        - Bodø.Glimt.vs.Man.City
+        - Bodø.Glimt.vs.Manchester.City
+        - Bodø/Glimt v MC
+        - Bodø/Glimt v Man City
+        - Bodø/Glimt v Manchester City
+        - Bodø/Glimt vs MC
+        - Bodø/Glimt vs Manchester City
+        Bodø/Glimt vs Tottenham:
+        - Bodo Glimt v Tottenham
+        - Bodo Glimt vs Tottenham
+        - Bodo.Glimt.v.Tottenham
+        - Bodo.Glimt.vs.Tottenham
+        - Bodo/Glimt v Tottenham
+        - Bodo/Glimt vs Tottenham
+        - Bodø Glimt v Tottenham
+        - Bodø Glimt vs Tottenham
+        - Bodø-Glimt v Tottenham
+        - Bodø-Glimt vs Tottenham
+        - Bodø.Glimt.v.Spurs
+        - Bodø.Glimt.v.Tottenham
+        - Bodø.Glimt.v.Tottenham.Hotspur
+        - Bodø.Glimt.vs.Spurs
+        - Bodø.Glimt.vs.Tottenham
+        - Bodø.Glimt.vs.Tottenham.Hotspur
+        - Bodø/Glimt v Spurs
+        - Bodø/Glimt v Tottenham
+        - Bodø/Glimt v Tottenham Hotspur
+        - Bodø/Glimt vs Spurs
+        - Bodø/Glimt vs Tottenham Hotspur
+        Brügge vs AS Monaco:
+        - Brugge v AS Monaco
+        - Brugge vs AS Monaco
+        - Brugge.v.AS.Monaco
+        - Brugge.vs.AS.Monaco
+        - Brügge v AS Monaco
+        - Brügge v Monaco
+        - Brügge vs Monaco
+        - Brügge.v.AS.Monaco
+        - Brügge.v.Monaco
+        - Brügge.vs.AS.Monaco
+        - Brügge.vs.Monaco
+        - Club Brugge v AS Monaco
+        - Club Brugge vs AS Monaco
+        - Club.Brugge.v.AS.Monaco
+        - Club.Brugge.vs.AS.Monaco
+        Brügge vs Arsenal:
+        - Brugge v Arsenal
+        - Brugge vs Arsenal
+        - Brugge.v.Arsenal
+        - Brugge.vs.Arsenal
+        - Brügge v Arsenal
+        - Brügge v Arsenal FC
+        - Brügge vs Arsenal FC
+        - Brügge.v.Arsenal
+        - Brügge.v.Arsenal.FC
+        - Brügge.vs.Arsenal
+        - Brügge.vs.Arsenal.FC
+        - Club Brugge v Arsenal
+        - Club Brugge vs Arsenal
+        - Club.Brugge.v.Arsenal
+        - Club.Brugge.vs.Arsenal
+        Brügge vs Barcelona:
+        - Brugge v Barcelona
+        - Brugge vs Barcelona
+        - Brugge.v.Barcelona
+        - Brugge.vs.Barcelona
+        - Brügge v Barcelona
+        - Brügge v FC Barcelona
+        - Brügge vs FC Barcelona
+        - Brügge.v.Barcelona
+        - Brügge.v.FC.Barcelona
+        - Brügge.vs.Barcelona
+        - Brügge.vs.FC.Barcelona
+        - Club Brugge v Barcelona
+        - Club Brugge vs Barcelona
+        - Club.Brugge.v.Barcelona
+        - Club.Brugge.vs.Barcelona
+        Brügge vs L'OM:
+        - Brugge v L'OM
+        - Brugge vs L'OM
+        - Brugge.v.LOM
+        - Brugge.vs.LOM
+        - Brügge v L'OM
+        - Brügge v LOM
+        - Brügge v Marseille
+        - Brügge v OM
+        - Brügge v Olympique Marseille
+        - Brügge vs LOM
+        - Brügge vs Marseille
+        - Brügge vs OM
+        - Brügge vs Olympique Marseille
+        - Brügge.v.LOM
+        - Brügge.v.Marseille
+        - Brügge.v.OM
+        - Brügge.v.Olympique.Marseille
+        - Brügge.vs.LOM
+        - Brügge.vs.Marseille
+        - Brügge.vs.OM
+        - Brügge.vs.Olympique.Marseille
+        - Club Brugge v L'OM
+        - Club Brugge vs L'OM
+        - Club.Brugge.v.LOM
+        - Club.Brugge.vs.LOM
+        Chelsea vs Ajax:
+        - Chelsea FC v Ajax
+        - Chelsea FC vs Ajax
+        - Chelsea v AFC Ajax
+        - Chelsea v Ajax
+        - Chelsea vs AFC Ajax
+        - Chelsea.FC.v.Ajax
+        - Chelsea.FC.vs.Ajax
+        - Chelsea.v.AFC.Ajax
+        - Chelsea.v.Ajax
+        - Chelsea.vs.AFC.Ajax
+        - Chelsea.vs.Ajax
+        Chelsea vs Barcelona:
+        - Chelsea FC v Barcelona
+        - Chelsea FC vs Barcelona
+        - Chelsea v Barcelona
+        - Chelsea v FC Barcelona
+        - Chelsea vs FC Barcelona
+        - Chelsea.FC.v.Barcelona
+        - Chelsea.FC.vs.Barcelona
+        - Chelsea.v.Barcelona
+        - Chelsea.v.FC.Barcelona
+        - Chelsea.vs.Barcelona
+        - Chelsea.vs.FC.Barcelona
+        Chelsea vs Benfica:
+        - Chelsea FC v Benfica
+        - Chelsea FC vs Benfica
+        - Chelsea v Benfica
+        - Chelsea v SL Benfica
+        - Chelsea vs SL Benfica
+        - Chelsea.FC.v.Benfica
+        - Chelsea.FC.vs.Benfica
+        - Chelsea.v.Benfica
+        - Chelsea.v.SL.Benfica
+        - Chelsea.vs.Benfica
+        - Chelsea.vs.SL.Benfica
+        Chelsea vs Pafos:
+        - Chelsea FC v Pafos
+        - Chelsea FC vs Pafos
+        - Chelsea v Pafos
+        - Chelsea.FC.v.Pafos
+        - Chelsea.FC.vs.Pafos
+        - Chelsea.v.Pafos
+        - Chelsea.vs.Pafos
+        Dortmund vs Bilbao:
+        - BVB v Bilbao
+        - BVB vs Bilbao
+        - BVB.v.Bilbao
+        - BVB.vs.Bilbao
+        - Borussia Dortmund v Bilbao
+        - Borussia Dortmund vs Bilbao
+        - Borussia v Bilbao
+        - Borussia vs Bilbao
+        - Borussia.Dortmund.v.Bilbao
+        - Borussia.Dortmund.vs.Bilbao
+        - Borussia.v.Bilbao
+        - Borussia.vs.Bilbao
+        - Dortmund v Bilbao
+        - Dortmund.v.Bilbao
+        - Dortmund.vs.Bilbao
+        Dortmund vs Bodø/Glimt:
+        - BVB v Bodø/Glimt
+        - BVB vs Bodø/Glimt
+        - BVB.v.Bodø.Glimt
+        - BVB.vs.Bodø.Glimt
+        - Borussia Dortmund v Bodø/Glimt
+        - Borussia Dortmund vs Bodø/Glimt
+        - Borussia v Bodø/Glimt
+        - Borussia vs Bodø/Glimt
+        - Borussia.Dortmund.v.Bodø.Glimt
+        - Borussia.Dortmund.vs.Bodø.Glimt
+        - Borussia.v.Bodø.Glimt
+        - Borussia.vs.Bodø.Glimt
+        - Dortmund v Bodo Glimt
+        - Dortmund v Bodo/Glimt
+        - Dortmund v Bodø Glimt
+        - Dortmund v Bodø-Glimt
+        - Dortmund v Bodø/Glimt
+        - Dortmund vs Bodo Glimt
+        - Dortmund vs Bodo/Glimt
+        - Dortmund vs Bodø Glimt
+        - Dortmund vs Bodø-Glimt
+        - Dortmund.v.Bodo.Glimt
+        - Dortmund.v.Bodø.Glimt
+        - Dortmund.vs.Bodo.Glimt
+        - Dortmund.vs.Bodø.Glimt
+        Dortmund vs Inter:
+        - BVB v Inter
+        - BVB vs Inter
+        - BVB.v.Inter
+        - BVB.vs.Inter
+        - Borussia Dortmund v Inter
+        - Borussia Dortmund vs Inter
+        - Borussia v Inter
+        - Borussia vs Inter
+        - Borussia.Dortmund.v.Inter
+        - Borussia.Dortmund.vs.Inter
+        - Borussia.v.Inter
+        - Borussia.vs.Inter
+        - Dortmund v Inter
+        - Dortmund v Inter Milan
+        - Dortmund vs Inter Milan
+        - Dortmund.v.Inter
+        - Dortmund.v.Inter.Milan
+        - Dortmund.vs.Inter
+        - Dortmund.vs.Inter.Milan
+        Dortmund vs Villarreal:
+        - BVB v Villarreal
+        - BVB vs Villarreal
+        - BVB.v.Villarreal
+        - BVB.vs.Villarreal
+        - Borussia Dortmund v Villarreal
+        - Borussia Dortmund vs Villarreal
+        - Borussia v Villarreal
+        - Borussia vs Villarreal
+        - Borussia.Dortmund.v.Villarreal
+        - Borussia.Dortmund.vs.Villarreal
+        - Borussia.v.Villarreal
+        - Borussia.vs.Villarreal
+        - Dortmund v Villarreal
+        - Dortmund v Villarreal CF
+        - Dortmund vs Villarreal CF
+        - Dortmund.v.Villarreal
+        - Dortmund.v.Villarreal.CF
+        - Dortmund.vs.Villarreal
+        - Dortmund.vs.Villarreal.CF
+        Eintracht Frankfurt vs Atalanta:
+        - Eintracht Frankfurt v Atalanta
+        - Eintracht Frankfurt v Atalanta BC
+        - Eintracht Frankfurt vs Atalanta BC
+        - Eintracht.Frankfurt.v.Atalanta
+        - Eintracht.Frankfurt.v.Atalanta.BC
+        - Eintracht.Frankfurt.vs.Atalanta
+        - Eintracht.Frankfurt.vs.Atalanta.BC
+        - Frankfurt v Atalanta
+        - Frankfurt vs Atalanta
+        - Frankfurt.v.Atalanta
+        - Frankfurt.vs.Atalanta
+        Eintracht Frankfurt vs Galatasaray:
+        - Eintracht Frankfurt v Galatasaray
+        - Eintracht.Frankfurt.v.Galatasaray
+        - Eintracht.Frankfurt.vs.Galatasaray
+        - Frankfurt v Galatasaray
+        - Frankfurt vs Galatasaray
+        - Frankfurt.v.Galatasaray
+        - Frankfurt.vs.Galatasaray
+        Eintracht Frankfurt vs Liverpool:
+        - Eintracht Frankfurt v Liverpool
+        - Eintracht.Frankfurt.v.Liverpool
+        - Eintracht.Frankfurt.vs.Liverpool
+        - Frankfurt v Liverpool
+        - Frankfurt vs Liverpool
+        - Frankfurt.v.Liverpool
+        - Frankfurt.vs.Liverpool
+        Eintracht Frankfurt vs Tottenham:
+        - Eintracht Frankfurt v Spurs
+        - Eintracht Frankfurt v Tottenham
+        - Eintracht Frankfurt v Tottenham Hotspur
+        - Eintracht Frankfurt vs Spurs
+        - Eintracht Frankfurt vs Tottenham Hotspur
+        - Eintracht.Frankfurt.v.Spurs
+        - Eintracht.Frankfurt.v.Tottenham
+        - Eintracht.Frankfurt.v.Tottenham.Hotspur
+        - Eintracht.Frankfurt.vs.Spurs
+        - Eintracht.Frankfurt.vs.Tottenham
+        - Eintracht.Frankfurt.vs.Tottenham.Hotspur
+        - Frankfurt v Tottenham
+        - Frankfurt vs Tottenham
+        - Frankfurt.v.Tottenham
+        - Frankfurt.vs.Tottenham
+        FC Kairat vs Brügge:
+        - FC Kairat v Brugge
+        - FC Kairat v Brügge
+        - FC Kairat v Club Brugge
+        - FC Kairat vs Brugge
+        - FC Kairat vs Club Brugge
+        - FC.Kairat.v.Brugge
+        - FC.Kairat.v.Brügge
+        - FC.Kairat.v.Club.Brugge
+        - FC.Kairat.vs.Brugge
+        - FC.Kairat.vs.Brügge
+        - FC.Kairat.vs.Club.Brugge
+        FC Kairat vs Olympiakos:
+        - FC Kairat v Olympiacos
+        - FC Kairat v Olympiakos
+        - FC Kairat vs Olympiacos
+        - FC.Kairat.v.Olympiacos
+        - FC.Kairat.v.Olympiakos
+        - FC.Kairat.vs.Olympiacos
+        - FC.Kairat.vs.Olympiakos
+        FC Kairat vs Pafos:
+        - FC Kairat v Pafos
+        - FC.Kairat.v.Pafos
+        - FC.Kairat.vs.Pafos
+        FC Kairat vs Real Madrid:
+        - FC Kairat v Real
+        - FC Kairat v Real Madrid
+        - FC Kairat vs Real
+        - FC.Kairat.v.Real
+        - FC.Kairat.v.Real.Madrid
+        - FC.Kairat.vs.Real
+        - FC.Kairat.vs.Real.Madrid
+        Galatasaray vs Atlético Madrid:
+        - Galatasaray v Atletico Madrid
+        - Galatasaray v Atlético Madrid
+        - Galatasaray vs Atletico Madrid
+        - Galatasaray.v.Atletico.Madrid
+        - Galatasaray.v.Atlético.Madrid
+        - Galatasaray.vs.Atletico.Madrid
+        - Galatasaray.vs.Atlético.Madrid
+        Galatasaray vs Bodø/Glimt:
+        - Galatasaray v Bodo Glimt
+        - Galatasaray v Bodo/Glimt
+        - Galatasaray v Bodø Glimt
+        - Galatasaray v Bodø-Glimt
+        - Galatasaray v Bodø/Glimt
+        - Galatasaray vs Bodo Glimt
+        - Galatasaray vs Bodo/Glimt
+        - Galatasaray vs Bodø Glimt
+        - Galatasaray vs Bodø-Glimt
+        - Galatasaray.v.Bodo.Glimt
+        - Galatasaray.v.Bodø.Glimt
+        - Galatasaray.vs.Bodo.Glimt
+        - Galatasaray.vs.Bodø.Glimt
+        Galatasaray vs Liverpool:
+        - Galatasaray v Liverpool
+        - Galatasaray.v.Liverpool
+        - Galatasaray.vs.Liverpool
+        Galatasaray vs Union Saint-Gilloise:
+        - Galatasaray v Union SG
+        - Galatasaray v Union Saint Gilloise
+        - Galatasaray v Union Saint-Gilloise
+        - Galatasaray vs Union SG
+        - Galatasaray vs Union Saint Gilloise
+        - Galatasaray.v.Union.SG
+        - Galatasaray.v.Union.Saint.Gilloise
+        - Galatasaray.vs.Union.SG
+        - Galatasaray.vs.Union.Saint.Gilloise
+        Inter vs Arsenal:
+        - Inter Milan v Arsenal
+        - Inter Milan vs Arsenal
+        - Inter v Arsenal
+        - Inter v Arsenal FC
+        - Inter vs Arsenal FC
+        - Inter.Milan.v.Arsenal
+        - Inter.Milan.vs.Arsenal
+        - Inter.v.Arsenal
+        - Inter.v.Arsenal.FC
+        - Inter.vs.Arsenal
+        - Inter.vs.Arsenal.FC
+        Inter vs FC Kairat:
+        - Inter Milan v FC Kairat
+        - Inter Milan vs FC Kairat
+        - Inter v FC Kairat
+        - Inter.Milan.v.FC.Kairat
+        - Inter.Milan.vs.FC.Kairat
+        - Inter.v.FC.Kairat
+        - Inter.vs.FC.Kairat
+        Inter vs Liverpool:
+        - Inter Milan v Liverpool
+        - Inter Milan vs Liverpool
+        - Inter v Liverpool
+        - Inter.Milan.v.Liverpool
+        - Inter.Milan.vs.Liverpool
+        - Inter.v.Liverpool
+        - Inter.vs.Liverpool
+        Inter vs Slavia Prag:
+        - Inter Milan v Slavia Prag
+        - Inter Milan vs Slavia Prag
+        - Inter v Slavia
+        - Inter v Slavia Prag
+        - Inter v Slavia Prague
+        - Inter vs Slavia
+        - Inter vs Slavia Prague
+        - Inter.Milan.v.Slavia.Prag
+        - Inter.Milan.vs.Slavia.Prag
+        - Inter.v.Slavia
+        - Inter.v.Slavia.Prag
+        - Inter.v.Slavia.Prague
+        - Inter.vs.Slavia
+        - Inter.vs.Slavia.Prag
+        - Inter.vs.Slavia.Prague
+        Juventus vs Benfica:
+        - Juve v Benfica
+        - Juve vs Benfica
+        - Juve.v.Benfica
+        - Juve.vs.Benfica
+        - Juventus v Benfica
+        - Juventus v SL Benfica
+        - Juventus vs SL Benfica
+        - Juventus.v.Benfica
+        - Juventus.v.SL.Benfica
+        - Juventus.vs.Benfica
+        - Juventus.vs.SL.Benfica
+        Juventus vs Dortmund:
+        - Juve v Dortmund
+        - Juve vs Dortmund
+        - Juve.v.Dortmund
+        - Juve.vs.Dortmund
+        - Juventus v BVB
+        - Juventus v Borussia
+        - Juventus v Borussia Dortmund
+        - Juventus v Dortmund
+        - Juventus vs BVB
+        - Juventus vs Borussia
+        - Juventus vs Borussia Dortmund
+        - Juventus.v.BVB
+        - Juventus.v.Borussia
+        - Juventus.v.Borussia.Dortmund
+        - Juventus.v.Dortmund
+        - Juventus.vs.BVB
+        - Juventus.vs.Borussia
+        - Juventus.vs.Borussia.Dortmund
+        - Juventus.vs.Dortmund
+        Juventus vs Pafos:
+        - Juve v Pafos
+        - Juve vs Pafos
+        - Juve.v.Pafos
+        - Juve.vs.Pafos
+        - Juventus v Pafos
+        - Juventus.v.Pafos
+        - Juventus.vs.Pafos
+        Juventus vs Sporting:
+        - Juve v Sporting
+        - Juve vs Sporting
+        - Juve.v.Sporting
+        - Juve.vs.Sporting
+        - Juventus v Sporting
+        - Juventus v Sporting CP
+        - Juventus vs Sporting CP
+        - Juventus.v.Sporting
+        - Juventus.v.Sporting.CP
+        - Juventus.vs.Sporting
+        - Juventus.vs.Sporting.CP
+        Köpenhamn vs Dortmund:
+        - Copenhagen v Dortmund
+        - Copenhagen vs Dortmund
+        - Copenhagen.v.Dortmund
+        - Copenhagen.vs.Dortmund
+        - FC Copenhagen v Dortmund
+        - FC Copenhagen vs Dortmund
+        - FC.Copenhagen.v.Dortmund
+        - FC.Copenhagen.vs.Dortmund
+        - Kopenhamn v Dortmund
+        - Kopenhamn vs Dortmund
+        - Kopenhamn.v.Dortmund
+        - Kopenhamn.vs.Dortmund
+        - Köpenhamn v BVB
+        - Köpenhamn v Borussia
+        - Köpenhamn v Borussia Dortmund
+        - Köpenhamn v Dortmund
+        - Köpenhamn vs BVB
+        - Köpenhamn vs Borussia
+        - Köpenhamn vs Borussia Dortmund
+        - Köpenhamn.v.BVB
+        - Köpenhamn.v.Borussia
+        - Köpenhamn.v.Borussia.Dortmund
+        - Köpenhamn.v.Dortmund
+        - Köpenhamn.vs.BVB
+        - Köpenhamn.vs.Borussia
+        - Köpenhamn.vs.Borussia.Dortmund
+        - Köpenhamn.vs.Dortmund
+        Köpenhamn vs FC Kairat:
+        - Copenhagen v FC Kairat
+        - Copenhagen vs FC Kairat
+        - Copenhagen.v.FC.Kairat
+        - Copenhagen.vs.FC.Kairat
+        - FC Copenhagen v FC Kairat
+        - FC Copenhagen vs FC Kairat
+        - FC.Copenhagen.v.FC.Kairat
+        - FC.Copenhagen.vs.FC.Kairat
+        - Kopenhamn v FC Kairat
+        - Kopenhamn vs FC Kairat
+        - Kopenhamn.v.FC.Kairat
+        - Kopenhamn.vs.FC.Kairat
+        - Köpenhamn v FC Kairat
+        - Köpenhamn.v.FC.Kairat
+        - Köpenhamn.vs.FC.Kairat
+        Köpenhamn vs Leverkusen:
+        - Copenhagen v Leverkusen
+        - Copenhagen vs Leverkusen
+        - Copenhagen.v.Leverkusen
+        - Copenhagen.vs.Leverkusen
+        - FC Copenhagen v Leverkusen
+        - FC Copenhagen vs Leverkusen
+        - FC.Copenhagen.v.Leverkusen
+        - FC.Copenhagen.vs.Leverkusen
+        - Kopenhamn v Leverkusen
+        - Kopenhamn vs Leverkusen
+        - Kopenhamn.v.Leverkusen
+        - Kopenhamn.vs.Leverkusen
+        - Köpenhamn v Leverkusen
+        - Köpenhamn.v.Leverkusen
+        - Köpenhamn.vs.Leverkusen
+        Köpenhamn vs Napoli:
+        - Copenhagen v Napoli
+        - Copenhagen vs Napoli
+        - Copenhagen.v.Napoli
+        - Copenhagen.vs.Napoli
+        - FC Copenhagen v Napoli
+        - FC Copenhagen vs Napoli
+        - FC.Copenhagen.v.Napoli
+        - FC.Copenhagen.vs.Napoli
+        - Kopenhamn v Napoli
+        - Kopenhamn vs Napoli
+        - Kopenhamn.v.Napoli
+        - Kopenhamn.vs.Napoli
+        - Köpenhamn v Napoli
+        - Köpenhamn v SSC Napoli
+        - Köpenhamn vs SSC Napoli
+        - Köpenhamn.v.Napoli
+        - Köpenhamn.v.SSC.Napoli
+        - Köpenhamn.vs.Napoli
+        - Köpenhamn.vs.SSC.Napoli
+        L'OM vs Ajax:
+        - L'OM v AFC Ajax
+        - L'OM v Ajax
+        - L'OM vs AFC Ajax
+        - LOM v Ajax
+        - LOM vs Ajax
+        - LOM.v.AFC.Ajax
+        - LOM.v.Ajax
+        - LOM.vs.AFC.Ajax
+        - LOM.vs.Ajax
+        - Marseille v Ajax
+        - Marseille vs Ajax
+        - Marseille.v.Ajax
+        - Marseille.vs.Ajax
+        - OM v Ajax
+        - OM vs Ajax
+        - OM.v.Ajax
+        - OM.vs.Ajax
+        - Olympique Marseille v Ajax
+        - Olympique Marseille vs Ajax
+        - Olympique.Marseille.v.Ajax
+        - Olympique.Marseille.vs.Ajax
+        L'OM vs Atalanta:
+        - L'OM v Atalanta
+        - L'OM v Atalanta BC
+        - L'OM vs Atalanta BC
+        - LOM v Atalanta
+        - LOM vs Atalanta
+        - LOM.v.Atalanta
+        - LOM.v.Atalanta.BC
+        - LOM.vs.Atalanta
+        - LOM.vs.Atalanta.BC
+        - Marseille v Atalanta
+        - Marseille vs Atalanta
+        - Marseille.v.Atalanta
+        - Marseille.vs.Atalanta
+        - OM v Atalanta
+        - OM vs Atalanta
+        - OM.v.Atalanta
+        - OM.vs.Atalanta
+        - Olympique Marseille v Atalanta
+        - Olympique Marseille vs Atalanta
+        - Olympique.Marseille.v.Atalanta
+        - Olympique.Marseille.vs.Atalanta
+        L'OM vs Liverpool:
+        - L'OM v Liverpool
+        - LOM v Liverpool
+        - LOM vs Liverpool
+        - LOM.v.Liverpool
+        - LOM.vs.Liverpool
+        - Marseille v Liverpool
+        - Marseille vs Liverpool
+        - Marseille.v.Liverpool
+        - Marseille.vs.Liverpool
+        - OM v Liverpool
+        - OM vs Liverpool
+        - OM.v.Liverpool
+        - OM.vs.Liverpool
+        - Olympique Marseille v Liverpool
+        - Olympique Marseille vs Liverpool
+        - Olympique.Marseille.v.Liverpool
+        - Olympique.Marseille.vs.Liverpool
+        L'OM vs Newcastle:
+        - L'OM v Newcastle
+        - L'OM v Newcastle United
+        - L'OM vs Newcastle United
+        - LOM v Newcastle
+        - LOM vs Newcastle
+        - LOM.v.Newcastle
+        - LOM.v.Newcastle.United
+        - LOM.vs.Newcastle
+        - LOM.vs.Newcastle.United
+        - Marseille v Newcastle
+        - Marseille vs Newcastle
+        - Marseille.v.Newcastle
+        - Marseille.vs.Newcastle
+        - OM v Newcastle
+        - OM vs Newcastle
+        - OM.v.Newcastle
+        - OM.vs.Newcastle
+        - Olympique Marseille v Newcastle
+        - Olympique Marseille vs Newcastle
+        - Olympique.Marseille.v.Newcastle
+        - Olympique.Marseille.vs.Newcastle
+        Leverkusen vs Newcastle:
+        - Leverkusen v Newcastle
+        - Leverkusen v Newcastle United
+        - Leverkusen vs Newcastle United
+        - Leverkusen.v.Newcastle
+        - Leverkusen.v.Newcastle.United
+        - Leverkusen.vs.Newcastle
+        - Leverkusen.vs.Newcastle.United
+        Leverkusen vs PSG:
+        - Leverkusen v PSG
+        - Leverkusen v Paris SG
+        - Leverkusen v Paris Saint-Germain
+        - Leverkusen vs Paris SG
+        - Leverkusen vs Paris Saint-Germain
+        - Leverkusen.v.PSG
+        - Leverkusen.v.Paris.SG
+        - Leverkusen.v.Paris.Saint.Germain
+        - Leverkusen.vs.PSG
+        - Leverkusen.vs.Paris.SG
+        - Leverkusen.vs.Paris.Saint.Germain
+        Leverkusen vs PSV Eindhoven:
+        - Leverkusen v PSV
+        - Leverkusen v PSV Eindhoven
+        - Leverkusen vs PSV
+        - Leverkusen.v.PSV
+        - Leverkusen.v.PSV.Eindhoven
+        - Leverkusen.vs.PSV
+        - Leverkusen.vs.PSV.Eindhoven
+        Leverkusen vs Villarreal:
+        - Leverkusen v Villarreal
+        - Leverkusen v Villarreal CF
+        - Leverkusen vs Villarreal CF
+        - Leverkusen.v.Villarreal
+        - Leverkusen.v.Villarreal.CF
+        - Leverkusen.vs.Villarreal
+        - Leverkusen.vs.Villarreal.CF
+        Liverpool vs Atlético Madrid:
+        - Liverpool v Atletico Madrid
+        - Liverpool v Atlético Madrid
+        - Liverpool vs Atletico Madrid
+        - Liverpool.v.Atletico.Madrid
+        - Liverpool.v.Atlético.Madrid
+        - Liverpool.vs.Atletico.Madrid
+        - Liverpool.vs.Atlético.Madrid
+        Liverpool vs PSV Eindhoven:
+        - Liverpool v PSV
+        - Liverpool v PSV Eindhoven
+        - Liverpool vs PSV
+        - Liverpool.v.PSV
+        - Liverpool.v.PSV.Eindhoven
+        - Liverpool.vs.PSV
+        - Liverpool.vs.PSV.Eindhoven
+        Liverpool vs Qarabağ:
+        - Liverpool v Qarabag
+        - Liverpool v Qarabağ
+        - Liverpool vs Qarabag
+        - Liverpool.v.Qarabag
+        - Liverpool.v.Qarabağ
+        - Liverpool.vs.Qarabag
+        - Liverpool.vs.Qarabağ
+        Liverpool vs Real Madrid:
+        - Liverpool v Real
+        - Liverpool v Real Madrid
+        - Liverpool vs Real
+        - Liverpool.v.Real
+        - Liverpool.v.Real.Madrid
+        - Liverpool.vs.Real
+        - Liverpool.vs.Real.Madrid
+        Man City vs Dortmund:
+        - MC v Borussia
+        - MC v Borussia Dortmund
+        - MC v Dortmund
+        - MC vs Borussia
+        - MC vs Borussia Dortmund
+        - MC vs Dortmund
+        - MC.v.Borussia
+        - MC.v.Borussia.Dortmund
+        - MC.v.Dortmund
+        - MC.vs.Borussia
+        - MC.vs.Borussia.Dortmund
+        - MC.vs.Dortmund
+        - Man City v BVB
+        - Man City v Borussia
+        - Man City v Borussia Dortmund
+        - Man City v Dortmund
+        - Man City vs BVB
+        - Man City vs Borussia
+        - Man City vs Borussia Dortmund
+        - Man.City.v.BVB
+        - Man.City.v.Borussia
+        - Man.City.v.Borussia.Dortmund
+        - Man.City.v.Dortmund
+        - Man.City.vs.BVB
+        - Man.City.vs.Borussia
+        - Man.City.vs.Borussia.Dortmund
+        - Man.City.vs.Dortmund
+        - Manchester City v Borussia
+        - Manchester City v Dortmund
+        - Manchester City vs Borussia
+        - Manchester City vs Dortmund
+        - Manchester.City.v.Borussia
+        - Manchester.City.v.Dortmund
+        - Manchester.City.vs.Borussia
+        - Manchester.City.vs.Dortmund
+        Man City vs Galatasaray:
+        - MC v Galatasaray
+        - MC vs Galatasaray
+        - MC.v.Galatasaray
+        - MC.vs.Galatasaray
+        - Man City v Galatasaray
+        - Man.City.v.Galatasaray
+        - Man.City.vs.Galatasaray
+        - Manchester City v Galatasaray
+        - Manchester City vs Galatasaray
+        - Manchester.City.v.Galatasaray
+        - Manchester.City.vs.Galatasaray
+        Man City vs Leverkusen:
+        - MC v Leverkusen
+        - MC vs Leverkusen
+        - MC.v.Leverkusen
+        - MC.vs.Leverkusen
+        - Man City v Leverkusen
+        - Man.City.v.Leverkusen
+        - Man.City.vs.Leverkusen
+        - Manchester City v Leverkusen
+        - Manchester City vs Leverkusen
+        - Manchester.City.v.Leverkusen
+        - Manchester.City.vs.Leverkusen
+        Man City vs Napoli:
+        - MC v Napoli
+        - MC vs Napoli
+        - MC.v.Napoli
+        - MC.vs.Napoli
+        - Man City v Napoli
+        - Man City v SSC Napoli
+        - Man City vs SSC Napoli
+        - Man.City.v.Napoli
+        - Man.City.v.SSC.Napoli
+        - Man.City.vs.Napoli
+        - Man.City.vs.SSC.Napoli
+        - Manchester City v Napoli
+        - Manchester City vs Napoli
+        - Manchester.City.v.Napoli
+        - Manchester.City.vs.Napoli
+        Napoli vs Chelsea:
+        - Napoli v Chelsea
+        - Napoli v Chelsea FC
+        - Napoli vs Chelsea FC
+        - Napoli.v.Chelsea
+        - Napoli.v.Chelsea.FC
+        - Napoli.vs.Chelsea
+        - Napoli.vs.Chelsea.FC
+        - SSC Napoli v Chelsea
+        - SSC Napoli vs Chelsea
+        - SSC.Napoli.v.Chelsea
+        - SSC.Napoli.vs.Chelsea
+        Napoli vs Eintracht Frankfurt:
+        - Napoli v Eintracht Frankfurt
+        - Napoli v Frankfurt
+        - Napoli vs Frankfurt
+        - Napoli.v.Eintracht.Frankfurt
+        - Napoli.v.Frankfurt
+        - Napoli.vs.Eintracht.Frankfurt
+        - Napoli.vs.Frankfurt
+        - SSC Napoli v Eintracht Frankfurt
+        - SSC Napoli vs Eintracht Frankfurt
+        - SSC.Napoli.v.Eintracht.Frankfurt
+        - SSC.Napoli.vs.Eintracht.Frankfurt
+        Napoli vs Qarabağ:
+        - Napoli v Qarabag
+        - Napoli v Qarabağ
+        - Napoli vs Qarabag
+        - Napoli.v.Qarabag
+        - Napoli.v.Qarabağ
+        - Napoli.vs.Qarabag
+        - Napoli.vs.Qarabağ
+        - SSC Napoli v Qarabağ
+        - SSC Napoli vs Qarabağ
+        - SSC.Napoli.v.Qarabağ
+        - SSC.Napoli.vs.Qarabağ
+        Napoli vs Sporting:
+        - Napoli v Sporting
+        - Napoli v Sporting CP
+        - Napoli vs Sporting CP
+        - Napoli.v.Sporting
+        - Napoli.v.Sporting.CP
+        - Napoli.vs.Sporting
+        - Napoli.vs.Sporting.CP
+        - SSC Napoli v Sporting
+        - SSC Napoli vs Sporting
+        - SSC.Napoli.v.Sporting
+        - SSC.Napoli.vs.Sporting
+        Newcastle vs Barcelona:
+        - Newcastle United v Barcelona
+        - Newcastle United vs Barcelona
+        - Newcastle v Barcelona
+        - Newcastle v FC Barcelona
+        - Newcastle vs FC Barcelona
+        - Newcastle.United.v.Barcelona
+        - Newcastle.United.vs.Barcelona
+        - Newcastle.v.Barcelona
+        - Newcastle.v.FC.Barcelona
+        - Newcastle.vs.Barcelona
+        - Newcastle.vs.FC.Barcelona
+        Newcastle vs Benfica:
+        - Newcastle United v Benfica
+        - Newcastle United vs Benfica
+        - Newcastle v Benfica
+        - Newcastle v SL Benfica
+        - Newcastle vs SL Benfica
+        - Newcastle.United.v.Benfica
+        - Newcastle.United.vs.Benfica
+        - Newcastle.v.Benfica
+        - Newcastle.v.SL.Benfica
+        - Newcastle.vs.Benfica
+        - Newcastle.vs.SL.Benfica
+        Newcastle vs Bilbao:
+        - Newcastle United v Bilbao
+        - Newcastle United vs Bilbao
+        - Newcastle v Bilbao
+        - Newcastle.United.v.Bilbao
+        - Newcastle.United.vs.Bilbao
+        - Newcastle.v.Bilbao
+        - Newcastle.vs.Bilbao
+        Newcastle vs PSV Eindhoven:
+        - Newcastle United v PSV Eindhoven
+        - Newcastle United vs PSV Eindhoven
+        - Newcastle v PSV
+        - Newcastle v PSV Eindhoven
+        - Newcastle vs PSV
+        - Newcastle.United.v.PSV.Eindhoven
+        - Newcastle.United.vs.PSV.Eindhoven
+        - Newcastle.v.PSV
+        - Newcastle.v.PSV.Eindhoven
+        - Newcastle.vs.PSV
+        - Newcastle.vs.PSV.Eindhoven
+        Olympiakos vs Leverkusen:
+        - Olympiacos v Leverkusen
+        - Olympiacos vs Leverkusen
+        - Olympiacos.v.Leverkusen
+        - Olympiacos.vs.Leverkusen
+        - Olympiakos v Leverkusen
+        - Olympiakos.v.Leverkusen
+        - Olympiakos.vs.Leverkusen
+        Olympiakos vs PSV Eindhoven:
+        - Olympiacos v PSV Eindhoven
+        - Olympiacos vs PSV Eindhoven
+        - Olympiacos.v.PSV.Eindhoven
+        - Olympiacos.vs.PSV.Eindhoven
+        - Olympiakos v PSV
+        - Olympiakos v PSV Eindhoven
+        - Olympiakos vs PSV
+        - Olympiakos.v.PSV
+        - Olympiakos.v.PSV.Eindhoven
+        - Olympiakos.vs.PSV
+        - Olympiakos.vs.PSV.Eindhoven
+        Olympiakos vs Pafos:
+        - Olympiacos v Pafos
+        - Olympiacos vs Pafos
+        - Olympiacos.v.Pafos
+        - Olympiacos.vs.Pafos
+        - Olympiakos v Pafos
+        - Olympiakos.v.Pafos
+        - Olympiakos.vs.Pafos
+        Olympiakos vs Real Madrid:
+        - Olympiacos v Real Madrid
+        - Olympiacos vs Real Madrid
+        - Olympiacos.v.Real.Madrid
+        - Olympiacos.vs.Real.Madrid
+        - Olympiakos v Real
+        - Olympiakos v Real Madrid
+        - Olympiakos vs Real
+        - Olympiakos.v.Real
+        - Olympiakos.v.Real.Madrid
+        - Olympiakos.vs.Real
+        - Olympiakos.vs.Real.Madrid
+        PSG vs Atalanta:
+        - PSG v Atalanta
+        - PSG v Atalanta BC
+        - PSG vs Atalanta BC
+        - PSG.v.Atalanta
+        - PSG.v.Atalanta.BC
+        - PSG.vs.Atalanta
+        - PSG.vs.Atalanta.BC
+        - Paris SG v Atalanta
+        - Paris SG vs Atalanta
+        - Paris Saint-Germain v Atalanta
+        - Paris Saint-Germain vs Atalanta
+        - Paris.SG.v.Atalanta
+        - Paris.SG.vs.Atalanta
+        - Paris.Saint.Germain.v.Atalanta
+        - Paris.Saint.Germain.vs.Atalanta
+        PSG vs Bayern:
+        - PSG v Bayern
+        - PSG v Bayern Munich
+        - PSG v FC Bayern
+        - PSG vs Bayern Munich
+        - PSG vs FC Bayern
+        - PSG.v.Bayern
+        - PSG.v.Bayern.Munich
+        - PSG.v.FC.Bayern
+        - PSG.vs.Bayern
+        - PSG.vs.Bayern.Munich
+        - PSG.vs.FC.Bayern
+        - Paris SG v Bayern
+        - Paris SG vs Bayern
+        - Paris Saint-Germain v Bayern
+        - Paris Saint-Germain vs Bayern
+        - Paris.SG.v.Bayern
+        - Paris.SG.vs.Bayern
+        - Paris.Saint.Germain.v.Bayern
+        - Paris.Saint.Germain.vs.Bayern
+        PSG vs Newcastle:
+        - PSG v Newcastle
+        - PSG v Newcastle United
+        - PSG vs Newcastle United
+        - PSG.v.Newcastle
+        - PSG.v.Newcastle.United
+        - PSG.vs.Newcastle
+        - PSG.vs.Newcastle.United
+        - Paris SG v Newcastle
+        - Paris SG vs Newcastle
+        - Paris Saint-Germain v Newcastle
+        - Paris Saint-Germain vs Newcastle
+        - Paris.SG.v.Newcastle
+        - Paris.SG.vs.Newcastle
+        - Paris.Saint.Germain.v.Newcastle
+        - Paris.Saint.Germain.vs.Newcastle
+        PSG vs Tottenham:
+        - PSG v Spurs
+        - PSG v Tottenham
+        - PSG v Tottenham Hotspur
+        - PSG vs Spurs
+        - PSG vs Tottenham Hotspur
+        - PSG.v.Spurs
+        - PSG.v.Tottenham
+        - PSG.v.Tottenham.Hotspur
+        - PSG.vs.Spurs
+        - PSG.vs.Tottenham
+        - PSG.vs.Tottenham.Hotspur
+        - Paris SG v Tottenham
+        - Paris SG vs Tottenham
+        - Paris Saint-Germain v Tottenham
+        - Paris Saint-Germain vs Tottenham
+        - Paris.SG.v.Tottenham
+        - Paris.SG.vs.Tottenham
+        - Paris.Saint.Germain.v.Tottenham
+        - Paris.Saint.Germain.vs.Tottenham
+        PSV Eindhoven vs Atlético Madrid:
+        - PSV Eindhoven v Atletico Madrid
+        - PSV Eindhoven v Atlético Madrid
+        - PSV Eindhoven vs Atletico Madrid
+        - PSV v Atlético Madrid
+        - PSV vs Atlético Madrid
+        - PSV.Eindhoven.v.Atletico.Madrid
+        - PSV.Eindhoven.v.Atlético.Madrid
+        - PSV.Eindhoven.vs.Atletico.Madrid
+        - PSV.Eindhoven.vs.Atlético.Madrid
+        - PSV.v.Atlético.Madrid
+        - PSV.vs.Atlético.Madrid
+        PSV Eindhoven vs Bayern:
+        - PSV Eindhoven v Bayern
+        - PSV Eindhoven v Bayern Munich
+        - PSV Eindhoven v FC Bayern
+        - PSV Eindhoven vs Bayern Munich
+        - PSV Eindhoven vs FC Bayern
+        - PSV v Bayern
+        - PSV vs Bayern
+        - PSV.Eindhoven.v.Bayern
+        - PSV.Eindhoven.v.Bayern.Munich
+        - PSV.Eindhoven.v.FC.Bayern
+        - PSV.Eindhoven.vs.Bayern
+        - PSV.Eindhoven.vs.Bayern.Munich
+        - PSV.Eindhoven.vs.FC.Bayern
+        - PSV.v.Bayern
+        - PSV.vs.Bayern
+        PSV Eindhoven vs Napoli:
+        - PSV Eindhoven v Napoli
+        - PSV Eindhoven v SSC Napoli
+        - PSV Eindhoven vs SSC Napoli
+        - PSV v Napoli
+        - PSV vs Napoli
+        - PSV.Eindhoven.v.Napoli
+        - PSV.Eindhoven.v.SSC.Napoli
+        - PSV.Eindhoven.vs.Napoli
+        - PSV.Eindhoven.vs.SSC.Napoli
+        - PSV.v.Napoli
+        - PSV.vs.Napoli
+        PSV Eindhoven vs Union Saint-Gilloise:
+        - PSV Eindhoven v Union SG
+        - PSV Eindhoven v Union Saint Gilloise
+        - PSV Eindhoven v Union Saint-Gilloise
+        - PSV Eindhoven vs Union SG
+        - PSV Eindhoven vs Union Saint Gilloise
+        - PSV v Union Saint-Gilloise
+        - PSV vs Union Saint-Gilloise
+        - PSV.Eindhoven.v.Union.SG
+        - PSV.Eindhoven.v.Union.Saint.Gilloise
+        - PSV.Eindhoven.vs.Union.SG
+        - PSV.Eindhoven.vs.Union.Saint.Gilloise
+        - PSV.v.Union.Saint.Gilloise
+        - PSV.vs.Union.Saint.Gilloise
+        Pafos vs AS Monaco:
+        - Pafos v AS Monaco
+        - Pafos v Monaco
+        - Pafos vs Monaco
+        - Pafos.v.AS.Monaco
+        - Pafos.v.Monaco
+        - Pafos.vs.AS.Monaco
+        - Pafos.vs.Monaco
+        Pafos vs Bayern:
+        - Pafos v Bayern
+        - Pafos v Bayern Munich
+        - Pafos v FC Bayern
+        - Pafos vs Bayern Munich
+        - Pafos vs FC Bayern
+        - Pafos.v.Bayern
+        - Pafos.v.Bayern.Munich
+        - Pafos.v.FC.Bayern
+        - Pafos.vs.Bayern
+        - Pafos.vs.Bayern.Munich
+        - Pafos.vs.FC.Bayern
+        Pafos vs Slavia Prag:
+        - Pafos v Slavia
+        - Pafos v Slavia Prag
+        - Pafos v Slavia Prague
+        - Pafos vs Slavia
+        - Pafos vs Slavia Prague
+        - Pafos.v.Slavia
+        - Pafos.v.Slavia.Prag
+        - Pafos.v.Slavia.Prague
+        - Pafos.vs.Slavia
+        - Pafos.vs.Slavia.Prag
+        - Pafos.vs.Slavia.Prague
+        Pafos vs Villarreal:
+        - Pafos v Villarreal
+        - Pafos v Villarreal CF
+        - Pafos vs Villarreal CF
+        - Pafos.v.Villarreal
+        - Pafos.v.Villarreal.CF
+        - Pafos.vs.Villarreal
+        - Pafos.vs.Villarreal.CF
+        Qarabağ vs Ajax:
+        - Qarabag v Ajax
+        - Qarabag vs Ajax
+        - Qarabag.v.Ajax
+        - Qarabag.vs.Ajax
+        - Qarabağ v AFC Ajax
+        - Qarabağ v Ajax
+        - Qarabağ vs AFC Ajax
+        - Qarabağ.v.AFC.Ajax
+        - Qarabağ.v.Ajax
+        - Qarabağ.vs.AFC.Ajax
+        - Qarabağ.vs.Ajax
+        Qarabağ vs Chelsea:
+        - Qarabag v Chelsea
+        - Qarabag vs Chelsea
+        - Qarabag.v.Chelsea
+        - Qarabag.vs.Chelsea
+        - Qarabağ v Chelsea
+        - Qarabağ v Chelsea FC
+        - Qarabağ vs Chelsea FC
+        - Qarabağ.v.Chelsea
+        - Qarabağ.v.Chelsea.FC
+        - Qarabağ.vs.Chelsea
+        - Qarabağ.vs.Chelsea.FC
+        Qarabağ vs Eintracht Frankfurt:
+        - Qarabag v Eintracht Frankfurt
+        - Qarabag vs Eintracht Frankfurt
+        - Qarabag.v.Eintracht.Frankfurt
+        - Qarabag.vs.Eintracht.Frankfurt
+        - Qarabağ v Eintracht Frankfurt
+        - Qarabağ v Frankfurt
+        - Qarabağ vs Frankfurt
+        - Qarabağ.v.Eintracht.Frankfurt
+        - Qarabağ.v.Frankfurt
+        - Qarabağ.vs.Eintracht.Frankfurt
+        - Qarabağ.vs.Frankfurt
+        Qarabağ vs Köpenhamn:
+        - Qarabag v Köpenhamn
+        - Qarabag vs Köpenhamn
+        - Qarabag.v.Köpenhamn
+        - Qarabag.vs.Köpenhamn
+        - Qarabağ v Copenhagen
+        - Qarabağ v FC Copenhagen
+        - Qarabağ v Kopenhamn
+        - Qarabağ v Köpenhamn
+        - Qarabağ vs Copenhagen
+        - Qarabağ vs FC Copenhagen
+        - Qarabağ vs Kopenhamn
+        - Qarabağ.v.Copenhagen
+        - Qarabağ.v.FC.Copenhagen
+        - Qarabağ.v.Kopenhamn
+        - Qarabağ.v.Köpenhamn
+        - Qarabağ.vs.Copenhagen
+        - Qarabağ.vs.FC.Copenhagen
+        - Qarabağ.vs.Kopenhamn
+        - Qarabağ.vs.Köpenhamn
+        Real Madrid vs AS Monaco:
+        - Real Madrid v AS Monaco
+        - Real Madrid v Monaco
+        - Real Madrid vs Monaco
+        - Real v AS Monaco
+        - Real vs AS Monaco
+        - Real.Madrid.v.AS.Monaco
+        - Real.Madrid.v.Monaco
+        - Real.Madrid.vs.AS.Monaco
+        - Real.Madrid.vs.Monaco
+        - Real.v.AS.Monaco
+        - Real.vs.AS.Monaco
+        Real Madrid vs Juventus:
+        - Real Madrid v Juve
+        - Real Madrid v Juventus
+        - Real Madrid vs Juve
+        - Real v Juventus
+        - Real vs Juventus
+        - Real.Madrid.v.Juve
+        - Real.Madrid.v.Juventus
+        - Real.Madrid.vs.Juve
+        - Real.Madrid.vs.Juventus
+        - Real.v.Juventus
+        - Real.vs.Juventus
+        Real Madrid vs L'OM:
+        - Real Madrid v L'OM
+        - Real Madrid v LOM
+        - Real Madrid v Marseille
+        - Real Madrid v OM
+        - Real Madrid v Olympique Marseille
+        - Real Madrid vs LOM
+        - Real Madrid vs Marseille
+        - Real Madrid vs OM
+        - Real Madrid vs Olympique Marseille
+        - Real v L'OM
+        - Real vs L'OM
+        - Real.Madrid.v.LOM
+        - Real.Madrid.v.Marseille
+        - Real.Madrid.v.OM
+        - Real.Madrid.v.Olympique.Marseille
+        - Real.Madrid.vs.LOM
+        - Real.Madrid.vs.Marseille
+        - Real.Madrid.vs.OM
+        - Real.Madrid.vs.Olympique.Marseille
+        - Real.v.LOM
+        - Real.vs.LOM
+        Real Madrid vs Man City:
+        - Real Madrid v MC
+        - Real Madrid v Man City
+        - Real Madrid v Manchester City
+        - Real Madrid vs MC
+        - Real Madrid vs Manchester City
+        - Real v Man City
+        - Real vs Man City
+        - Real.Madrid.v.MC
+        - Real.Madrid.v.Man.City
+        - Real.Madrid.v.Manchester.City
+        - Real.Madrid.vs.MC
+        - Real.Madrid.vs.Man.City
+        - Real.Madrid.vs.Manchester.City
+        - Real.v.Man.City
+        - Real.vs.Man.City
+        Slavia Prag vs Arsenal:
+        - Slavia Prag v Arsenal
+        - Slavia Prag v Arsenal FC
+        - Slavia Prag vs Arsenal FC
+        - Slavia Prague v Arsenal
+        - Slavia Prague vs Arsenal
+        - Slavia v Arsenal
+        - Slavia vs Arsenal
+        - Slavia.Prag.v.Arsenal
+        - Slavia.Prag.v.Arsenal.FC
+        - Slavia.Prag.vs.Arsenal
+        - Slavia.Prag.vs.Arsenal.FC
+        - Slavia.Prague.v.Arsenal
+        - Slavia.Prague.vs.Arsenal
+        - Slavia.v.Arsenal
+        - Slavia.vs.Arsenal
+        Slavia Prag vs Barcelona:
+        - Slavia Prag v Barcelona
+        - Slavia Prag v FC Barcelona
+        - Slavia Prag vs FC Barcelona
+        - Slavia Prague v Barcelona
+        - Slavia Prague vs Barcelona
+        - Slavia v Barcelona
+        - Slavia vs Barcelona
+        - Slavia.Prag.v.Barcelona
+        - Slavia.Prag.v.FC.Barcelona
+        - Slavia.Prag.vs.Barcelona
+        - Slavia.Prag.vs.FC.Barcelona
+        - Slavia.Prague.v.Barcelona
+        - Slavia.Prague.vs.Barcelona
+        - Slavia.v.Barcelona
+        - Slavia.vs.Barcelona
+        Slavia Prag vs Bilbao:
+        - Slavia Prag v Bilbao
+        - Slavia Prague v Bilbao
+        - Slavia Prague vs Bilbao
+        - Slavia v Bilbao
+        - Slavia vs Bilbao
+        - Slavia.Prag.v.Bilbao
+        - Slavia.Prag.vs.Bilbao
+        - Slavia.Prague.v.Bilbao
+        - Slavia.Prague.vs.Bilbao
+        - Slavia.v.Bilbao
+        - Slavia.vs.Bilbao
+        Slavia Prag vs Bodø/Glimt:
+        - Slavia Prag v Bodo Glimt
+        - Slavia Prag v Bodo/Glimt
+        - Slavia Prag v Bodø Glimt
+        - Slavia Prag v Bodø-Glimt
+        - Slavia Prag v Bodø/Glimt
+        - Slavia Prag vs Bodo Glimt
+        - Slavia Prag vs Bodo/Glimt
+        - Slavia Prag vs Bodø Glimt
+        - Slavia Prag vs Bodø-Glimt
+        - Slavia Prague v Bodø/Glimt
+        - Slavia Prague vs Bodø/Glimt
+        - Slavia v Bodø/Glimt
+        - Slavia vs Bodø/Glimt
+        - Slavia.Prag.v.Bodo.Glimt
+        - Slavia.Prag.v.Bodø.Glimt
+        - Slavia.Prag.vs.Bodo.Glimt
+        - Slavia.Prag.vs.Bodø.Glimt
+        - Slavia.Prague.v.Bodø.Glimt
+        - Slavia.Prague.vs.Bodø.Glimt
+        - Slavia.v.Bodø.Glimt
+        - Slavia.vs.Bodø.Glimt
+        Sporting vs Brügge:
+        - Sporting CP v Brügge
+        - Sporting CP vs Brügge
+        - Sporting v Brugge
+        - Sporting v Brügge
+        - Sporting v Club Brugge
+        - Sporting vs Brugge
+        - Sporting vs Club Brugge
+        - Sporting.CP.v.Brügge
+        - Sporting.CP.vs.Brügge
+        - Sporting.v.Brugge
+        - Sporting.v.Brügge
+        - Sporting.v.Club.Brugge
+        - Sporting.vs.Brugge
+        - Sporting.vs.Brügge
+        - Sporting.vs.Club.Brugge
+        Sporting vs FC Kairat:
+        - Sporting CP v FC Kairat
+        - Sporting CP vs FC Kairat
+        - Sporting v FC Kairat
+        - Sporting.CP.v.FC.Kairat
+        - Sporting.CP.vs.FC.Kairat
+        - Sporting.v.FC.Kairat
+        - Sporting.vs.FC.Kairat
+        Sporting vs L'OM:
+        - Sporting CP v L'OM
+        - Sporting CP vs L'OM
+        - Sporting v L'OM
+        - Sporting v LOM
+        - Sporting v Marseille
+        - Sporting v OM
+        - Sporting v Olympique Marseille
+        - Sporting vs LOM
+        - Sporting vs Marseille
+        - Sporting vs OM
+        - Sporting vs Olympique Marseille
+        - Sporting.CP.v.LOM
+        - Sporting.CP.vs.LOM
+        - Sporting.v.LOM
+        - Sporting.v.Marseille
+        - Sporting.v.OM
+        - Sporting.v.Olympique.Marseille
+        - Sporting.vs.LOM
+        - Sporting.vs.Marseille
+        - Sporting.vs.OM
+        - Sporting.vs.Olympique.Marseille
+        Sporting vs PSG:
+        - Sporting CP v PSG
+        - Sporting CP vs PSG
+        - Sporting v PSG
+        - Sporting v Paris SG
+        - Sporting v Paris Saint-Germain
+        - Sporting vs Paris SG
+        - Sporting vs Paris Saint-Germain
+        - Sporting.CP.v.PSG
+        - Sporting.CP.vs.PSG
+        - Sporting.v.PSG
+        - Sporting.v.Paris.SG
+        - Sporting.v.Paris.Saint.Germain
+        - Sporting.vs.PSG
+        - Sporting.vs.Paris.SG
+        - Sporting.vs.Paris.Saint.Germain
+        Tottenham vs Dortmund:
+        - Spurs v Dortmund
+        - Spurs vs Dortmund
+        - Spurs.v.Dortmund
+        - Spurs.vs.Dortmund
+        - Tottenham Hotspur v Dortmund
+        - Tottenham Hotspur vs Dortmund
+        - Tottenham v BVB
+        - Tottenham v Borussia
+        - Tottenham v Borussia Dortmund
+        - Tottenham v Dortmund
+        - Tottenham vs BVB
+        - Tottenham vs Borussia
+        - Tottenham vs Borussia Dortmund
+        - Tottenham.Hotspur.v.Dortmund
+        - Tottenham.Hotspur.vs.Dortmund
+        - Tottenham.v.BVB
+        - Tottenham.v.Borussia
+        - Tottenham.v.Borussia.Dortmund
+        - Tottenham.v.Dortmund
+        - Tottenham.vs.BVB
+        - Tottenham.vs.Borussia
+        - Tottenham.vs.Borussia.Dortmund
+        - Tottenham.vs.Dortmund
+        Tottenham vs Köpenhamn:
+        - Spurs v Köpenhamn
+        - Spurs vs Köpenhamn
+        - Spurs.v.Köpenhamn
+        - Spurs.vs.Köpenhamn
+        - Tottenham Hotspur v Köpenhamn
+        - Tottenham Hotspur vs Köpenhamn
+        - Tottenham v Copenhagen
+        - Tottenham v FC Copenhagen
+        - Tottenham v Kopenhamn
+        - Tottenham v Köpenhamn
+        - Tottenham vs Copenhagen
+        - Tottenham vs FC Copenhagen
+        - Tottenham vs Kopenhamn
+        - Tottenham.Hotspur.v.Köpenhamn
+        - Tottenham.Hotspur.vs.Köpenhamn
+        - Tottenham.v.Copenhagen
+        - Tottenham.v.FC.Copenhagen
+        - Tottenham.v.Kopenhamn
+        - Tottenham.v.Köpenhamn
+        - Tottenham.vs.Copenhagen
+        - Tottenham.vs.FC.Copenhagen
+        - Tottenham.vs.Kopenhamn
+        - Tottenham.vs.Köpenhamn
+        Tottenham vs Slavia Prag:
+        - Spurs v Slavia Prag
+        - Spurs vs Slavia Prag
+        - Spurs.v.Slavia.Prag
+        - Spurs.vs.Slavia.Prag
+        - Tottenham Hotspur v Slavia Prag
+        - Tottenham Hotspur vs Slavia Prag
+        - Tottenham v Slavia
+        - Tottenham v Slavia Prag
+        - Tottenham v Slavia Prague
+        - Tottenham vs Slavia
+        - Tottenham vs Slavia Prague
+        - Tottenham.Hotspur.v.Slavia.Prag
+        - Tottenham.Hotspur.vs.Slavia.Prag
+        - Tottenham.v.Slavia
+        - Tottenham.v.Slavia.Prag
+        - Tottenham.v.Slavia.Prague
+        - Tottenham.vs.Slavia
+        - Tottenham.vs.Slavia.Prag
+        - Tottenham.vs.Slavia.Prague
+        Tottenham vs Villarreal:
+        - Spurs v Villarreal
+        - Spurs vs Villarreal
+        - Spurs.v.Villarreal
+        - Spurs.vs.Villarreal
+        - Tottenham Hotspur v Villarreal
+        - Tottenham Hotspur vs Villarreal
+        - Tottenham v Villarreal
+        - Tottenham v Villarreal CF
+        - Tottenham vs Villarreal CF
+        - Tottenham.Hotspur.v.Villarreal
+        - Tottenham.Hotspur.vs.Villarreal
+        - Tottenham.v.Villarreal
+        - Tottenham.v.Villarreal.CF
+        - Tottenham.vs.Villarreal
+        - Tottenham.vs.Villarreal.CF
+        Union Saint-Gilloise vs Atalanta:
+        - Union SG v Atalanta
+        - Union SG vs Atalanta
+        - Union Saint Gilloise v Atalanta
+        - Union Saint Gilloise vs Atalanta
+        - Union Saint-Gilloise v Atalanta
+        - Union Saint-Gilloise v Atalanta BC
+        - Union Saint-Gilloise vs Atalanta BC
+        - Union.SG.v.Atalanta
+        - Union.SG.vs.Atalanta
+        - Union.Saint.Gilloise.v.Atalanta
+        - Union.Saint.Gilloise.v.Atalanta.BC
+        - Union.Saint.Gilloise.vs.Atalanta
+        - Union.Saint.Gilloise.vs.Atalanta.BC
+        Union Saint-Gilloise vs Inter:
+        - Union SG v Inter
+        - Union SG vs Inter
+        - Union Saint Gilloise v Inter
+        - Union Saint Gilloise vs Inter
+        - Union Saint-Gilloise v Inter
+        - Union Saint-Gilloise v Inter Milan
+        - Union Saint-Gilloise vs Inter Milan
+        - Union.SG.v.Inter
+        - Union.SG.vs.Inter
+        - Union.Saint.Gilloise.v.Inter
+        - Union.Saint.Gilloise.v.Inter.Milan
+        - Union.Saint.Gilloise.vs.Inter
+        - Union.Saint.Gilloise.vs.Inter.Milan
+        Union Saint-Gilloise vs L'OM:
+        - Union SG v L'OM
+        - Union SG vs L'OM
+        - Union Saint Gilloise v L'OM
+        - Union Saint Gilloise vs L'OM
+        - Union Saint-Gilloise v L'OM
+        - Union Saint-Gilloise v LOM
+        - Union Saint-Gilloise v Marseille
+        - Union Saint-Gilloise v OM
+        - Union Saint-Gilloise v Olympique Marseille
+        - Union Saint-Gilloise vs LOM
+        - Union Saint-Gilloise vs Marseille
+        - Union Saint-Gilloise vs OM
+        - Union Saint-Gilloise vs Olympique Marseille
+        - Union.SG.v.LOM
+        - Union.SG.vs.LOM
+        - Union.Saint.Gilloise.v.LOM
+        - Union.Saint.Gilloise.v.Marseille
+        - Union.Saint.Gilloise.v.OM
+        - Union.Saint.Gilloise.v.Olympique.Marseille
+        - Union.Saint.Gilloise.vs.LOM
+        - Union.Saint.Gilloise.vs.Marseille
+        - Union.Saint.Gilloise.vs.OM
+        - Union.Saint.Gilloise.vs.Olympique.Marseille
+        Union Saint-Gilloise vs Newcastle:
+        - Union SG v Newcastle
+        - Union SG vs Newcastle
+        - Union Saint Gilloise v Newcastle
+        - Union Saint Gilloise vs Newcastle
+        - Union Saint-Gilloise v Newcastle
+        - Union Saint-Gilloise v Newcastle United
+        - Union Saint-Gilloise vs Newcastle United
+        - Union.SG.v.Newcastle
+        - Union.SG.vs.Newcastle
+        - Union.Saint.Gilloise.v.Newcastle
+        - Union.Saint.Gilloise.v.Newcastle.United
+        - Union.Saint.Gilloise.vs.Newcastle
+        - Union.Saint.Gilloise.vs.Newcastle.United
+        Villarreal vs Ajax:
+        - Villarreal CF v Ajax
+        - Villarreal CF vs Ajax
+        - Villarreal v AFC Ajax
+        - Villarreal v Ajax
+        - Villarreal vs AFC Ajax
+        - Villarreal.CF.v.Ajax
+        - Villarreal.CF.vs.Ajax
+        - Villarreal.v.AFC.Ajax
+        - Villarreal.v.Ajax
+        - Villarreal.vs.AFC.Ajax
+        - Villarreal.vs.Ajax
+        Villarreal vs Juventus:
+        - Villarreal CF v Juventus
+        - Villarreal CF vs Juventus
+        - Villarreal v Juve
+        - Villarreal v Juventus
+        - Villarreal vs Juve
+        - Villarreal.CF.v.Juventus
+        - Villarreal.CF.vs.Juventus
+        - Villarreal.v.Juve
+        - Villarreal.v.Juventus
+        - Villarreal.vs.Juve
+        - Villarreal.vs.Juventus
+        Villarreal vs Köpenhamn:
+        - Villarreal CF v Köpenhamn
+        - Villarreal CF vs Köpenhamn
+        - Villarreal v Copenhagen
+        - Villarreal v FC Copenhagen
+        - Villarreal v Kopenhamn
+        - Villarreal v Köpenhamn
+        - Villarreal vs Copenhagen
+        - Villarreal vs FC Copenhagen
+        - Villarreal vs Kopenhamn
+        - Villarreal.CF.v.Köpenhamn
+        - Villarreal.CF.vs.Köpenhamn
+        - Villarreal.v.Copenhagen
+        - Villarreal.v.FC.Copenhagen
+        - Villarreal.v.Kopenhamn
+        - Villarreal.v.Köpenhamn
+        - Villarreal.vs.Copenhagen
+        - Villarreal.vs.FC.Copenhagen
+        - Villarreal.vs.Kopenhamn
+        - Villarreal.vs.Köpenhamn
+        Villarreal vs Man City:
+        - Villarreal CF v Man City
+        - Villarreal CF vs Man City
+        - Villarreal v MC
+        - Villarreal v Man City
+        - Villarreal v Manchester City
+        - Villarreal vs MC
+        - Villarreal vs Manchester City
+        - Villarreal.CF.v.Man.City
+        - Villarreal.CF.vs.Man.City
+        - Villarreal.v.MC
+        - Villarreal.v.Man.City
+        - Villarreal.v.Manchester.City
+        - Villarreal.vs.MC
+        - Villarreal.vs.Man.City
+        - Villarreal.vs.Manchester.City
     - description: UEFA Champions League spaced releases
       regex: >-
-        (?i)^UEFA\s+Champions\s+League\s+(?P<season_year>\d{4}(?:-\d{4})?)\s+(?P<matchup>(?P<away>[A-Za-z0-9&'’À-ÖØ-öø-ÿ]+(?:\s+[A-Za-z0-9&'’À-ÖØ-öø-ÿ]+){0,3})\s+(?:vs?|VS?|V)\s+(?P<home>[A-Za-z0-9&'’À-ÖØ-öø-ÿ]+(?:\s+[A-Za-z0-9&'’À-ÖØ-öø-ÿ]+){0,3}))\s+(?P<match_date>\d{2}[ .-]\d{2}[ .-]\d{4}|\d{4}[ .-]\d{2}[ .-]\d{2})(?:\s+.+)?\.(?P<extension>mkv|mp4|ts|m4v|avi)$
+        (?i)^UEFA\\s+Champions\\s+League\\s+(?P<season_year>\\d{4}(?:-\\d{2,4})?)\\s+(?P<matchup>(?P<away>[A-Za-z&'’À-ÖØ-öø-ÿ]+(?:\\s+[A-Za-z&'’À-ÖØ-öø-ÿ]+){0,3})\\s+(?:vs?|VS?|V|versus)\\s+(?P<home>[A-Za-z&'’À-ÖØ-öø-ÿ]+(?:\\s+[A-Za-z&'’À-ÖØ-öø-ÿ]+){0,3}))\\s+(?P<match_date>\\d{2}[ .-]\\d{2}[ .-]\\d{4}|\\d{4}[ .-]\\d{2}[ .-]\\d{2})(?:\\s+.+)?\.(?P<extension>mkv|mp4|ts|m4v|avi)$
       season_selector:
         mode: key
         group: match_date
@@ -1834,6 +5139,7 @@ pattern_sets:
       episode_selector:
         group: matchup
         allow_fallback_to_title: true
+      session_aliases: *uefa_cl_aliases
 
   # ------------------------------------------------------------------
   # Premier League releases
