@@ -1045,7 +1045,7 @@ pattern_sets:
   uefa_champions_league: &uefa_champions_league_patterns
     - description: UEFA Champions League dot releases
       regex: >-
-        (?i)^UEFA[._\\s-]*Champions[._\\s-]*League[._\\s-]*(?P<season_year>\\d{4})(?:[._-]\\d{2})?[._\\s-]+(?P<matchup>(?P<away>[A-Za-z&'’À-ÖØ-öø-ÿ]+(?:[._\\s-]+[A-Za-z&'’À-ÖØ-öø-ÿ]+){0,4})[._\\s-]+(?:vs?|VS?|V)[._\\s-]+(?P<home>[A-Za-z&'’À-ÖØ-öø-ÿ]+(?:[._\\s-]+[A-Za-z&'’À-ÖØ-öø-ÿ]+){0,4}))(?=[._\\s-]+(?:\\d{3,4}p|1080|720|2160|4K|HDR|HEVC|H264|H265|x264|x265|WEB|Blu|HDTV|AMZN|STAN|PROPER|REPACK|MULTI|EN|ENG|AAC|DDP|Atmos|Rip|Pack)\\b|\.(?:mkv|mp4|ts|m4v|avi)$)
+        (?i)^UEFA[._\s-]*Champions[._\s-]*League[._\s-]*(?P<season_year>\d{4})(?:[._-]\d{2})?[._\s-]+(?P<matchup>(?P<away>[A-Za-z&'’À-ÖØ-öø-ÿ]+(?:[._\s-]+[A-Za-z&'’À-ÖØ-öø-ÿ]+){0,4})[._\s-]+(?:vs?|VS?|V)[._\s-]+(?P<home>[A-Za-z&'’À-ÖØ-öø-ÿ]+(?:[._\s-]+[A-Za-z&'’À-ÖØ-öø-ÿ]+){0,4}))(?=[._\s-]+(?:\d{3,4}p|1080|720|2160|4K|HDR|HEVC|H264|H265|x264|x265|WEB|Blu|HDTV|AMZN|STAN|PROPER|REPACK|MULTI|EN|ENG|AAC|DDP|Atmos|Rip|Pack)(?:[A-Za-z0-9]+)?|\.(?:mkv|mp4|ts|m4v|avi)$)
       season_selector:
         mode: title
         group: matchup
@@ -5080,7 +5080,7 @@ pattern_sets:
         - Villarreal.vs.Manchester.City
     - description: UEFA Champions League spaced releases
       regex: >-
-        (?i)^UEFA\\s+Champions\\s+League\\s+(?P<season_year>\\d{4}(?:-\\d{2,4})?)\\s+(?P<matchup>(?P<away>[A-Za-z&'’À-ÖØ-öø-ÿ]+(?:\\s+[A-Za-z&'’À-ÖØ-öø-ÿ]+){0,3})\\s+(?:vs?|VS?|V|versus)\\s+(?P<home>[A-Za-z&'’À-ÖØ-öø-ÿ]+(?:\\s+[A-Za-z&'’À-ÖØ-öø-ÿ]+){0,3}))\\s+(?P<match_date>\\d{2}[ .-]\\d{2}[ .-]\\d{4}|\\d{4}[ .-]\\d{2}[ .-]\\d{2})(?:\\s+.+)?\.(?P<extension>mkv|mp4|ts|m4v|avi)$
+        (?i)^UEFA\s+Champions\s+League\s+(?P<season_year>\d{4}(?:-\d{2,4})?)\s+(?P<matchup>(?P<away>[A-Za-z&'’À-ÖØ-öø-ÿ]+(?:\s+[A-Za-z&'’À-ÖØ-öø-ÿ]+){0,3})\s+(?:vs?|VS?|V|versus)\s+(?P<home>[A-Za-z&'’À-ÖØ-öø-ÿ]+(?:\s+[A-Za-z&'’À-ÖØ-öø-ÿ]+){0,3}))\s+(?P<match_date>\d{2}[ .-]\d{2}[ .-]\d{4}|\d{4}[ .-]\d{2}[ .-]\d{2})(?:\s+.+)?\.(?P<extension>mkv|mp4|ts|m4v|avi)$
       season_selector:
         mode: key
         group: match_date

@@ -85,3 +85,45 @@ samples:
         expect_episode: "Main Card"
       - value: "UFC 284 SHREDDiE 1080p WEB.mp4"
         expect_episode: "Main Card"
+
+  - description: "UEFA Champions League 2025 match samples"
+    sport:
+      id: "uefa_cl_samples"
+      name: "UEFA Champions League Samples"
+      pattern_sets:
+        - uefa_champions_league
+    show:
+      key: "uefa_cl_2025_26"
+      title: "UEFA Champions League 2025-26"
+      seasons:
+        - title: "Matchday 1"
+          round_number: 1
+          display_number: 1
+          episodes:
+            - title: "Bayern Munich vs Chelsea"
+            - title: "MC vs Napoli"
+        - title: "Matchday 2"
+          round_number: 2
+          display_number: 2
+          episodes:
+            - title: "Chelsea vs Benfica"
+        - title: "Matchday 4"
+          round_number: 4
+          display_number: 4
+          episodes:
+            - title: "Club Brugge vs Barcelona"
+            - title: "MC vs Borussia"
+            - title: "Slavia vs Arsenal"
+    filenames:
+      - value: "UEFA Champions League 2025 Bayern Munich vs Chelsea 17 09 2025 1080EN50fps.mkv"
+        expect_episode: "Bayern Munich vs Chelsea"
+      - value: "UEFA Champions League 2025 MC vs Napoli 18 09 2025 1080EN50fps.mkv"
+        expect_episode: "MC vs Napoli"
+      - value: "UEFA.Champions.League.2025.Chelsea.vs.Benfica.1080pEN50fps.mkv"
+        expect_episode: "Chelsea vs Benfica"
+      - value: "UEFA.Champions.League.2025.Club.Brugge.vs.Barcelona.1080pEN50fps.mkv"
+        expect_episode: "Club Brugge vs Barcelona"
+      - value: "UEFA.Champions.League.2025.MC.vs.Borussia.1080pEN50fps.mkv"
+        expect_episode: "MC vs Borussia"
+      - value: "UEFA.Champions.League.2025.Slavia.vs.Arsenal.1080pEN50fps.mkv"
+        expect_episode: "Slavia vs Arsenal"
