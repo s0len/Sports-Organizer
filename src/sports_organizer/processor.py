@@ -30,13 +30,14 @@ class SportRuntime:
 
 
 class Processor:
-    def __init__(self, config: AppConfig) -> None:
+    def __init__(self, config: AppConfig, *, enable_notifications: bool = True) -> None:
         self.config = config
         if not self.config.settings.dry_run:
             ensure_directory(self.config.settings.destination_dir)
             ensure_directory(self.config.settings.cache_dir)
         self.processed_cache = ProcessedFileCache(self.config.settings.cache_dir)
-        self.notifier = DiscordNotifier(self.config.settings.discord_webhook_url)
+        webhook_url = self.config.settings.discord_webhook_url if enable_notifications else None
+        self.notifier = DiscordNotifier(webhook_url)
         self._previous_summary: Optional[Tuple[int, int, int]] = None
 
     @staticmethod

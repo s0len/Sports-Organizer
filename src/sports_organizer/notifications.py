@@ -75,7 +75,7 @@ class DiscordNotifier:
             embed["description"] = description
 
         content = self._trim(
-            f"New {match.sport.name} entry is ready: {destination_display}",
+            f"New {match.sport.name} entry is ready: {episode_display}",
             limit=2000,
         )
 
