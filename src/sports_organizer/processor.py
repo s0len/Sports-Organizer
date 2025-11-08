@@ -12,7 +12,7 @@ from rich.progress import Progress
 from .cache import ProcessedFileCache
 from .config import AppConfig, SportConfig
 from .matcher import PatternRuntime, compile_patterns, match_file_to_episode
-from .metadata import MetadataFetchError, load_show
+from .metadata import MetadataFetchError, MetadataFingerprintStore, compute_show_fingerprint, load_show
 from .models import ProcessingStats, Show, SportFileMatch
 from .notifications import DiscordNotifier
 from .templating import render_template
@@ -36,9 +36,12 @@ class Processor:
             ensure_directory(self.config.settings.destination_dir)
             ensure_directory(self.config.settings.cache_dir)
         self.processed_cache = ProcessedFileCache(self.config.settings.cache_dir)
+        self.metadata_fingerprints = MetadataFingerprintStore(self.config.settings.cache_dir)
         webhook_url = self.config.settings.discord_webhook_url if enable_notifications else None
         self.notifier = DiscordNotifier(webhook_url)
         self._previous_summary: Optional[Tuple[int, int, int]] = None
+        self._metadata_changed_sports: List[Tuple[str, str]] = []
+        self._stale_destinations: Dict[str, Path] = {}
 
     @staticmethod
     def _format_log(event: str, fields: Optional[Mapping[str, object]] = None) -> str:
@@ -66,6 +69,7 @@ class Processor:
 
     def _load_sports(self) -> List[SportRuntime]:
         runtimes: List[SportRuntime] = []
+        self._metadata_changed_sports = []
         for sport in self.config.sports:
             if not sport.enabled:
                 LOGGER.debug(self._format_log("Skipping Disabled Sport", {"Sport": sport.id}))
@@ -99,6 +103,23 @@ class Processor:
                 continue
             patterns = compile_patterns(sport)
             extensions = {ext.lower() for ext in sport.source_extensions}
+
+            try:
+                fingerprint = compute_show_fingerprint(show, sport.metadata)
+            except Exception as exc:  # pragma: no cover - defensive, should not happen
+                LOGGER.warning(
+                    self._format_log(
+                        "Failed To Compute Metadata Fingerprint",
+                        {
+                            "Sport": sport.id,
+                            "Error": exc,
+                        },
+                    )
+                )
+            else:
+                if self.metadata_fingerprints.update(sport.id, fingerprint):
+                    self._metadata_changed_sports.append((sport.id, sport.name))
+
             runtimes.append(SportRuntime(sport=sport, show=show, patterns=patterns, extensions=extensions))
         return runtimes
 
@@ -119,6 +140,27 @@ class Processor:
     def run_once(self) -> ProcessingStats:
         self.processed_cache.prune_missing_sources()
         runtimes = self._load_sports()
+        self._stale_destinations = {}
+        if self._metadata_changed_sports:
+            labels = ", ".join(
+                f"{sport_id} ({sport_name})" if sport_name and sport_name != sport_id else sport_id
+                for sport_id, sport_name in self._metadata_changed_sports
+            )
+            LOGGER.info(
+                self._format_log(
+                    "Metadata Updated",
+                    {
+                        "Sports": labels or "(unknown)",
+                    },
+                )
+            )
+            previous_records = self.processed_cache.snapshot()
+            self._stale_destinations = {
+                source: Path(record.destination)
+                for source, record in previous_records.items()
+                if record.destination
+            }
+            self.processed_cache.clear()
         stats = ProcessingStats()
 
         try:
@@ -197,6 +239,7 @@ class Processor:
         finally:
             if not self.config.settings.dry_run:
                 self.processed_cache.save()
+                self.metadata_fingerprints.save()
 
     def _gather_source_files(self, stats: Optional[ProcessingStats] = None) -> Iterable[Path]:
         root = self.config.settings.source_dir
@@ -503,6 +546,8 @@ class Processor:
         destination = match.destination_path
         settings = self.config.settings
         link_mode = (match.sport.link_mode or settings.link_mode).lower()
+        source_key = str(match.source_path)
+        old_destination = self._stale_destinations.get(source_key)
 
         replace_existing = False
         if destination.exists():
@@ -518,6 +563,12 @@ class Processor:
                                 "Source": match.source_path,
                             },
                         )
+                    )
+                    self._cleanup_old_destination(
+                        source_key,
+                        old_destination,
+                        destination,
+                        dry_run=settings.dry_run,
                     )
                     stats.register_skipped(
                         f"Destination exists: {destination} (source {match.source_path})",
@@ -591,10 +642,22 @@ class Processor:
             stats.register_processed()
             self.processed_cache.mark_processed(match.source_path, destination)
             self._notify_processed(match, destination_display)
+            self._cleanup_old_destination(
+                source_key,
+                old_destination,
+                destination,
+                dry_run=settings.dry_run,
+            )
         else:
             stats.register_skipped(f"Failed to link {match.source_path} -> {destination}: {result.reason}")
             if result.reason == "destination-exists":
                 self.processed_cache.mark_processed(match.source_path, destination)
+                self._cleanup_old_destination(
+                    source_key,
+                    old_destination,
+                    destination,
+                    dry_run=settings.dry_run,
+                )
 
     def _should_overwrite_existing(self, match: SportFileMatch) -> bool:
         source_name = match.source_path.name.lower()
@@ -714,3 +777,64 @@ class Processor:
         except ValueError:
             return str(destination)
         return str(relative)
+
+    def _cleanup_old_destination(
+        self,
+        source_key: str,
+        old_destination: Optional[Path],
+        new_destination: Path,
+        *,
+        dry_run: bool,
+    ) -> None:
+        if not old_destination:
+            self._stale_destinations.pop(source_key, None)
+            return
+
+        if old_destination == new_destination:
+            self._stale_destinations.pop(source_key, None)
+            return
+
+        if not old_destination.exists() or old_destination.is_dir():
+            self._stale_destinations.pop(source_key, None)
+            return
+
+        if dry_run:
+            LOGGER.debug(
+                self._format_log(
+                    "Dry-Run: Would Remove Obsolete Destination",
+                    {
+                        "Source": source_key,
+                        "Old Destination": old_destination,
+                        "Replaced With": self._format_relative_destination(new_destination),
+                    },
+                )
+            )
+            self._stale_destinations.pop(source_key, None)
+            return
+
+        try:
+            old_destination.unlink()
+        except OSError as exc:
+            LOGGER.warning(
+                self._format_log(
+                    "Failed To Remove Obsolete Destination",
+                    {
+                        "Source": source_key,
+                        "Old Destination": old_destination,
+                        "Error": exc,
+                    },
+                )
+            )
+        else:
+            LOGGER.info(
+                self._format_log(
+                    "Removed Obsolete Destination",
+                    {
+                        "Source": source_key,
+                        "Removed": self._format_relative_destination(old_destination),
+                        "Replaced With": self._format_relative_destination(new_destination),
+                    },
+                )
+            )
+        finally:
+            self._stale_destinations.pop(source_key, None)

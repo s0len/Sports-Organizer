@@ -72,6 +72,84 @@ def _store_cache(cache_file: Path, content: Dict[str, Any]) -> None:
         json.dump(payload, handle, ensure_ascii=False, indent=2, default=_json_default)
 
 
+class MetadataFingerprintStore:
+    """Tracks a lightweight hash of each sport's metadata to detect updates."""
+
+    def __init__(self, cache_dir: Path, filename: str = "metadata-digests.json") -> None:
+        self.cache_dir = cache_dir
+        self.filename = filename
+        self.path = self.cache_dir / "state" / self.filename
+        self._fingerprints: Dict[str, str] = {}
+        self._dirty = False
+        self._load()
+
+    def _load(self) -> None:
+        if not self.path.exists():
+            return
+
+        try:
+            with self.path.open("r", encoding="utf-8") as handle:
+                payload = json.load(handle)
+        except Exception as exc:  # noqa: BLE001
+            LOGGER.warning("Failed to load metadata fingerprint cache %s: %s", self.path, exc)
+            return
+
+        if not isinstance(payload, dict):
+            LOGGER.warning("Ignoring malformed metadata fingerprint cache %s", self.path)
+            return
+
+        fingerprints: Dict[str, str] = {}
+        for key, value in payload.items():
+            if isinstance(key, str) and isinstance(value, str):
+                fingerprints[key] = value
+        self._fingerprints = fingerprints
+
+    def get(self, key: str) -> Optional[str]:
+        return self._fingerprints.get(key)
+
+    def update(self, key: str, fingerprint: str) -> bool:
+        if self._fingerprints.get(key) == fingerprint:
+            return False
+        self._fingerprints[key] = fingerprint
+        self._dirty = True
+        return True
+
+    def remove(self, key: str) -> None:
+        if key in self._fingerprints:
+            del self._fingerprints[key]
+            self._dirty = True
+
+    def save(self) -> None:
+        if not self._dirty:
+            return
+
+        ensure_directory(self.path.parent)
+        try:
+            with self.path.open("w", encoding="utf-8") as handle:
+                json.dump(self._fingerprints, handle, ensure_ascii=False, indent=2, sort_keys=True)
+            self._dirty = False
+        except Exception as exc:  # noqa: BLE001
+            LOGGER.error("Failed to write metadata fingerprint cache %s: %s", self.path, exc)
+
+
+def compute_show_fingerprint(show: Show, metadata_cfg: MetadataConfig) -> str:
+    """Compute a hash representing the effective metadata for a sport."""
+
+    fingerprint_payload = {
+        "show_key": metadata_cfg.show_key,
+        "season_overrides": metadata_cfg.season_overrides,
+        "metadata": show.metadata,
+    }
+    serialized = json.dumps(
+        fingerprint_payload,
+        ensure_ascii=False,
+        sort_keys=True,
+        separators=(",", ":"),
+        default=_json_default,
+    )
+    return sha1_of_text(serialized)
+
+
 class MetadataFetchError(RuntimeError):
     """Raised when metadata cannot be retrieved from remote or cache."""
 

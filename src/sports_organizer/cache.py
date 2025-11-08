@@ -75,6 +75,16 @@ class ProcessedFileCache:
         except Exception as exc:  # noqa: BLE001
             LOGGER.error("Failed to write processed cache %s: %s", self.cache_path, exc)
 
+    def snapshot(self) -> Dict[str, CachedFileRecord]:
+        return {
+            key: CachedFileRecord(
+                mtime_ns=record.mtime_ns,
+                size=record.size,
+                destination=record.destination,
+            )
+            for key, record in self._records.items()
+        }
+
     def prune_missing_sources(self) -> None:
         removed = False
         for key in list(self._records.keys()):
