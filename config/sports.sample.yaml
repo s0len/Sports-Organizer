@@ -326,6 +326,25 @@ sports:
     pattern_sets:
       - nfl
 
+  - id: nba
+    name: NBA
+    enabled: true
+
+    metadata:
+      url: https://raw.githubusercontent.com/s0len/meta-manager-config/refs/heads/main/metadata-files/nba-2025-26.yaml
+      show_key: NBA 2025-26
+      ttl_hours: 24
+
+    source_globs:
+      - "NBA.*"
+      - "NBA *"
+      - "nba.*"
+      - "nba *"
+
+    # Use the built-in NBA template (pattern set name `nba`).
+    pattern_sets:
+      - nba
+
   - id: uefa_champions_league
     name: UEFA Champions League
     enabled: true

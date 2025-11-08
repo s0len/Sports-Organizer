@@ -127,3 +127,61 @@ samples:
         expect_episode: "MC vs Borussia"
       - value: "UEFA.Champions.League.2025.Slavia.vs.Arsenal.1080pEN50fps.mkv"
         expect_episode: "Slavia vs Arsenal"
+
+  - description: "NBA 2025-26 regular season samples"
+    sport:
+      id: "nba_regular_season"
+      name: "NBA Regular Season"
+      pattern_sets:
+        - nba
+    show:
+      key: "nba_2025_26"
+      title: "NBA 2025-26"
+      seasons:
+        - title: "Week 1"
+          display_number: 1
+          episodes:
+            - title: "Rockets at Thunder"
+            - title: "Warriors at Lakers"
+        - title: "Week 2"
+          display_number: 2
+          episodes:
+            - title: "Pelicans at Clippers"
+              aliases:
+                - "New Orleans Pelicans at LA Clippers"
+                - "New Orleans Pelicans vs LA Clippers"
+                - "Pelicans vs Clippers"
+            - title: "Warriors at Bucks"
+            - title: "Wizards at Thunder"
+            - title: "Heat at Spurs"
+        - title: "Week 3"
+          display_number: 3
+          episodes:
+            - title: "Suns at Warriors"
+              aliases:
+                - "Phoenix Suns at Golden State Warriors"
+                - "Phoenix Suns vs Golden State Warriors"
+                - "Suns vs Warriors"
+            - title: "Heat at Clippers"
+              aliases:
+                - "Miami Heat at LA Clippers"
+                - "Heat vs Clippers"
+            - title: "Suns at Clippers"
+              aliases:
+                - "Phoenix Suns at LA Clippers"
+                - "LA Clippers vs Phoenix Suns"
+                - "Phoenix Suns vs LA Clippers"
+            - title: "Wizards at Celtics"
+              aliases:
+                - "Washington Wizards at Boston Celtics"
+                - "Washington Wizards vs Boston Celtics"
+                - "Wizards vs Celtics"
+    filenames:
+      - value: "nba.2025.11.04.phoenix.suns.vs.golden.state.warriors.1080p.web.h264-gametime.mkv"
+        expect_episode: "Suns at Warriors"
+      - value: "nba.2025.10.31.new.orleans.pelicans.vs.la.clippers.1080p.web.h264-gametime.mkv"
+        expect_episode: "Pelicans at Clippers"
+      - value: "NBA.2025.11.06.LA.Clippers.Vs.Phoenix.Suns.1080p.WEB.H264-GAMETiME.mkv"
+        expect_episode: "Suns at Clippers"
+      - value: "NBA.2025.11.05.Washington.Wizards.Vs.Boston.Celtics.1080p.WEB.H264-GAMETiME.mkv"
+        expect_episode: "Wizards at Celtics"
