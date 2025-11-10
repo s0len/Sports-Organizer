@@ -10,3 +10,8 @@ node_modules/
 # Environment files
 .env
 .env.local 
+
+# Python files to ignore
+__pycache__/
+*.pyc
+.venv/
