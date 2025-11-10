@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from pathlib import Path
 
 from sports_organizer.config import AppConfig, MetadataConfig, PatternConfig, Settings, SportConfig
 from sports_organizer.metadata import MetadataNormalizer, compute_show_fingerprint
@@ -164,4 +165,14 @@ def test_metadata_change_relinks_and_removes_old_destination(tmp_path, monkeypat
 
     assert new_destination.exists()
     assert not old_destination.exists()
+
+
+def test_should_suppress_sample_variants() -> None:
+    assert Processor._should_suppress_sample_ignored(Path("sample.mkv"))
+    assert Processor._should_suppress_sample_ignored(
+        Path("nba.2025.11.08.chicago.bulls.vs.cleveland.cavaliers.1080p.web.h264-gametime-sample.mkv")
+    )
+    assert Processor._should_suppress_sample_ignored(Path("nba.sample.1080p.web.h264-gametime.mkv"))
+    assert not Processor._should_suppress_sample_ignored(Path("nba.sampleshow.1080p.mkv"))
+    assert not Processor._should_suppress_sample_ignored(Path("nba.example.1080p.mkv"))
 

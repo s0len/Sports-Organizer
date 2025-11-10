@@ -20,6 +20,8 @@ from .utils import ensure_directory, link_file, sanitize_component, slugify, nor
 
 LOGGER = logging.getLogger(__name__)
 
+SAMPLE_FILENAME_PATTERN = re.compile(r"(?<![a-z0-9])sample(?![a-z0-9])")
+
 
 @dataclass(slots=True)
 class SportRuntime:
@@ -364,12 +366,7 @@ class Processor:
     @staticmethod
     def _should_suppress_sample_ignored(source_path: Path) -> bool:
         name = source_path.name.lower()
-        if not name.startswith("sample"):
-            return False
-        if len(name) == len("sample"):
-            return True
-        next_char = name[len("sample") : len("sample") + 1]
-        return bool(next_char and not next_char.isalpha())
+        return bool(SAMPLE_FILENAME_PATTERN.search(name))
 
     def _format_ignored_detail(self, source_path: Path, diagnostics: List[Tuple[str, str]]) -> str:
         if not diagnostics:
