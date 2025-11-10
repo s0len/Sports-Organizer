@@ -5,6 +5,7 @@ from pathlib import Path
 
 from sports_organizer.config import AppConfig, MetadataConfig, PatternConfig, Settings, SportConfig
 from sports_organizer.metadata import MetadataNormalizer, compute_show_fingerprint
+from sports_organizer.models import Episode, Season, Show
 from sports_organizer.processor import Processor
 
 
@@ -165,6 +166,60 @@ def test_metadata_change_relinks_and_removes_old_destination(tmp_path, monkeypat
 
     assert new_destination.exists()
     assert not old_destination.exists()
+
+
+def test_skips_mac_resource_fork_files(tmp_path, monkeypatch) -> None:
+    settings = Settings(
+        source_dir=tmp_path / "source",
+        destination_dir=tmp_path / "dest",
+        cache_dir=tmp_path / "cache",
+        dry_run=True,
+    )
+    settings.source_dir.mkdir(parents=True)
+    settings.destination_dir.mkdir(parents=True)
+    settings.cache_dir.mkdir(parents=True)
+
+    noise_file = settings.source_dir / "._demo.r01.qualifying.mkv"
+    noise_file.write_bytes(b"meta")
+    valid_file = settings.source_dir / "demo.r01.qualifying.mkv"
+    valid_file.write_bytes(b"video")
+
+    metadata_cfg = MetadataConfig(url="https://example.com/demo.yaml", show_key="demo")
+    pattern = PatternConfig(
+        regex=r"(?i)^demo\.r(?P<round>\d{2})\.(?P<session>qualifying)\.mkv$",
+    )
+    sport = SportConfig(id="demo", name="Demo", metadata=metadata_cfg, patterns=[pattern])
+    config = AppConfig(settings=settings, sports=[sport])
+
+    episode = Episode(
+        title="Qualifying",
+        summary=None,
+        originally_available=None,
+        index=1,
+        display_number=1,
+    )
+    season = Season(
+        key="01",
+        title="Season 1",
+        summary=None,
+        index=1,
+        episodes=[episode],
+        display_number=1,
+        round_number=1,
+    )
+    show = Show(key="demo", title="Demo Series", summary=None, seasons=[season])
+
+    monkeypatch.setattr("sports_organizer.processor.load_show", lambda settings_arg, metadata_cfg_arg: show)
+    monkeypatch.setattr("sports_organizer.processor.compute_show_fingerprint", lambda show_arg, metadata_cfg_arg: "fingerprint")
+
+    processor = Processor(config, enable_notifications=False)
+    stats = processor.run_once()
+
+    assert stats.processed == 1
+    assert stats.skipped == 0
+    assert stats.ignored == 0
+    assert stats.errors == []
+    assert stats.warnings == []
 
 
 def test_should_suppress_sample_variants() -> None:

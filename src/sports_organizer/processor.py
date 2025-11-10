@@ -257,8 +257,30 @@ class Processor:
             return []
 
         for path in root.rglob("*"):
-            if path.is_file():
-                yield path
+            if not path.is_file():
+                continue
+
+            skip_reason = self._skip_reason_for_source_file(path)
+            if skip_reason:
+                LOGGER.debug(
+                    self._format_log(
+                        "Skipping Source File",
+                        {
+                            "Source": path,
+                            "Reason": skip_reason,
+                        },
+                    )
+                )
+                continue
+
+            yield path
+
+    @staticmethod
+    def _skip_reason_for_source_file(path: Path) -> Optional[str]:
+        name = path.name
+        if name.startswith("._") and len(name) > 2:
+            return "macOS resource fork (._ prefix)"
+        return None
 
     def _matches_globs(self, path: Path, sport: SportConfig) -> bool:
         if not sport.source_globs:
