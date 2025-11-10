@@ -6,9 +6,32 @@
 
 > Metadata-driven automation that turns chaotic sports releases into Plex-perfect TV libraries—no brittle scripts, just declarative YAML.
 
+## TL;DR
+
+- Configure your `sports.yaml` (copy from `config/sports.sample.yaml` and set `SOURCE_DIR`, `DESTINATION_DIR`, and `CACHE_DIR`).
+- Dry-run the Docker image to confirm metadata downloads and filesystem access.
+- Point Plex (or another media manager) at the destination directory once you're happy with the output.
+
+> Quick verification:
+>
+> ```bash
+> docker run --rm -it \
+>   -e DRY_RUN=true \
+>   -e VERBOSE=true \
+>   -e SOURCE_DIR="/downloads" \
+>   -e DESTINATION_DIR="/library" \
+>   -e CACHE_DIR="/cache" \
+>   -v /config:/config \
+>   -v /downloads:/data/source \
+>   -v /library:/data/destination \
+>   -v /cache:/var/cache/sports-organizer \
+>   ghcr.io/s0len/sports-organizer:latest --dry-run --verbose
+> ```
+
 ## Table of Contents
 
 - [Sports Organizer](#sports-organizer)
+  - [TL;DR](#tldr)
   - [Table of Contents](#table-of-contents)
   - [Overview](#overview)
   - [Why Sports Organizer?](#why-sports-organizer)
@@ -26,6 +49,12 @@
   - [Run Modes \& CLI](#run-modes--cli)
   - [Logging \& Observability](#logging--observability)
   - [Directory Conventions](#directory-conventions)
+  - [Plex Metadata via Kometa](#plex-metadata-via-kometa)
+    - [Example Kometa config](#example-kometa-config)
+  - [Downloading Sports with Autobrr](#downloading-sports-with-autobrr)
+    - [Basic Autobrr setup](#basic-autobrr-setup)
+    - [Example regexes](#example-regexes)
+  - [Plex Library Setup](#plex-library-setup)
   - [Extending to New Sports](#extending-to-new-sports)
   - [Troubleshooting \& FAQ](#troubleshooting--faq)
   - [Development](#development)
@@ -45,6 +74,8 @@ Key ideas:
 - Runtime switches (CLI flags and env vars) let you control dry-runs, polling intervals, logging, and target directories without editing the config.
 
 ## Why Sports Organizer?
+
+Sports Organizer centers on predictable, configuration-driven workflows:
 
 - **Metadata-first** – Honor official episode order, titles, and air dates straight from sanctioned YAML feeds.
 - **Point-and-configure** – Each sport lives in `sports.yaml`; add or override patterns without touching Python.
@@ -84,6 +115,12 @@ Key ideas:
 
 ## Quickstart
 
+Before running the organizer for real, confirm:
+
+- `sports.yaml` exists (copy `config/sports.sample.yaml` and tailor it).
+- `SOURCE_DIR`, `DESTINATION_DIR`, and `CACHE_DIR` point at mounted paths with the right permissions.
+- You can reach the remote metadata URLs from the host/container (validate with the dry-run above).
+
 ### Option A: Docker (Recommended)
 
 > **Important:** The container validates that `SOURCE_DIR`, `DESTINATION_DIR`, and `CACHE_DIR` are defined through environment variables or the `settings` block in your config. It exits with an error instead of silently creating `/data/...` defaults, so wire these paths explicitly.
@@ -107,22 +144,22 @@ docker run -d \
 2. Update `sports.yaml` with your directories, enabled sports, and any overrides.
 3. Tail the logs (`docker logs -f sports-organizer`) to watch the first pass.
 
-_Dry-run everything first:_
-
-```bash
-docker run --rm -it \
-  -e DRY_RUN=true \
-  -e VERBOSE=true \
-  -e SOURCE_DIR="/downloads" \
-  -e DESTINATION_DIR="/library" \
-  -e CACHE_DIR="/cache" \
-  -v /config:/config \
-  -v /downloads:/data/source \
-  -v /library:/data/destination \
-  -v /cache:/var/cache/sports-organizer \
-  -v /logs:/var/log/sports-organizer \
-  ghcr.io/s0len/sports-organizer:latest --dry-run --verbose
-```
+> Tip: Dry-run everything first.
+>
+> ```bash
+> docker run --rm -it \
+>   -e DRY_RUN=true \
+>   -e VERBOSE=true \
+>   -e SOURCE_DIR="/downloads" \
+>   -e DESTINATION_DIR="/library" \
+>   -e CACHE_DIR="/cache" \
+>   -v /config:/config \
+>   -v /downloads:/data/source \
+>   -v /library:/data/destination \
+>   -v /cache:/var/cache/sports-organizer \
+>   -v /logs:/var/log/sports-organizer \
+>   ghcr.io/s0len/sports-organizer:latest --dry-run --verbose
+> ```
 
 ### Option B: Python Environment
 
@@ -372,6 +409,108 @@ Formula 1 2025/
 ```
 
 Hardlinks preserve disk space; switch to `copy` or `symlink` when cross-filesystem moves are required.
+
+## Plex Metadata via Kometa
+
+Sports Organizer only handles **file and folder layout**. To get rich titles, posters and collections in Plex, you can pair it with [Kometa](https://github.com/Kometa-Team/Kometa) and the same YAML metadata feeds.
+
+### Example Kometa config
+
+Add something like this to your Kometa `config.yml` (library name can be whatever you use for sports, e.g. `Sport`):
+
+```yaml
+libraries:
+  Sport:
+    metadata_files:
+      - url: https://raw.githubusercontent.com/s0len/meta-manager-config/main/metadata-files/formula1-2025.yaml
+      - url: https://raw.githubusercontent.com/s0len/meta-manager-config/main/metadata-files/formulae-2025.yaml
+      - url: https://raw.githubusercontent.com/s0len/meta-manager-config/main/metadata-files/indycar-2025.yaml
+      - url: https://raw.githubusercontent.com/s0len/meta-manager-config/main/metadata-files/isle-of-man-tt.yaml
+      - url: https://raw.githubusercontent.com/s0len/meta-manager-config/main/metadata-files/moto2-2025.yaml
+      - url: https://raw.githubusercontent.com/s0len/meta-manager-config/main/metadata-files/moto3-2025.yaml
+      - url: https://raw.githubusercontent.com/s0len/meta-manager-config/main/metadata-files/motogp-2025.yaml
+      - url: https://raw.githubusercontent.com/s0len/meta-manager-config/main/metadata-files/nba-2025-26.yaml
+      - url: https://raw.githubusercontent.com/s0len/meta-manager-config/main/metadata-files/nfl-2025-26.yaml
+      - url: https://raw.githubusercontent.com/s0len/meta-manager-config/main/metadata-files/premier-league-2025-26.yaml
+      - url: https://raw.githubusercontent.com/s0len/meta-manager-config/main/metadata-files/uefa-champions-league-2025-26.yaml
+      - url: https://raw.githubusercontent.com/s0len/meta-manager-config/main/metadata-files/ufc.yaml
+      - url: https://raw.githubusercontent.com/s0len/meta-manager-config/main/metadata-files/womens-uefa-euro.yaml
+      - url: https://raw.githubusercontent.com/s0len/meta-manager-config/main/metadata-files/wsbk-2025.yaml
+      - url: https://raw.githubusercontent.com/s0len/meta-manager-config/main/metadata-files/wssp-2025.yaml
+      - url: https://raw.githubusercontent.com/s0len/meta-manager-config/main/metadata-files/wssp300-2025.yaml
+```
+
+## Downloading Sports with Autobrr
+
+Sports Organizer does **not** download anything itself – it expects files to appear in `SOURCE_DIR` from a downloader (qBittorrent, Deluge, etc.). One way to automate this is with [Autobrr](https://github.com/autobrr/autobrr).
+
+Below is one approach using **Autobrr filters** and regexes targeted at specific sports and release groups.
+
+### Basic Autobrr setup
+
+For each sport you care about:
+
+1. **Create a filter** in Autobrr (e.g. `F1 1080p MWR`, `EPL 1080p NiGHTNiNJAS`, etc.).
+2. Select the trackers where your sports are available.
+3. Under **Advanced → Release names → Match releases**, paste a regex that:
+   - matches the sport name and year
+   - restricts to the resolution you want (e.g. `1080p`)
+   - optionally restricts to specific release groups (e.g. `MWR`, `NiGHTNiNJAS`, `DNU`, `GAMETiME`, `VERUM`).
+
+### Example regexes
+
+These are examples that pair well with the built-in pattern packs and metadata feeds:
+
+```text
+# Premier League (EPL) 1080p releases by NiGHTNiNJAS
+EPL.*1080p.*NiGHTNiNJAS/i
+
+# Formula 1 multi-session weekends by MWR
+(F1|Formula.*1).*\d{4}.Round\d+.*[^.]+\.*?(Drivers.*Press.*Conference|Weekend.*Warm.*Up|FP\d?|Practice|Sprint.Qualifying|Sprint|Qualifying|Pre.Qualifying|Post.Qualifying|Race|Pre.Race|Post.Race|Sprint.Race|Feature.*Race).*1080p.*MWR
+
+# Formula E by MWR
+[Ff][Oo][Rr][Mm][Uu][Ll][Aa][Ee]\.\d{4}\.Round\d+\.(?:[A-Za-z]+(?:\.[A-Za-z]+)?)\.(?:Preview.Show|[Qq]ualifying|[Rr]ace)\..*h264.*-MWR
+
+# IndyCar by MWR
+[Ii][Nn][Dd][Yy][Cc][Aa][Rr].*\d{4}\.Round\d+\.(?:[A-Za-z]+(?:\.[A-Za-z]+)?)\.(?:[Qq]ualifying|[Rr]ace)\..*h264.*-MWR
+
+# Isle of Man TT by DNU
+[Ii]sle.[Oo]f.[Mm]an.[Tt][Tt].*DNU
+
+# MotoGP by DNU
+([Mm][Oo][Tt][Oo][Gg][Pp]).*\d{4}.*Round\d.*((FP\d?|[Pp][Rr][Aa][Cc][Tt][Ii][Cc][Ee]|[Ss][Pp][Rr][Ii][Nn][Tt]|[Qq][Uu][Aa][Ll][Ii][Ff][Yy][Ii][Nn][Gg]|Q1|Q2|[Rr][Aa][Cc][Ee])).*DNU
+
+# NBA 1080p by GAMETiME
+NBA.*1080p.*GAMETiME
+
+# NFL by NiGHTNiNJAS
+NFL.*NiGHTNiNJAS
+
+# UFC by VERUM
+UFC.*VERUM
+
+# WorldSBK / WorldSSP / WorldSSP300 by MWR
+([Ww][Ss][Bb][Kk]|[Ww][Ss][Ss][Pp]|[Ww][Ss][Ss][Pp]300)\.\d{4}\.Round\d+\.[^.]+\.(FP\d?|[Ss]eason\.[Pp]review|[Ss]uperpole|[Rr]ace\.[Oo]ne|[Rr]ace\.[Tt]wo|[Ww]arm\.[Uu]p(\.[Oo]ne|\.[Tt]wo)?|[Ww]eekend\.[Hh]ighlights)\..*h264..*MWR
+```
+
+## Plex Library Setup
+
+To let Plex correctly index everything that Sports Organizer creates, set up a dedicated **TV library** that points at your Sports Organizer destination directory.
+
+1. In the Plex web UI, go to **Libraries → Add Library**.
+2. Choose:
+   - **Library type:** `TV Shows`
+   - **Name:** e.g. `Sport`, `Sports`, or whatever fits your setup.
+3. Click **Next** and under **Add folders**, select the **same folder** you configured as `DESTINATION_DIR` for Sports Organizer (or the sports subfolder inside it).
+4. Click **Advanced** and set:
+
+   - **Scanner:** `Plex Series Scanner`  
+   - **Agent:** `Personal Media Shows`  
+   - **Episode sorting:** `Newest first`
+
+5. Save the library, then run a **Scan Library Files** once Sports Organizer has populated the destination folder.
+
+Using `TV Shows` + `Plex Series Scanner` + `Personal Media Shows` ensures Plex treats each sport/season/session as proper TV episodes, while Kometa applies all the rich metadata on top.
 
 ## Extending to New Sports
 

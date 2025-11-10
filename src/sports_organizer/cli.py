@@ -245,14 +245,17 @@ def main() -> int:
 
     apply_runtime_overrides(config, args)
 
-    processor = Processor(config)
     env_clear_cache = _env_bool("CLEAR_PROCESSED_CACHE")
     clear_processed_cache = args.clear_processed_cache
     if env_clear_cache is not None:
         clear_processed_cache = env_clear_cache
 
+    processor = Processor(config, enable_notifications=not clear_processed_cache)
+
     if clear_processed_cache:
         LOGGER.info("Clearing processed file cache at %s", processor.processed_cache.cache_path)
+        if config.settings.discord_webhook_url:
+            LOGGER.info("Discord notifications disabled for this run because the processed cache was cleared")
         processor.clear_processed_cache()
 
     env_run_once = _env_bool("RUN_ONCE")
