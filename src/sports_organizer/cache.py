@@ -6,6 +6,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Dict, Optional
 
+from .metadata import MetadataChangeResult
 from .utils import ensure_directory
 
 LOGGER = logging.getLogger(__name__)
@@ -16,6 +17,9 @@ class CachedFileRecord:
     mtime_ns: int
     size: int
     destination: Optional[str] = None
+    sport_id: Optional[str] = None
+    season_key: Optional[str] = None
+    episode_key: Optional[str] = None
 
 
 @dataclass(slots=True)
@@ -47,7 +51,10 @@ class ProcessedFileCache:
                 records[key] = CachedFileRecord(
                     mtime_ns=int(value["mtime_ns"]),
                     size=int(value["size"]),
-                    destination=str(value.get("destination") or ""),
+                    destination=str(value.get("destination") or "") or None,
+                    sport_id=value.get("sport_id"),
+                    season_key=value.get("season_key"),
+                    episode_key=value.get("episode_key"),
                 )
             except Exception:  # noqa: BLE001
                 LOGGER.debug("Skipping malformed cache entry for %s", key)
@@ -60,6 +67,9 @@ class ProcessedFileCache:
                 "mtime_ns": record.mtime_ns,
                 "size": record.size,
                 "destination": record.destination,
+                "sport_id": record.sport_id,
+                "season_key": record.season_key,
+                "episode_key": record.episode_key,
             }
         return payload
 
@@ -81,6 +91,9 @@ class ProcessedFileCache:
                 mtime_ns=record.mtime_ns,
                 size=record.size,
                 destination=record.destination,
+                sport_id=record.sport_id,
+                season_key=record.season_key,
+                episode_key=record.episode_key,
             )
             for key, record in self._records.items()
         }
@@ -114,7 +127,15 @@ class ProcessedFileCache:
 
         return True
 
-    def mark_processed(self, source_path: Path, destination_path: Optional[Path] = None) -> None:
+    def mark_processed(
+        self,
+        source_path: Path,
+        destination_path: Optional[Path] = None,
+        *,
+        sport_id: Optional[str] = None,
+        season_key: Optional[str] = None,
+        episode_key: Optional[str] = None,
+    ) -> None:
         try:
             stat = source_path.stat()
         except FileNotFoundError:
@@ -126,6 +147,9 @@ class ProcessedFileCache:
             mtime_ns=stat.st_mtime_ns,
             size=stat.st_size,
             destination=destination_str,
+            sport_id=sport_id,
+            season_key=season_key,
+            episode_key=episode_key,
         )
         self._dirty = True
 
@@ -133,4 +157,51 @@ class ProcessedFileCache:
         if self._records:
             self._records.clear()
             self._dirty = True
+
+    def remove_by_metadata_changes(
+        self,
+        changes: Dict[str, MetadataChangeResult],
+    ) -> Dict[str, CachedFileRecord]:
+        if not changes:
+            return {}
+
+        removed: Dict[str, CachedFileRecord] = {}
+
+        for source, record in list(self._records.items()):
+            sport_id = record.sport_id
+
+            if sport_id is None:
+                # Legacy entries without ownership information; drop them whenever changes occur
+                removed[source] = self._records.pop(source)
+                continue
+
+            if sport_id not in changes:
+                continue
+
+            change = changes[sport_id]
+
+            if change.invalidate_all:
+                removed[source] = self._records.pop(source)
+                continue
+
+            season_key = record.season_key
+            episode_key = record.episode_key
+
+            if season_key is None:
+                if change.changed_seasons or change.changed_episodes:
+                    removed[source] = self._records.pop(source)
+                continue
+
+            if season_key in change.changed_seasons:
+                removed[source] = self._records.pop(source)
+                continue
+
+            episodes = change.changed_episodes.get(season_key)
+            if episodes and (episode_key is None or episode_key in episodes):
+                removed[source] = self._records.pop(source)
+
+        if removed:
+            self._dirty = True
+
+        return removed
 

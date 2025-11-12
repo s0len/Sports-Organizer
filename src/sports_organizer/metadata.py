@@ -4,8 +4,9 @@ import datetime as dt
 import json
 import logging
 import re
+from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, Iterable, List, Optional, Tuple
+from typing import Any, Dict, Iterable, List, Optional, Set, Tuple
 
 import requests
 import yaml
@@ -28,6 +29,42 @@ def _json_default(obj: Any) -> Any:
 def _cache_path(cache_dir: Path, url: str) -> Path:
     digest = sha1_of_text(url)
     return cache_dir / "metadata" / f"{digest}.json"
+
+
+def _season_identifier(season: Season) -> str:
+    key = getattr(season, "key", None)
+    if key:
+        return str(key)
+    if season.display_number is not None:
+        return f"display:{season.display_number}"
+    return f"index:{season.index}"
+
+
+def _episode_identifier(episode: Episode) -> str:
+    metadata = episode.metadata or {}
+    for field in ("id", "guid", "episode_id", "uuid"):
+        value = metadata.get(field)
+        if value:
+            return f"{field}:{value}"
+    if episode.display_number is not None:
+        return f"display:{episode.display_number}"
+    if episode.title:
+        return f"title:{episode.title}"
+    return f"index:{episode.index}"
+
+
+def _clean_season_metadata(metadata: Any) -> Any:
+    if not isinstance(metadata, dict):
+        return metadata
+    cleaned = dict(metadata)
+    cleaned.pop("episodes", None)
+    return cleaned
+
+
+def _clean_episode_metadata(metadata: Any) -> Any:
+    if not isinstance(metadata, dict):
+        return metadata
+    return dict(metadata)
 
 
 def _load_cached_metadata(cache_file: Path, ttl_hours: int, *, allow_expired: bool = False) -> Optional[Dict[str, Any]]:
@@ -72,6 +109,42 @@ def _store_cache(cache_file: Path, content: Dict[str, Any]) -> None:
         json.dump(payload, handle, ensure_ascii=False, indent=2, default=_json_default)
 
 
+@dataclass(slots=True)
+class ShowFingerprint:
+    digest: str
+    season_hashes: Dict[str, str]
+    episode_hashes: Dict[str, Dict[str, str]]
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "digest": self.digest,
+            "seasons": dict(self.season_hashes),
+            "episodes": {season: dict(episodes) for season, episodes in self.episode_hashes.items()},
+        }
+
+    @classmethod
+    def from_dict(cls, payload: Dict[str, Any]) -> "ShowFingerprint":
+        digest_raw = payload.get("digest")
+        digest = str(digest_raw) if digest_raw is not None else ""
+        seasons_raw = payload.get("seasons") or {}
+        season_hashes = {str(key): str(value) for key, value in seasons_raw.items()}
+        episodes_raw = payload.get("episodes") or {}
+        episode_hashes: Dict[str, Dict[str, str]] = {}
+        for season_key, mapping in episodes_raw.items():
+            if not isinstance(mapping, dict):
+                continue
+            episode_hashes[str(season_key)] = {str(ep_key): str(ep_hash) for ep_key, ep_hash in mapping.items()}
+        return cls(digest=digest, season_hashes=season_hashes, episode_hashes=episode_hashes)
+
+
+@dataclass(slots=True)
+class MetadataChangeResult:
+    updated: bool
+    changed_seasons: Set[str]
+    changed_episodes: Dict[str, Set[str]]
+    invalidate_all: bool = False
+
+
 class MetadataFingerprintStore:
     """Tracks a lightweight hash of each sport's metadata to detect updates."""
 
@@ -79,7 +152,7 @@ class MetadataFingerprintStore:
         self.cache_dir = cache_dir
         self.filename = filename
         self.path = self.cache_dir / "state" / self.filename
-        self._fingerprints: Dict[str, str] = {}
+        self._fingerprints: Dict[str, ShowFingerprint] = {}
         self._dirty = False
         self._load()
 
@@ -98,21 +171,102 @@ class MetadataFingerprintStore:
             LOGGER.warning("Ignoring malformed metadata fingerprint cache %s", self.path)
             return
 
-        fingerprints: Dict[str, str] = {}
+        fingerprints: Dict[str, ShowFingerprint] = {}
         for key, value in payload.items():
-            if isinstance(key, str) and isinstance(value, str):
-                fingerprints[key] = value
+            if not isinstance(key, str):
+                continue
+            if isinstance(value, str):
+                fingerprints[key] = ShowFingerprint(digest=value, season_hashes={}, episode_hashes={})
+            elif isinstance(value, dict):
+                try:
+                    fingerprints[key] = ShowFingerprint.from_dict(value)
+                except Exception:  # pragma: no cover - defensive
+                    LOGGER.debug("Skipping malformed metadata fingerprint entry for %s", key)
+            else:
+                LOGGER.debug("Skipping malformed metadata fingerprint entry for %s", key)
         self._fingerprints = fingerprints
 
-    def get(self, key: str) -> Optional[str]:
+    def get(self, key: str) -> Optional[ShowFingerprint]:
         return self._fingerprints.get(key)
 
-    def update(self, key: str, fingerprint: str) -> bool:
-        if self._fingerprints.get(key) == fingerprint:
-            return False
+    def update(self, key: str, fingerprint: ShowFingerprint) -> MetadataChangeResult:
+        existing = self._fingerprints.get(key)
+        if existing is None:
+            self._fingerprints[key] = fingerprint
+            self._dirty = True
+            return MetadataChangeResult(
+                updated=True,
+                changed_seasons=set(),
+                changed_episodes={},
+                invalidate_all=False,
+            )
+
+        if existing.digest == fingerprint.digest:
+            if (
+                existing.season_hashes != fingerprint.season_hashes
+                or existing.episode_hashes != fingerprint.episode_hashes
+            ):
+                self._fingerprints[key] = fingerprint
+                self._dirty = True
+            return MetadataChangeResult(
+                updated=False,
+                changed_seasons=set(),
+                changed_episodes={},
+                invalidate_all=False,
+            )
+
+        if (
+            not existing.season_hashes and not existing.episode_hashes
+        ) or (
+            not existing.episode_hashes and any(fingerprint.episode_hashes.values())
+        ):
+            self._fingerprints[key] = fingerprint
+            self._dirty = True
+            return MetadataChangeResult(
+                updated=True,
+                changed_seasons=set(),
+                changed_episodes={},
+                invalidate_all=True,
+            )
+
+        existing_seasons = existing.season_hashes
+        new_seasons = fingerprint.season_hashes
+
+        changed_seasons: Set[str] = set()
+        for season_key, old_hash in existing_seasons.items():
+            new_hash = new_seasons.get(season_key)
+            if new_hash is None or new_hash != old_hash:
+                changed_seasons.add(season_key)
+
+        existing_episodes = existing.episode_hashes
+        new_episodes = fingerprint.episode_hashes
+        changed_episodes: Dict[str, Set[str]] = {}
+
+        for season_key, previous_episode_map in existing_episodes.items():
+            if season_key in changed_seasons:
+                continue
+            new_episode_map = new_episodes.get(season_key)
+            if new_episode_map is None:
+                changed_seasons.add(season_key)
+                continue
+
+            episode_changes: Set[str] = set()
+            for episode_key, old_hash in previous_episode_map.items():
+                new_hash = new_episode_map.get(episode_key)
+                if new_hash is None or new_hash != old_hash:
+                    episode_changes.add(episode_key)
+
+            if episode_changes:
+                changed_episodes[season_key] = episode_changes
+
         self._fingerprints[key] = fingerprint
         self._dirty = True
-        return True
+        return MetadataChangeResult(
+            updated=True,
+            changed_seasons=changed_seasons,
+            changed_episodes=changed_episodes,
+            invalidate_all=False,
+        )
 
     def remove(self, key: str) -> None:
         if key in self._fingerprints:
@@ -124,15 +278,16 @@ class MetadataFingerprintStore:
             return
 
         ensure_directory(self.path.parent)
+        serialised = {key: fp.to_dict() for key, fp in self._fingerprints.items()}
         try:
             with self.path.open("w", encoding="utf-8") as handle:
-                json.dump(self._fingerprints, handle, ensure_ascii=False, indent=2, sort_keys=True)
+                json.dump(serialised, handle, ensure_ascii=False, indent=2, sort_keys=True)
             self._dirty = False
         except Exception as exc:  # noqa: BLE001
             LOGGER.error("Failed to write metadata fingerprint cache %s: %s", self.path, exc)
 
 
-def compute_show_fingerprint(show: Show, metadata_cfg: MetadataConfig) -> str:
+def compute_show_fingerprint(show: Show, metadata_cfg: MetadataConfig) -> ShowFingerprint:
     """Compute a hash representing the effective metadata for a sport."""
 
     fingerprint_payload = {
@@ -147,7 +302,55 @@ def compute_show_fingerprint(show: Show, metadata_cfg: MetadataConfig) -> str:
         separators=(",", ":"),
         default=_json_default,
     )
-    return sha1_of_text(serialized)
+    digest = sha1_of_text(serialized)
+
+    season_hashes: Dict[str, str] = {}
+    episode_hashes: Dict[str, Dict[str, str]] = {}
+    for season in show.seasons:
+        season_key = _season_identifier(season)
+        season_payload = {
+            "key": season_key,
+            "title": season.title,
+            "summary": season.summary,
+            "index": season.index,
+            "display_number": season.display_number,
+            "round_number": season.round_number,
+            "sort_title": season.sort_title,
+            "metadata": _clean_season_metadata(season.metadata),
+        }
+        season_serialized = json.dumps(
+            season_payload,
+            ensure_ascii=False,
+            sort_keys=True,
+            separators=(",", ":"),
+            default=_json_default,
+        )
+        season_hashes[season_key] = sha1_of_text(season_serialized)
+        episode_hash_map: Dict[str, str] = {}
+        for episode in season.episodes:
+            episode_payload = {
+                "title": episode.title,
+                "summary": episode.summary,
+                "index": episode.index,
+                "display_number": episode.display_number,
+                "aliases": episode.aliases,
+                "originally_available": (
+                    episode.originally_available.isoformat() if episode.originally_available else None
+                ),
+                "metadata": _clean_episode_metadata(episode.metadata),
+            }
+            episode_serialized = json.dumps(
+                episode_payload,
+                ensure_ascii=False,
+                sort_keys=True,
+                separators=(",", ":"),
+                default=_json_default,
+            )
+            episode_key = _episode_identifier(episode)
+            episode_hash_map[episode_key] = sha1_of_text(episode_serialized)
+        episode_hashes[season_key] = episode_hash_map
+
+    return ShowFingerprint(digest=digest, season_hashes=season_hashes, episode_hashes=episode_hashes)
 
 
 class MetadataFetchError(RuntimeError):

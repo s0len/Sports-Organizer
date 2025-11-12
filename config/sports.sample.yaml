@@ -25,6 +25,9 @@ settings:
   poll_interval: 0 # Seconds between scans when running continuously; 0 disables polling.
   link_mode: hardlink # Use `hardlink` to avoid copies on the same filesystem; switch to `copy` otherwise.
   discord_webhook_url: ${DISCORD_WEBHOOK_URL:-} # Optional Discord webhook for notifications when a file is processed.
+  notifications:
+    batch_daily: false # When true, group Discord updates by sport/day and edit the same message instead of sending new ones.
+    flush_time: "00:00" # Local time boundary for batched messages. Entries before this time are counted toward the previous day.
   destination:
     root_template: "{show_title}" # Top-level folder pattern for each sport/show.
     season_dir_template: "{season_number:02d} {season_title}" # Sub-folder per season or round. Zero-padded for neat ordering.

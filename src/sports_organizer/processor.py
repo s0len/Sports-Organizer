@@ -12,7 +12,13 @@ from rich.progress import Progress
 from .cache import ProcessedFileCache
 from .config import AppConfig, SportConfig
 from .matcher import PatternRuntime, compile_patterns, match_file_to_episode
-from .metadata import MetadataFetchError, MetadataFingerprintStore, compute_show_fingerprint, load_show
+from .metadata import (
+    MetadataChangeResult,
+    MetadataFetchError,
+    MetadataFingerprintStore,
+    compute_show_fingerprint,
+    load_show,
+)
 from .models import ProcessingStats, Show, SportFileMatch
 from .notifications import DiscordNotifier
 from .templating import render_template
@@ -39,10 +45,16 @@ class Processor:
             ensure_directory(self.config.settings.cache_dir)
         self.processed_cache = ProcessedFileCache(self.config.settings.cache_dir)
         self.metadata_fingerprints = MetadataFingerprintStore(self.config.settings.cache_dir)
-        webhook_url = self.config.settings.discord_webhook_url if enable_notifications else None
-        self.notifier = DiscordNotifier(webhook_url)
+        settings = self.config.settings
+        webhook_url = settings.discord_webhook_url if enable_notifications else None
+        self.notifier = DiscordNotifier(
+            webhook_url,
+            cache_dir=settings.cache_dir,
+            settings=settings.notifications,
+        )
         self._previous_summary: Optional[Tuple[int, int, int]] = None
         self._metadata_changed_sports: List[Tuple[str, str]] = []
+        self._metadata_change_map: Dict[str, MetadataChangeResult] = {}
         self._stale_destinations: Dict[str, Path] = {}
 
     @staticmethod
@@ -72,6 +84,7 @@ class Processor:
     def _load_sports(self) -> List[SportRuntime]:
         runtimes: List[SportRuntime] = []
         self._metadata_changed_sports = []
+        self._metadata_change_map = {}
         for sport in self.config.sports:
             if not sport.enabled:
                 LOGGER.debug(self._format_log("Skipping Disabled Sport", {"Sport": sport.id}))
@@ -119,8 +132,10 @@ class Processor:
                     )
                 )
             else:
-                if self.metadata_fingerprints.update(sport.id, fingerprint):
+                change = self.metadata_fingerprints.update(sport.id, fingerprint)
+                if change.updated:
                     self._metadata_changed_sports.append((sport.id, sport.name))
+                    self._metadata_change_map[sport.id] = change
 
             runtimes.append(SportRuntime(sport=sport, show=show, patterns=patterns, extensions=extensions))
         return runtimes
@@ -156,13 +171,12 @@ class Processor:
                     },
                 )
             )
-            previous_records = self.processed_cache.snapshot()
+            removed_records = self.processed_cache.remove_by_metadata_changes(self._metadata_change_map)
             self._stale_destinations = {
                 source: Path(record.destination)
-                for source, record in previous_records.items()
+                for source, record in removed_records.items()
                 if record.destination
             }
-            self.processed_cache.clear()
         stats = ProcessingStats()
 
         try:
@@ -567,6 +581,11 @@ class Processor:
         link_mode = (match.sport.link_mode or settings.link_mode).lower()
         source_key = str(match.source_path)
         old_destination = self._stale_destinations.get(source_key)
+        cache_kwargs = {
+            "sport_id": match.sport.id,
+            "season_key": self._season_cache_key(match),
+            "episode_key": self._episode_cache_key(match),
+        }
 
         replace_existing = False
         if destination.exists():
@@ -594,7 +613,7 @@ class Processor:
                         is_error=False,
                     )
                     if not settings.dry_run:
-                        self.processed_cache.mark_processed(match.source_path, destination)
+                        self.processed_cache.mark_processed(match.source_path, destination, **cache_kwargs)
                     return
 
         if replace_existing:
@@ -659,7 +678,7 @@ class Processor:
         result = link_file(match.source_path, destination, mode=link_mode)
         if result.created:
             stats.register_processed()
-            self.processed_cache.mark_processed(match.source_path, destination)
+            self.processed_cache.mark_processed(match.source_path, destination, **cache_kwargs)
             self._notify_processed(match, destination_display)
             self._cleanup_old_destination(
                 source_key,
@@ -670,7 +689,7 @@ class Processor:
         else:
             stats.register_skipped(f"Failed to link {match.source_path} -> {destination}: {result.reason}")
             if result.reason == "destination-exists":
-                self.processed_cache.mark_processed(match.source_path, destination)
+                self.processed_cache.mark_processed(match.source_path, destination, **cache_kwargs)
                 self._cleanup_old_destination(
                     source_key,
                     old_destination,
@@ -788,6 +807,30 @@ class Processor:
                 score += 1
 
         return score
+
+    @staticmethod
+    def _season_cache_key(match: SportFileMatch) -> Optional[str]:
+        season = match.season
+        key = season.key
+        if key is not None:
+            return str(key)
+        if season.display_number is not None:
+            return f"display:{season.display_number}"
+        return f"index:{season.index}"
+
+    @staticmethod
+    def _episode_cache_key(match: SportFileMatch) -> str:
+        episode = match.episode
+        metadata = episode.metadata or {}
+        for field in ("id", "guid", "episode_id", "uuid"):
+            value = metadata.get(field)
+            if value:
+                return f"{field}:{value}"
+        if episode.display_number is not None:
+            return f"display:{episode.display_number}"
+        if episode.title:
+            return f"title:{episode.title}"
+        return f"index:{episode.index}"
 
     def _format_relative_destination(self, destination: Path) -> str:
         base = self.config.settings.destination_dir
