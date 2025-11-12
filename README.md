@@ -257,9 +257,11 @@ Start with `config/sports.sample.yaml`. The schema mirrors `sports_organizer.con
 | `poll_interval` | Seconds between passes when running continuously. `0` means run once. | `0` |
 | `link_mode` | Default link behavior: `hardlink`, `copy`, or `symlink`. | `hardlink` |
 | `discord_webhook_url` | Optional Discord webhook URL for processed-file notifications. Set via config or `DISCORD_WEBHOOK_URL`. | `null` |
+| `notifications.batch_daily` | When `true`, queue per-sport notifications for the day and edit a single Discord message instead of posting every file. | `false` |
+| `notifications.flush_time` | Local time boundary (`HH:MM`) used to roll daily batches forward. Entries before this time count toward the previous day. | `"00:00"` |
 | `destination.*` | Default templates for root folder, season folder, and filename. | See sample |
 
-When `discord_webhook_url` is set (or `DISCORD_WEBHOOK_URL` is exported), Sports Organizer will post a short embed to that channel each time a new file is linked or copied into the library.
+When `discord_webhook_url` is set (or `DISCORD_WEBHOOK_URL` is exported), Sports Organizer will post a short embed to that channel each time a new file is linked or copied into the library. Enable `notifications.batch_daily` if you prefer a single rolling message per sport/day: the first processed file creates the message, later files edit it in place with cumulative details. Use `notifications.flush_time` to control when the “day” ends (useful for overnight events).
 
 ### 2. Sport Entries
 

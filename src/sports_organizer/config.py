@@ -1,12 +1,12 @@
 from __future__ import annotations
 
 import dataclasses
+import datetime as dt
+import re
 from copy import deepcopy
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional
-
-import re
 
 from .pattern_templates import load_builtin_pattern_sets
 from .utils import load_yaml_file
@@ -62,6 +62,12 @@ class DestinationTemplates:
 
 
 @dataclass(slots=True)
+class NotificationSettings:
+    batch_daily: bool = False
+    flush_time: dt.time = field(default_factory=lambda: dt.time(hour=0, minute=0))
+
+
+@dataclass(slots=True)
 class SportConfig:
     id: str
     name: str
@@ -88,6 +94,7 @@ class Settings:
     default_destination: DestinationTemplates = field(default_factory=DestinationTemplates)
     link_mode: str = "hardlink"
     discord_webhook_url: Optional[str] = None
+    notifications: NotificationSettings = field(default_factory=NotificationSettings)
 
 
 @dataclass(slots=True)
@@ -260,6 +267,31 @@ def _expand_sport_variants(sport_data: Dict[str, Any]) -> List[Dict[str, Any]]:
     return expanded
 
 
+def _parse_time_of_day(value: Any, *, field_name: str) -> dt.time:
+    if value is None:
+        return dt.time(hour=0, minute=0)
+    if isinstance(value, dt.time):
+        return value
+    if not isinstance(value, str):
+        raise ValueError(f"'{field_name}' must be provided as HH:MM or HH:MM:SS")
+
+    parts = value.strip().split(":")
+    if len(parts) not in {2, 3}:
+        raise ValueError(f"'{field_name}' must be formatted as HH:MM or HH:MM:SS")
+
+    try:
+        hour = int(parts[0])
+        minute = int(parts[1])
+        second = int(parts[2]) if len(parts) == 3 else 0
+    except ValueError as exc:  # noqa: PERF203
+        raise ValueError(f"'{field_name}' components must be integers") from exc
+
+    if not (0 <= hour <= 23 and 0 <= minute <= 59 and 0 <= second <= 59):
+        raise ValueError(f"'{field_name}' contains out-of-range values")
+
+    return dt.time(hour=hour, minute=minute, second=second)
+
+
 def _build_settings(data: Dict[str, Any]) -> Settings:
     destination_defaults = DestinationTemplates(
         root_template=data.get("destination", {}).get("root_template", "{show_title}"),
@@ -276,6 +308,23 @@ def _build_settings(data: Dict[str, Any]) -> Settings:
     else:
         discord_webhook_url = raw_webhook if raw_webhook else None
 
+    notifications_raw = data.get("notifications", {}) or {}
+    if not isinstance(notifications_raw, dict):
+        raise ValueError("'notifications' must be provided as a mapping when specified")
+
+    try:
+        flush_time = _parse_time_of_day(
+            notifications_raw.get("flush_time", "00:00"),
+            field_name="notifications.flush_time",
+        )
+    except ValueError as exc:
+        raise ValueError(str(exc)) from exc
+
+    notifications = NotificationSettings(
+        batch_daily=bool(notifications_raw.get("batch_daily", False)),
+        flush_time=flush_time,
+    )
+
     return Settings(
         source_dir=Path(data.get("source_dir", "/data/source")).expanduser(),
         destination_dir=Path(data.get("destination_dir", "/data/destination")).expanduser(),
@@ -286,6 +335,7 @@ def _build_settings(data: Dict[str, Any]) -> Settings:
         default_destination=destination_defaults,
         link_mode=data.get("link_mode", "hardlink"),
         discord_webhook_url=discord_webhook_url,
+        notifications=notifications,
     )
 
 
