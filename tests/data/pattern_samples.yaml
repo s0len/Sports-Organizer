@@ -185,6 +185,64 @@ samples:
         expect_episode: "Suns at Clippers"
       - value: "NBA.2025.11.05.Washington.Wizards.Vs.Boston.Celtics.1080p.WEB.H264-GAMETiME.mkv"
         expect_episode: "Wizards at Celtics"
+      - value: "NBA.2025.11.08.Miami.Heat.vs.LA.Clippers.PROPER.1080p.WEB.H264-GAMETiME.mkv"
+        expect_episode: "Heat at Clippers"
+
+  - description: "Formula 1 dot releases without venue segment"
+    sport:
+      id: "formula1_optional_venue"
+      name: "Formula 1 Optional Venue"
+      pattern_sets:
+        - formula1
+    show:
+      key: "formula1_2025"
+      title: "Formula 1 2025"
+      seasons:
+        - title: "Round 1 Australia"
+          round_number: 1
+          display_number: 1
+          episodes:
+            - title: "Race"
+              aliases:
+                - "Grand Prix"
+        - title: "Round 4 Bahrain"
+          round_number: 4
+          display_number: 4
+          episodes:
+            - title: "Free Practice 1"
+              aliases:
+                - "FP1"
+                - "Free Practice 1"
+    filenames:
+      - value: "Formula1.2025.Round01.Australia.Race.F1TV-1080p.mkv"
+        expect_episode: "Race"
+      - value: "Formula1.2025.Round04.Bahrain.FP1.F1TV-1080p.mkv"
+        expect_episode: "Free Practice 1"
+
+  - description: "World Superbike PROPER and REPACK releases"
+    sport:
+      id: "wsbk_proper_samples"
+      name: "World Superbike PROPER Samples"
+      pattern_sets:
+        - world_superbike
+    show:
+      key: "wsbk_2025"
+      title: "World Superbike 2025"
+      seasons:
+        - title: "Round 11 Portugal"
+          round_number: 11
+          display_number: 11
+          episodes:
+            - title: "Race Two"
+              aliases:
+                - "Race 2"
+                - "Race.Two"
+            - title: "Weekend Highlights"
+    filenames:
+      - value: "WSBK.2025.Round11.Portugal.Race.Two.PROPER.WEB-DL.1080p.h264.English-MWR.mkv"
+        expect_episode: "Race Two"
+      - value: "WSBK.2025.Round11.Portugal.Weekend.Highlights.REPACK.WEB-DL.1080p.h264.English-MWR.mkv"
+        expect_episode: "Weekend Highlights"
 
   - description: "Premier League 2025-26 match samples"
     sport:

@@ -8,7 +8,7 @@ regex_tokens:
   distribution: &distribution_token "(?:ppv|payperview|pay-per-view)"
   bit_depth: &bit_depth_token "(?:10bit|8bit)"
   language: &language_token "(?:english|en|multi|dual)"
-  quality: &quality_token "(?:proper|repack|hybrid|extended|complete|collection|pack|webrip|hdrip|remux)"
+  quality: &quality_token "(?i:proper|repack|hybrid|extended|complete|collection|pack|webrip|hdrip|remux)"
   subtitle: &subtitle_token "(?:subs?|subbed|dubbed|captioned|cc)"
   extras: &extras_token "(?:bonus|extras?|sample|trailer)"
   suffix_token: &suffix_token "(?:(?:<resolution>|<source>|<codec>|<audio>|<network>|<release_group>|<distribution>|<bit_depth>|<language>|<quality>|<subtitle>|<extras>|pack|set|cut|remux|hybrid)(?:[-_](?:<release_group>|<codec>|<audio>|<quality>|<subtitle>))*)"
@@ -22,7 +22,7 @@ pattern_sets:
     - description: Formula 1 MWR releases
       # Example: Formula.1.2024.Round03.Melbourne.Albert.Park.Qualifying.F1TV-1080p
       regex: >-
-        (?i)^Formula\.?1\.(?P<year>\d{4})\.Round(?P<round>\d{2})\.(?P<location>[^.]+)\.(?P<venue>[^.]+)\.(?P<session>[^.]+(?:\.[^.]+)*?(?:\.Part\d+)?)(?=\.F1)
+        (?i)^Formula\.?1\.(?P<year>\d{4})\.Round(?P<round>\d{2})\.(?P<location>[^.]+)(?:\.(?P<venue>[^.]+(?:\.[^.]+)*))?\.(?P<session>[^.]+(?:\.[^.]+)*?(?:\.Part\d+)?)(?=\.F1)
       season_selector:
         mode: round           # Use captured round number to map metadata seasons.
         group: round
@@ -150,7 +150,7 @@ pattern_sets:
     - description: NBA regular season date-based releases
       # Example: NBA.2025.11.04.Phoenix.Suns.Vs.Golden.State.Warriors.1080p.WEB.H264-GAMETiME.mkv
       regex: >-
-        (?i)^NBA\.(?P<date>(?P<year>\d{4})\.(?P<month>\d{2})\.(?P<day>\d{2}))\.(?P<matchup>(?P<away>[A-Za-z0-9&'-]+(?:\.[A-Za-z0-9&'-]+){0,4})\.(?P<separator>vs|v|at)\.(?P<home>[A-Za-z0-9&'-]+(?:\.[A-Za-z0-9&'-]+){0,4}))(?=\.)(?:\.[^.]+)*\.(?P<extension><extension>)$
+        (?i)^NBA\.(?P<date>(?P<year>\d{4})\.(?P<month>\d{2})\.(?P<day>\d{2}))\.(?P<matchup>(?P<away>[A-Za-z0-9&'-]+(?:\.(?!(?:<suffix_token>|<extension>)(?:$|\.))[A-Za-z0-9&'-]+){0,4})\.(?P<separator>vs|v|at)\.(?P<home>[A-Za-z0-9&'-]+(?:\.(?!(?:<suffix_token>|<extension>)(?:$|\.))[A-Za-z0-9&'-]+){0,4}))(?=\.)(?:\.(?:<suffix_token>|[^.]+))*\.(?P<extension><extension>)$
       season_selector:
         mode: key
         group: date
@@ -173,6 +173,7 @@ pattern_sets:
           '2025.11.05': 3
           '2025.11.06': 3
           '2025.11.07': 3
+          '2025.11.08': 3
           '2025.11.09': 3
           '2025.11.10': 3
           '2025.11.11': 4
@@ -926,7 +927,7 @@ pattern_sets:
     - description: World Superbike MWR releases (dot separated)
       # Example: WSBK.2025.Round12.Spain.Jerez.Race.Two.WEB-DL.1080p.h264.English-MWR
       regex: >-
-        (?i)^(?=.*-MWR(?:\.(?:mkv|mp4|ts))?$)WSBK\.(?P<year>\d{4})\.Round(?P<round>\d{2})\.(?P<location>[^.]+(?:\.[^.]+)*)\.(?P<session>FP[1-4]|Free\.Practice(?:\.(?:One|Two|Three|Four|1|2|3|4))?|Practice(?:\.(?:One|Two|Three|Four|1|2|3|4))?|Superpole(?:\.Race)?|Race(?:\.One|\.Two)?|Warm\.?Up|Season\.Preview|Weekend\.Highlights|Highlights)(?=\.(?:WEB|HDTV|BluRay|Blu|WEB-DL|WEBRip|AMZN|STAN|1080p|720p|2160p|h264|h265|x264|x265|HEVC|AAC|DDP|Dual|Multi|English|-MWR)|$)
+        (?i)^(?=.*-MWR(?:\.(?:mkv|mp4|ts))?$)WSBK\.(?P<year>\d{4})\.Round(?P<round>\d{2})\.(?P<location>[^.]+(?:\.[^.]+)*)\.(?P<session>FP[1-4]|Free\.Practice(?:\.(?:One|Two|Three|Four|1|2|3|4))?|Practice(?:\.(?:One|Two|Three|Four|1|2|3|4))?|Superpole(?:\.Race)?|Race(?:\.One|\.Two)?|Warm\.?Up|Season\.Preview|Weekend\.Highlights|Highlights)(?=\.(?:PROPER|REPACK|WEB|HDTV|BluRay|Blu|WEB-DL|WEBRip|AMZN|STAN|1080p|720p|2160p|h264|h265|x264|x265|HEVC|AAC|DDP|Dual|Multi|English|-MWR)|$)
       season_selector:
         mode: round
         group: round

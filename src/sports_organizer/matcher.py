@@ -273,6 +273,27 @@ def _select_episode(
             continue
         add_lookup(key, value)
 
+    away_value = match_groups.get("away")
+    home_value = match_groups.get("home")
+    separator_value = match_groups.get("separator")
+    if away_value and home_value:
+        separator_candidates: List[str] = []
+        if separator_value:
+            separator_candidates.append(separator_value)
+        separator_candidates.extend(["at", "vs", "v", "@"])
+        seen_separators: Set[str] = set()
+        for separator_candidate in separator_candidates:
+            if not separator_candidate:
+                continue
+            normalized_separator = normalize_token(separator_candidate)
+            if normalized_separator in seen_separators:
+                continue
+            seen_separators.add(normalized_separator)
+            add_lookup("away_home", f"{away_value}.{separator_candidate}.{home_value}")
+            add_lookup("away_home", f"{away_value} {separator_candidate} {home_value}")
+            add_lookup("home_away", f"{home_value}.{separator_candidate}.{away_value}")
+            add_lookup("home_away", f"{home_value} {separator_candidate} {away_value}")
+
     venue_value = match_groups.get("venue")
     if venue_value:
         add_lookup("venue+session", f"{venue_value} {raw_value}")
@@ -287,6 +308,8 @@ def _select_episode(
             if any(tokens_match(alias_token, token) for alias_token in alias_tokens):
                 return episode
         return None
+
+    lookup_attempts.sort(key=lambda item: len(item[2]), reverse=True)
 
     attempted_variants: List[str] = []
 
