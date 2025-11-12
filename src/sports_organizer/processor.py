@@ -782,14 +782,12 @@ class Processor:
                         destination,
                         dry_run=settings.dry_run,
                     )
-                    stats.register_skipped(
-                        f"Destination exists: {destination} (source {match.source_path})",
-                        is_error=False,
-                    )
+                    skip_message = f"Destination exists: {destination} (source {match.source_path})"
+                    stats.register_skipped(skip_message, is_error=False)
                     if not settings.dry_run:
                         self.processed_cache.mark_processed(match.source_path, destination, **cache_kwargs)
                     event.action = "skipped"
-                    event.skip_reason = message
+                    event.skip_reason = skip_message
                     return event
 
         if replace_existing:
