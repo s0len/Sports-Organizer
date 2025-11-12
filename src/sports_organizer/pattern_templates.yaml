@@ -81,6 +81,68 @@ pattern_sets:
       season_dir_template: "{season_round:02d} {season_title}"
       filename_template: "{show_title} - S{season_number:02d}E{episode_number:02d} - {episode_title}.{extension}"
 
+    - description: Formula 1 F1Carreras releases
+      # Example: Formula.1.S2024E02.Round04.Baku.Azerbaijan.Sprint.F1TV-1080p-F1Carreras.mkv
+      regex: >-
+        (?i)^Formula\.?1\.S(?P<year>\d{4})E\d+\.Round(?P<round>\d{2})\.(?P<location>[^.]+(?:\.[^.]+)*)\.(?P<session>[^.]+(?:\.[^.]+)*?)(?=\.F1TV).*?-F1Carreras\.(?:mkv|mp4|ts)$
+      season_selector:
+        mode: round
+        group: round
+        offset: 0
+      episode_selector:
+        group: session
+      session_aliases: *formula1_session_aliases   # Re-use the normalization table above.
+      destination_root_template: "{show_title}"
+      season_dir_template: "{season_round:02d} {season_title}"
+      filename_template: "{show_title} - S{season_number:02d}E{episode_number:02d} - {episode_title}.{extension}"
+
+    - description: Formula 1 spaced MWR releases
+      # Example: Formula1 2024 Round05 Miami Sprint Race F1TV 1080p
+      regex: >-
+        (?i)^Formula1\s+(?P<year>\d{4})\s+Round(?P<round>\d{2})\s+(?P<location>[^\s]+)\s+(?P<session>.+?(?:\s+Part\d+)?)\s*(?=\s+F1(?:TV|LIVE))
+      season_selector:
+        mode: round
+        group: round
+        offset: 0
+      episode_selector:
+        group: session
+      session_aliases: *formula1_session_aliases
+      destination_root_template: "{show_title}"
+      season_dir_template: "{season_round:02d} {season_title}"
+      filename_template: "{show_title} - S{season_number:02d}E{episode_number:02d} - {episode_title}.{extension}"
+
+    - description: Formula 1 VERUM releases
+      # Example: Formula1.2024.Saudi.Arabian.Grand.Prix.Qualifying.1080p.VERUM.mkv
+      regex: >-
+        (?i)^Formula1\.(?P<year>\d{4})\.(?P<season_slug>[^.]+(?:\.[^.]+){1,2})\.(?P<session>Qualifying|Sprint\.Race|Race)(?=\.1080p)
+      season_selector:
+        mode: title        # Use the slug to match metadata titles directly.
+        group: season_slug
+        offset: 0
+      episode_selector:
+        group: session
+        allow_fallback_to_title: true
+      session_aliases: *formula1_session_aliases
+      destination_root_template: "{show_title}"
+      season_dir_template: "{season_round:02d} {season_title}"
+      filename_template: "{show_title} - S{season_number:02d}E{episode_number:02d} - {episode_title}.{extension}"
+
+    - description: Formula 1 VERUM full race packs
+      # Example: Formula1.2024.Miami.Grand.Prix.Grand.Prix.1080p.VERUM
+      regex: >-
+        (?i)^Formula1\.(?P<year>\d{4})\.(?P<season_slug>[^.]+(?:\.[^.]+)*?)(?=\.Grand\.Prix)\.(?P<session>Grand\.Prix)\.1080p.*
+      season_selector:
+        mode: title
+        group: season_slug
+      episode_selector:
+        group: session
+      session_aliases:
+        Race:
+          - Grand.Prix
+      destination_root_template: "{show_title}"
+      season_dir_template: "{season_round:02d} {season_title}"
+      filename_template: "{show_title} - S{season_number:02d}E{episode_number:02d} - {episode_title}.{extension}"
+
   # ------------------------------------------------------------------
   # NBA releases
   # ------------------------------------------------------------------
@@ -254,68 +316,6 @@ pattern_sets:
         allow_fallback_to_title: true
       destination_root_template: "{show_title}"
       season_dir_template: "{season_number:02d} {season_title}"
-      filename_template: "{show_title} - S{season_number:02d}E{episode_number:02d} - {episode_title}.{extension}"
-
-    - description: Formula 1 F1Carreras releases
-      # Example: Formula.1.S2024E02.Round04.Baku.Azerbaijan.Sprint.F1TV-1080p-F1Carreras.mkv
-      regex: >-
-        (?i)^Formula\.?1\.S(?P<year>\d{4})E\d+\.Round(?P<round>\d{2})\.(?P<location>[^.]+(?:\.[^.]+)*)\.(?P<session>[^.]+(?:\.[^.]+)*?)(?=\.F1TV).*?-F1Carreras\.(?:mkv|mp4|ts)$
-      season_selector:
-        mode: round
-        group: round
-        offset: 0
-      episode_selector:
-        group: session
-      session_aliases: *formula1_session_aliases   # Re-use the normalization table above.
-      destination_root_template: "{show_title}"
-      season_dir_template: "{season_round:02d} {season_title}"
-      filename_template: "{show_title} - S{season_number:02d}E{episode_number:02d} - {episode_title}.{extension}"
-
-    - description: Formula 1 spaced MWR releases
-      # Example: Formula1 2024 Round05 Miami Sprint Race F1TV 1080p
-      regex: >-
-        (?i)^Formula1\s+(?P<year>\d{4})\s+Round(?P<round>\d{2})\s+(?P<location>[^\s]+)\s+(?P<session>.+?(?:\s+Part\d+)?)\s*(?=\s+F1(?:TV|LIVE))
-      season_selector:
-        mode: round
-        group: round
-        offset: 0
-      episode_selector:
-        group: session
-      session_aliases: *formula1_session_aliases
-      destination_root_template: "{show_title}"
-      season_dir_template: "{season_round:02d} {season_title}"
-      filename_template: "{show_title} - S{season_number:02d}E{episode_number:02d} - {episode_title}.{extension}"
-
-    - description: Formula 1 VERUM releases
-      # Example: Formula1.2024.Saudi.Arabian.Grand.Prix.Qualifying.1080p.VERUM.mkv
-      regex: >-
-        (?i)^Formula1\.(?P<year>\d{4})\.(?P<season_slug>[^.]+(?:\.[^.]+){1,2})\.(?P<session>Qualifying|Sprint\.Race|Race)(?=\.1080p)
-      season_selector:
-        mode: title        # Use the slug to match metadata titles directly.
-        group: season_slug
-        offset: 0
-      episode_selector:
-        group: session
-        allow_fallback_to_title: true
-      session_aliases: *formula1_session_aliases
-      destination_root_template: "{show_title}"
-      season_dir_template: "{season_round:02d} {season_title}"
-      filename_template: "{show_title} - S{season_number:02d}E{episode_number:02d} - {episode_title}.{extension}"
-
-    - description: Formula 1 VERUM full race packs
-      # Example: Formula1.2024.Miami.Grand.Prix.Grand.Prix.1080p.VERUM
-      regex: >-
-        (?i)^Formula1\.(?P<year>\d{4})\.(?P<season_slug>[^.]+(?:\.[^.]+)*?)(?=\.Grand\.Prix)\.(?P<session>Grand\.Prix)\.1080p.*
-      season_selector:
-        mode: title
-        group: season_slug
-      episode_selector:
-        group: session
-      session_aliases:
-        Race:
-          - Grand.Prix
-      destination_root_template: "{show_title}"
-      season_dir_template: "{season_round:02d} {season_title}"
       filename_template: "{show_title} - S{season_number:02d}E{episode_number:02d} - {episode_title}.{extension}"
 
   # ------------------------------------------------------------------
