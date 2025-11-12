@@ -4,9 +4,11 @@ import datetime as dt
 import json
 import logging
 import re
+import threading
+import time
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, Iterable, List, Optional, Set, Tuple
+from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Optional, Set, Tuple
 
 import requests
 import yaml
@@ -15,7 +17,75 @@ from .config import MetadataConfig, Settings
 from .models import Episode, Season, Show
 from .utils import ensure_directory, sha1_of_text
 
+if TYPE_CHECKING:
+    from .cache import MetadataHttpCache
+else:  # pragma: no cover - runtime typing fallback
+    MetadataHttpCache = Any  # type: ignore[assignment]
+
 LOGGER = logging.getLogger(__name__)
+
+MAX_FETCH_RETRIES = 3
+
+
+class MetadataFetchStatistics:
+    """Thread-safe accumulator for metadata cache metrics."""
+
+    def __init__(self) -> None:
+        self.cache_hits = 0
+        self.cache_misses = 0
+        self.network_requests = 0
+        self.not_modified = 0
+        self.stale_used = 0
+        self.failures = 0
+        self._lock = threading.Lock()
+
+    def record_cache_hit(self) -> None:
+        with self._lock:
+            self.cache_hits += 1
+
+    def record_cache_miss(self) -> None:
+        with self._lock:
+            self.cache_misses += 1
+
+    def record_network_request(self) -> None:
+        with self._lock:
+            self.network_requests += 1
+
+    def record_not_modified(self) -> None:
+        with self._lock:
+            self.not_modified += 1
+
+    def record_stale_used(self) -> None:
+        with self._lock:
+            self.stale_used += 1
+
+    def record_failure(self) -> None:
+        with self._lock:
+            self.failures += 1
+
+    def snapshot(self) -> Dict[str, int]:
+        with self._lock:
+            return {
+                "cache_hits": self.cache_hits,
+                "cache_misses": self.cache_misses,
+                "network_requests": self.network_requests,
+                "not_modified": self.not_modified,
+                "stale_used": self.stale_used,
+                "failures": self.failures,
+            }
+
+    def has_activity(self) -> bool:
+        with self._lock:
+            return any(
+                (
+                    self.cache_hits,
+                    self.cache_misses,
+                    self.network_requests,
+                    self.not_modified,
+                    self.stale_used,
+                    self.failures,
+                )
+            )
 
 
 def _json_default(obj: Any) -> Any:
@@ -357,24 +427,105 @@ class MetadataFetchError(RuntimeError):
     """Raised when metadata cannot be retrieved from remote or cache."""
 
 
-def fetch_metadata(metadata: MetadataConfig, settings: Settings) -> Dict[str, Any]:
+def fetch_metadata(
+    metadata: MetadataConfig,
+    settings: Settings,
+    *,
+    http_cache: Optional[MetadataHttpCache] = None,
+    stats: Optional[MetadataFetchStatistics] = None,
+) -> Dict[str, Any]:
     cache_file = _cache_path(settings.cache_dir, metadata.url)
     cached = _load_cached_metadata(cache_file, metadata.ttl_hours)
     if cached is not None:
         LOGGER.debug("Using cached metadata for %s", metadata.url)
+        if stats:
+            stats.record_cache_hit()
         return cached
 
+    if stats:
+        stats.record_cache_miss()
+
+    stale = _load_cached_metadata(cache_file, metadata.ttl_hours, allow_expired=True)
     LOGGER.info("Fetching metadata from %s", metadata.url)
-    try:
-        response = requests.get(metadata.url, headers=metadata.headers, timeout=30)
-        response.raise_for_status()
-    except requests.RequestException as exc:  # noqa: BLE001 - propagate cleanly below
-        LOGGER.warning("Failed to fetch metadata from %s: %s", metadata.url, exc)
-        stale = _load_cached_metadata(cache_file, metadata.ttl_hours, allow_expired=True)
+    headers = dict(metadata.headers or {})
+
+    if http_cache:
+        cached_entry = http_cache.get(metadata.url)
+        if cached_entry:
+            if cached_entry.etag and "If-None-Match" not in headers:
+                headers["If-None-Match"] = cached_entry.etag
+            if cached_entry.last_modified and "If-Modified-Since" not in headers:
+                headers["If-Modified-Since"] = cached_entry.last_modified
+
+    response = None
+    last_exception: Optional[requests.RequestException] = None
+    backoff = 1.0
+
+    for attempt in range(MAX_FETCH_RETRIES):
+        try:
+            response = requests.get(metadata.url, headers=headers or None, timeout=30)
+            if stats:
+                stats.record_network_request()
+            break
+        except requests.RequestException as exc:  # noqa: BLE001
+            last_exception = exc
+            if attempt >= MAX_FETCH_RETRIES - 1:
+                response = None
+                break
+            LOGGER.debug(
+                "Metadata fetch attempt %s failed for %s: %s (retrying)",
+                attempt + 1,
+                metadata.url,
+                exc,
+            )
+            time.sleep(backoff)
+            backoff = min(backoff * 2, 8.0)
+
+    if response is None:
         if stale is not None:
+            if stats:
+                stats.record_stale_used()
             LOGGER.info("Using stale cached metadata for %s", metadata.url)
             return stale
+        if stats:
+            stats.record_failure()
+        raise MetadataFetchError(f"Unable to fetch metadata from {metadata.url}") from last_exception
+
+    status_code = response.status_code
+
+    if http_cache:
+        http_cache.update(
+            metadata.url,
+            etag=response.headers.get("ETag"),
+            last_modified=response.headers.get("Last-Modified"),
+            status_code=status_code,
+        )
+
+    if status_code == 304:
+        if stats:
+            stats.record_not_modified()
+        if stale is not None:
+            LOGGER.debug("Metadata not modified for %s", metadata.url)
+            return stale
+        if stats:
+            stats.record_failure()
+        raise MetadataFetchError(
+            f"Received 304 Not Modified for {metadata.url} without cached copy",
+        )
+
+    try:
+        response.raise_for_status()
+    except requests.RequestException as exc:  # noqa: BLE001
+        LOGGER.warning("Failed to fetch metadata from %s: %s", metadata.url, exc)
+        if stale is not None:
+            if stats:
+                stats.record_stale_used()
+            LOGGER.info("Using stale cached metadata for %s", metadata.url)
+            return stale
+        if stats:
+            stats.record_failure()
         raise MetadataFetchError(f"Unable to fetch metadata from {metadata.url}") from exc
+
     content = yaml.safe_load(response.text)
     if not isinstance(content, dict):
         raise ValueError(f"Unexpected metadata structure at {metadata.url}")
@@ -552,7 +703,13 @@ class MetadataNormalizer:
         return episodes
 
 
-def load_show(settings: Settings, metadata_cfg: MetadataConfig) -> Show:
-    raw = fetch_metadata(metadata_cfg, settings)
+def load_show(
+    settings: Settings,
+    metadata_cfg: MetadataConfig,
+    *,
+    http_cache: Optional[MetadataHttpCache] = None,
+    stats: Optional[MetadataFetchStatistics] = None,
+) -> Show:
+    raw = fetch_metadata(metadata_cfg, settings, http_cache=http_cache, stats=stats)
     normalizer = MetadataNormalizer(metadata_cfg)
     return normalizer.load_show(raw)

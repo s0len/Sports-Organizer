@@ -8,7 +8,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional
 
-from .pattern_templates import load_builtin_pattern_sets
+from .pattern_templates import expand_regex_with_tokens, load_builtin_pattern_sets
 from .utils import load_yaml_file
 
 
@@ -40,7 +40,7 @@ class PatternConfig:
     priority: int = 100
 
     def compiled_regex(self) -> re.Pattern[str]:
-        return re.compile(self.regex)
+        return re.compile(self.regex, re.IGNORECASE)
 
 
 @dataclass(slots=True)
@@ -65,6 +65,8 @@ class DestinationTemplates:
 class NotificationSettings:
     batch_daily: bool = False
     flush_time: dt.time = field(default_factory=lambda: dt.time(hour=0, minute=0))
+    targets: List[Dict[str, Any]] = field(default_factory=list)
+    throttle: Dict[str, int] = field(default_factory=dict)
 
 
 @dataclass(slots=True)
@@ -121,8 +123,9 @@ def _build_episode_selector(data: Dict[str, Any]) -> EpisodeSelector:
 
 
 def _build_pattern_config(data: Dict[str, Any]) -> PatternConfig:
+    raw_regex = str(data["regex"])
     pattern = PatternConfig(
-        regex=data["regex"],
+        regex=expand_regex_with_tokens(raw_regex),
         description=data.get("description"),
         season_selector=_build_season_selector(data.get("season_selector", {})),
         episode_selector=_build_episode_selector(data.get("episode_selector", {})),
@@ -320,9 +323,35 @@ def _build_settings(data: Dict[str, Any]) -> Settings:
     except ValueError as exc:
         raise ValueError(str(exc)) from exc
 
+    targets_raw = notifications_raw.get("targets", []) or []
+    if not isinstance(targets_raw, list):
+        raise ValueError("'notifications.targets' must be provided as a list when specified")
+    targets: List[Dict[str, Any]] = []
+    for entry in targets_raw:
+        if not isinstance(entry, dict):
+            raise ValueError("Each entry in 'notifications.targets' must be a mapping")
+        target_type = entry.get("type")
+        if not isinstance(target_type, str):
+            raise ValueError("Notification target entries must include a string 'type'")
+        normalized_entry: Dict[str, Any] = {str(k): v for k, v in entry.items()}
+        normalized_entry["type"] = target_type.strip().lower()
+        targets.append(normalized_entry)
+
+    throttle_raw = notifications_raw.get("throttle", {}) or {}
+    if not isinstance(throttle_raw, dict):
+        raise ValueError("'notifications.throttle' must be provided as a mapping when specified")
+    throttle: Dict[str, int] = {}
+    for key, value in throttle_raw.items():
+        try:
+            throttle[str(key)] = int(value)
+        except (TypeError, ValueError) as exc:  # noqa: PERF203
+            raise ValueError(f"'notifications.throttle[{key}]' must be an integer") from exc
+
     notifications = NotificationSettings(
         batch_daily=bool(notifications_raw.get("batch_daily", False)),
         flush_time=flush_time,
+        targets=targets,
+        throttle=throttle,
     )
 
     return Settings(

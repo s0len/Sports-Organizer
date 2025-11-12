@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import List, Tuple
+from typing import Dict, List, Tuple
 
 from sports_organizer.config import (
     DestinationTemplates,
@@ -94,4 +94,36 @@ def test_match_file_to_episode_warns_when_season_missing() -> None:
     severity, message = diagnostics[0]
     assert severity == "warning"
     assert "season not resolved" in message
+
+
+def test_match_file_to_episode_includes_trace_details() -> None:
+    pattern = PatternConfig(
+        regex=r"(?i)^(?P<round>\d+)[._-]*(?P<session>[A-Za-z]+)",
+        season_selector=SeasonSelector(mode="round", group="round"),
+        priority=10,
+    )
+
+    sport = build_sport([pattern])
+    show, season = build_show()
+
+    patterns = compile_patterns(sport)
+
+    trace: Dict[str, object] = {}
+    result = match_file_to_episode(
+        "01.qualifying.mkv",
+        sport,
+        show,
+        patterns,
+        diagnostics=None,
+        trace=trace,
+    )
+
+    assert result is not None
+    assert trace["status"] == "matched"
+    attempts = trace["attempts"]
+    assert attempts
+    matched_attempt = next(item for item in attempts if item["status"] == "matched")
+    assert matched_attempt["season"]["title"] == season.title
+    assert matched_attempt["episode"]["title"] == "Qualifying"
+    assert trace["messages"] == []
 

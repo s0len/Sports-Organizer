@@ -1,3 +1,19 @@
+regex_tokens:
+  resolution: &resolution_token "(?:2160p|1440p|1080p|1080i|720p|720i|576p|576i|480p|360p|4k|sd|hd|fhd|uhd|hdr10plus|hdr10|hdr|hlg|dv|dolby|vision)"
+  source: &source_token "(?:web(?:-?dl|rip)?|webrdl|hdtv|bluray|brrip|hdrip|amzn|amazon|prime|now|stan|webrip|web|rip)"
+  codec: &codec_token "(?:h264|x264|h265|x265|hevc|avc)"
+  audio: &audio_token "(?:aac|eac3|ddp(?:lus)?|dd5(?:1)?|dd51|ddplus|dd\\+|atmos|dts|truehd|ac3)"
+  release_group: &release_group_token "(?:nightninjas|gametime|skynz|verum|mwr)"
+  network: &network_token "(?:f1tv|atv|itv|sky|peacock|paramount|espn|dazn|bt|bbc|nbc|cbs|fox|abc|tsn|bein|viaplay|apple|atvp|nf|netflix|hulu|disney|max|prime|amzn)"
+  distribution: &distribution_token "(?:ppv|payperview|pay-per-view)"
+  bit_depth: &bit_depth_token "(?:10bit|8bit)"
+  language: &language_token "(?:english|en|multi|dual)"
+  quality: &quality_token "(?i:proper|repack|hybrid|extended|complete|collection|pack|webrip|hdrip|remux)"
+  subtitle: &subtitle_token "(?:subs?|subbed|dubbed|captioned|cc)"
+  extras: &extras_token "(?:bonus|extras?|sample|trailer)"
+  suffix_token: &suffix_token "(?:(?:<resolution>|<source>|<codec>|<audio>|<network>|<release_group>|<distribution>|<bit_depth>|<language>|<quality>|<subtitle>|<extras>|pack|set|cut|remux|hybrid)(?:[-_](?:<release_group>|<codec>|<audio>|<quality>|<subtitle>))*)"
+  extension: &extension_token "(?:mkv|mp4|ts|m4v|avi)"
+
 pattern_sets:
   # ------------------------------------------------------------------
   # Formula 1 releases
@@ -6,7 +22,7 @@ pattern_sets:
     - description: Formula 1 MWR releases
       # Example: Formula.1.2024.Round03.Melbourne.Albert.Park.Qualifying.F1TV-1080p
       regex: >-
-        (?i)^Formula\.?1\.(?P<year>\d{4})\.Round(?P<round>\d{2})\.(?P<location>[^.]+)\.(?P<venue>[^.]+)\.(?P<session>[^.]+(?:\.[^.]+)*?(?:\.Part\d+)?)(?=\.F1)
+        (?i)^Formula\.?1\.(?P<year>\d{4})\.Round(?P<round>\d{2})\.(?P<location>[^.]+)(?:\.(?P<venue>[^.]+(?:\.[^.]+)*))?\.(?P<session>[^.]+(?:\.[^.]+)*?(?:\.Part\d+)?)(?=\.F1)
       season_selector:
         mode: round           # Use captured round number to map metadata seasons.
         group: round
@@ -65,6 +81,68 @@ pattern_sets:
       season_dir_template: "{season_round:02d} {season_title}"
       filename_template: "{show_title} - S{season_number:02d}E{episode_number:02d} - {episode_title}.{extension}"
 
+    - description: Formula 1 F1Carreras releases
+      # Example: Formula.1.S2024E02.Round04.Baku.Azerbaijan.Sprint.F1TV-1080p-F1Carreras.mkv
+      regex: >-
+        (?i)^Formula\.?1\.S(?P<year>\d{4})E\d+\.Round(?P<round>\d{2})\.(?P<location>[^.]+(?:\.[^.]+)*)\.(?P<session>[^.]+(?:\.[^.]+)*?)(?=\.F1TV).*?-F1Carreras\.(?:mkv|mp4|ts)$
+      season_selector:
+        mode: round
+        group: round
+        offset: 0
+      episode_selector:
+        group: session
+      session_aliases: *formula1_session_aliases   # Re-use the normalization table above.
+      destination_root_template: "{show_title}"
+      season_dir_template: "{season_round:02d} {season_title}"
+      filename_template: "{show_title} - S{season_number:02d}E{episode_number:02d} - {episode_title}.{extension}"
+
+    - description: Formula 1 spaced MWR releases
+      # Example: Formula1 2024 Round05 Miami Sprint Race F1TV 1080p
+      regex: >-
+        (?i)^Formula1\s+(?P<year>\d{4})\s+Round(?P<round>\d{2})\s+(?P<location>[^\s]+)\s+(?P<session>.+?(?:\s+Part\d+)?)\s*(?=\s+F1(?:TV|LIVE))
+      season_selector:
+        mode: round
+        group: round
+        offset: 0
+      episode_selector:
+        group: session
+      session_aliases: *formula1_session_aliases
+      destination_root_template: "{show_title}"
+      season_dir_template: "{season_round:02d} {season_title}"
+      filename_template: "{show_title} - S{season_number:02d}E{episode_number:02d} - {episode_title}.{extension}"
+
+    - description: Formula 1 VERUM releases
+      # Example: Formula1.2024.Saudi.Arabian.Grand.Prix.Qualifying.1080p.VERUM.mkv
+      regex: >-
+        (?i)^Formula1\.(?P<year>\d{4})\.(?P<season_slug>[^.]+(?:\.[^.]+){1,2})\.(?P<session>Qualifying|Sprint\.Race|Race)(?=\.1080p)
+      season_selector:
+        mode: title        # Use the slug to match metadata titles directly.
+        group: season_slug
+        offset: 0
+      episode_selector:
+        group: session
+        allow_fallback_to_title: true
+      session_aliases: *formula1_session_aliases
+      destination_root_template: "{show_title}"
+      season_dir_template: "{season_round:02d} {season_title}"
+      filename_template: "{show_title} - S{season_number:02d}E{episode_number:02d} - {episode_title}.{extension}"
+
+    - description: Formula 1 VERUM full race packs
+      # Example: Formula1.2024.Miami.Grand.Prix.Grand.Prix.1080p.VERUM
+      regex: >-
+        (?i)^Formula1\.(?P<year>\d{4})\.(?P<season_slug>[^.]+(?:\.[^.]+)*?)(?=\.Grand\.Prix)\.(?P<session>Grand\.Prix)\.1080p.*
+      season_selector:
+        mode: title
+        group: season_slug
+      episode_selector:
+        group: session
+      session_aliases:
+        Race:
+          - Grand.Prix
+      destination_root_template: "{show_title}"
+      season_dir_template: "{season_round:02d} {season_title}"
+      filename_template: "{show_title} - S{season_number:02d}E{episode_number:02d} - {episode_title}.{extension}"
+
   # ------------------------------------------------------------------
   # NBA releases
   # ------------------------------------------------------------------
@@ -72,7 +150,7 @@ pattern_sets:
     - description: NBA regular season date-based releases
       # Example: NBA.2025.11.04.Phoenix.Suns.Vs.Golden.State.Warriors.1080p.WEB.H264-GAMETiME.mkv
       regex: >-
-        (?i)^NBA\.(?P<date>(?P<year>\d{4})\.(?P<month>\d{2})\.(?P<day>\d{2}))\.(?P<matchup>(?P<away>[A-Za-z0-9&'-]+(?:\.[A-Za-z0-9&'-]+){0,4})\.(?P<separator>vs|v|at)\.(?P<home>[A-Za-z0-9&'-]+(?:\.[A-Za-z0-9&'-]+){0,4}))(?=\.)(?:\.[^.]+)*\.(?P<extension>mkv|mp4|ts|m4v|avi)$
+        (?i)^NBA\.(?P<date>(?P<year>\d{4})\.(?P<month>\d{2})\.(?P<day>\d{2}))\.(?P<matchup>(?P<away>[A-Za-z0-9&'-]+(?:\.(?!(?:<suffix_token>|<extension>)(?:$|\.))[A-Za-z0-9&'-]+){0,4})\.(?P<separator>vs|v|at)\.(?P<home>[A-Za-z0-9&'-]+(?:\.(?!(?:<suffix_token>|<extension>)(?:$|\.))[A-Za-z0-9&'-]+){0,4}))(?=\.)(?:\.(?:<suffix_token>|[^.]+))*\.(?P<extension><extension>)$
       season_selector:
         mode: key
         group: date
@@ -95,6 +173,7 @@ pattern_sets:
           '2025.11.05': 3
           '2025.11.06': 3
           '2025.11.07': 3
+          '2025.11.08': 3
           '2025.11.09': 3
           '2025.11.10': 3
           '2025.11.11': 4
@@ -238,68 +317,6 @@ pattern_sets:
         allow_fallback_to_title: true
       destination_root_template: "{show_title}"
       season_dir_template: "{season_number:02d} {season_title}"
-      filename_template: "{show_title} - S{season_number:02d}E{episode_number:02d} - {episode_title}.{extension}"
-
-    - description: Formula 1 F1Carreras releases
-      # Example: Formula.1.S2024E02.Round04.Baku.Azerbaijan.Sprint.F1TV-1080p-F1Carreras.mkv
-      regex: >-
-        (?i)^Formula\.?1\.S(?P<year>\d{4})E\d+\.Round(?P<round>\d{2})\.(?P<location>[^.]+(?:\.[^.]+)*)\.(?P<session>[^.]+(?:\.[^.]+)*?)(?=\.F1TV).*?-F1Carreras\.(?:mkv|mp4|ts)$
-      season_selector:
-        mode: round
-        group: round
-        offset: 0
-      episode_selector:
-        group: session
-      session_aliases: *formula1_session_aliases   # Re-use the normalization table above.
-      destination_root_template: "{show_title}"
-      season_dir_template: "{season_round:02d} {season_title}"
-      filename_template: "{show_title} - S{season_number:02d}E{episode_number:02d} - {episode_title}.{extension}"
-
-    - description: Formula 1 spaced MWR releases
-      # Example: Formula1 2024 Round05 Miami Sprint Race F1TV 1080p
-      regex: >-
-        (?i)^Formula1\s+(?P<year>\d{4})\s+Round(?P<round>\d{2})\s+(?P<location>[^\s]+)\s+(?P<session>.+?(?:\s+Part\d+)?)\s*(?=\s+F1(?:TV|LIVE))
-      season_selector:
-        mode: round
-        group: round
-        offset: 0
-      episode_selector:
-        group: session
-      session_aliases: *formula1_session_aliases
-      destination_root_template: "{show_title}"
-      season_dir_template: "{season_round:02d} {season_title}"
-      filename_template: "{show_title} - S{season_number:02d}E{episode_number:02d} - {episode_title}.{extension}"
-
-    - description: Formula 1 VERUM releases
-      # Example: Formula1.2024.Saudi.Arabian.Grand.Prix.Qualifying.1080p.VERUM.mkv
-      regex: >-
-        (?i)^Formula1\.(?P<year>\d{4})\.(?P<season_slug>[^.]+(?:\.[^.]+){1,2})\.(?P<session>Qualifying|Sprint\.Race|Race)(?=\.1080p)
-      season_selector:
-        mode: title        # Use the slug to match metadata titles directly.
-        group: season_slug
-        offset: 0
-      episode_selector:
-        group: session
-        allow_fallback_to_title: true
-      session_aliases: *formula1_session_aliases
-      destination_root_template: "{show_title}"
-      season_dir_template: "{season_round:02d} {season_title}"
-      filename_template: "{show_title} - S{season_number:02d}E{episode_number:02d} - {episode_title}.{extension}"
-
-    - description: Formula 1 VERUM full race packs
-      # Example: Formula1.2024.Miami.Grand.Prix.Grand.Prix.1080p.VERUM
-      regex: >-
-        (?i)^Formula1\.(?P<year>\d{4})\.(?P<season_slug>[^.]+(?:\.[^.]+)*?)(?=\.Grand\.Prix)\.(?P<session>Grand\.Prix)\.1080p.*
-      season_selector:
-        mode: title
-        group: season_slug
-      episode_selector:
-        group: session
-      session_aliases:
-        Race:
-          - Grand.Prix
-      destination_root_template: "{show_title}"
-      season_dir_template: "{season_round:02d} {season_title}"
       filename_template: "{show_title} - S{season_number:02d}E{episode_number:02d} - {episode_title}.{extension}"
 
   # ------------------------------------------------------------------
@@ -910,7 +927,7 @@ pattern_sets:
     - description: World Superbike MWR releases (dot separated)
       # Example: WSBK.2025.Round12.Spain.Jerez.Race.Two.WEB-DL.1080p.h264.English-MWR
       regex: >-
-        (?i)^(?=.*-MWR(?:\.(?:mkv|mp4|ts))?$)WSBK\.(?P<year>\d{4})\.Round(?P<round>\d{2})\.(?P<location>[^.]+(?:\.[^.]+)*)\.(?P<session>FP[1-4]|Free\.Practice(?:\.(?:One|Two|Three|Four|1|2|3|4))?|Practice(?:\.(?:One|Two|Three|Four|1|2|3|4))?|Superpole(?:\.Race)?|Race(?:\.One|\.Two)?|Warm\.?Up|Season\.Preview|Weekend\.Highlights|Highlights)(?=\.(?:WEB|HDTV|BluRay|Blu|WEB-DL|WEBRip|AMZN|STAN|1080p|720p|2160p|h264|h265|x264|x265|HEVC|AAC|DDP|Dual|Multi|English|-MWR)|$)
+        (?i)^(?=.*-MWR(?:\.(?:mkv|mp4|ts))?$)WSBK\.(?P<year>\d{4})\.Round(?P<round>\d{2})\.(?P<location>[^.]+(?:\.[^.]+)*)\.(?P<session>FP[1-4]|Free\.Practice(?:\.(?:One|Two|Three|Four|1|2|3|4))?|Practice(?:\.(?:One|Two|Three|Four|1|2|3|4))?|Superpole(?:\.Race)?|Race(?:\.One|\.Two)?|Warm\.?Up|Season\.Preview|Weekend\.Highlights|Highlights)(?=\.(?:PROPER|REPACK|WEB|HDTV|BluRay|Blu|WEB-DL|WEBRip|AMZN|STAN|1080p|720p|2160p|h264|h265|x264|x265|HEVC|AAC|DDP|Dual|Multi|English|-MWR)|$)
       season_selector:
         mode: round
         group: round
@@ -5255,7 +5272,7 @@ pattern_sets:
         - Villarreal.vs.Manchester.City
     - description: UEFA Champions League spaced releases
       regex: >-
-        (?i)^UEFA\s+Champions\s+League\s+(?P<season_year>\d{4}(?:-\d{2,4})?)\s+(?P<matchup>(?P<away>[A-Za-z&'’À-ÖØ-öø-ÿ]+(?:\s+[A-Za-z&'’À-ÖØ-öø-ÿ]+){0,3})\s+(?:vs?|VS?|V|versus)\s+(?P<home>[A-Za-z&'’À-ÖØ-öø-ÿ]+(?:\s+[A-Za-z&'’À-ÖØ-öø-ÿ]+){0,3}))\s+(?P<match_date>\d{2}[ .-]\d{2}[ .-]\d{4}|\d{4}[ .-]\d{2}[ .-]\d{2})(?:\s+.+)?\.(?P<extension>mkv|mp4|ts|m4v|avi)$
+        (?i)^UEFA\s+Champions\s+League\s+(?P<season_year>\d{4}(?:-\d{2,4})?)\s+(?P<matchup>(?P<away>[A-Za-z&'’À-ÖØ-öø-ÿ]+(?:\s+[A-Za-z&'’À-ÖØ-öø-ÿ]+){0,3})\s+(?:vs?|VS?|V|versus)\s+(?P<home>[A-Za-z&'’À-ÖØ-öø-ÿ]+(?:\s+[A-Za-z&'’À-ÖØ-öø-ÿ]+){0,3}))\s+(?P<match_date>\d{2}[ .-]\d{2}[ .-]\d{4}|\d{4}[ .-]\d{2}[ .-]\d{2})(?:\s+.+)?\.(?P<extension><extension>)$
       season_selector:
         mode: key
         group: match_date
@@ -5368,7 +5385,7 @@ pattern_sets:
     - description: Premier League dot releases
       # Example: EPL.2025.11.02.Manchester.City.Vs.Bournemouth.1080p.WEB.H264-NiGHTNiNJAS.mkv
       regex: >-
-        (?i)^(?:EPL|English\.?Premier\.?League|Premier\.?League)\.(?P<date>(?P<year>\d{4})\.(?P<month>\d{2})\.(?P<day>\d{2}))\.(?P<matchup>(?P<away>[A-Za-z0-9&'-]+(?:\.[A-Za-z0-9&'-]+){0,5})\.(?P<separator>Vs|vs|VS|V|v)\.(?P<home>[A-Za-z0-9&'-]+(?:\.[A-Za-z0-9&'-]+){0,5}))(?:\.[^.]+)*?(?:\.(?P<release>SKYNZ))?\.(?P<extension>mkv|mp4|ts|m4v|avi)$
+        (?i)^(?:EPL|English\.?Premier\.?League|Premier\.?League)\.(?P<date>(?P<year>\d{4})\.(?P<month>\d{2})\.(?P<day>\d{2}))\.(?P<matchup>(?P<away>[A-Za-z0-9&'-]+(?:\.[A-Za-z0-9&'-]+){0,5})\.(?P<separator>Vs|vs|VS|V|v)\.(?P<home>[A-Za-z0-9&'-]+(?:\.(?!(?:<suffix_token>|<extension>)(?:$|\.))[A-Za-z0-9&'-]+){0,5}))(?:\.(?:<suffix_token>|[^.]+))*\.(?P<extension><extension>)$
       season_selector:
         mode: key
         group: date

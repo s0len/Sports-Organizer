@@ -3,9 +3,11 @@ from __future__ import annotations
 from typing import List
 
 import pytest
+import requests
 
+from sports_organizer.cache import MetadataHttpCache
 from sports_organizer.config import MetadataConfig, Settings
-from sports_organizer.metadata import MetadataNormalizer, fetch_metadata
+from sports_organizer.metadata import MetadataFetchStatistics, MetadataNormalizer, fetch_metadata
 
 
 class DummyResponse:
@@ -51,6 +53,81 @@ def test_fetch_metadata_uses_cache(monkeypatch, settings) -> None:
     second = fetch_metadata(metadata_cfg, settings)
     assert second == first
     assert requests_called == ["https://example.com/demo.yaml"]
+
+
+def test_fetch_metadata_respects_conditional_requests(monkeypatch, settings) -> None:
+    payload = """
+    metadata:
+      demo:
+        title: Demo Series
+    """
+
+    http_cache = MetadataHttpCache(settings.cache_dir)
+    stats = MetadataFetchStatistics()
+    call_count = {"value": 0}
+
+    def fake_get(url, headers=None, timeout=None):
+        call_count["value"] += 1
+        if call_count["value"] == 1:
+            response = DummyResponse(payload)
+            response.status_code = 200
+            response.headers = {"ETag": '"abc"', "Last-Modified": "Wed, 21 Oct 2015 07:28:00 GMT"}
+            return response
+        assert headers is not None
+        assert headers.get("If-None-Match") == '"abc"'
+        response = DummyResponse("")
+        response.status_code = 304
+        response.headers = {"ETag": '"abc"'}
+        return response
+
+    monkeypatch.setattr("sports_organizer.metadata.requests.get", fake_get)
+
+    metadata_cfg = MetadataConfig(url="https://example.com/demo.yaml", ttl_hours=0)
+    first = fetch_metadata(metadata_cfg, settings, http_cache=http_cache, stats=stats)
+    second = fetch_metadata(metadata_cfg, settings, http_cache=http_cache, stats=stats)
+
+    assert first["metadata"]["demo"]["title"] == "Demo Series"
+    assert second == first
+    snapshot = stats.snapshot()
+    assert snapshot["cache_hits"] == 0
+    assert snapshot["cache_misses"] == 2
+    assert snapshot["network_requests"] == 2
+    assert snapshot["not_modified"] == 1
+    assert snapshot["stale_used"] == 0
+    assert snapshot["failures"] == 0
+
+
+def test_fetch_metadata_uses_stale_on_failure(monkeypatch, settings) -> None:
+    payload = """
+    metadata:
+      demo:
+        title: Demo Series
+    """
+
+    http_cache = MetadataHttpCache(settings.cache_dir)
+    stats = MetadataFetchStatistics()
+    call_count = {"value": 0}
+
+    def flaky_get(url, headers=None, timeout=None):
+        call_count["value"] += 1
+        if call_count["value"] == 1:
+            response = DummyResponse(payload)
+            response.status_code = 200
+            response.headers = {}
+            return response
+        raise requests.RequestException("boom")
+
+    monkeypatch.setattr("sports_organizer.metadata.requests.get", flaky_get)
+
+    metadata_cfg = MetadataConfig(url="https://example.com/demo.yaml", ttl_hours=0)
+    first = fetch_metadata(metadata_cfg, settings, http_cache=http_cache, stats=stats)
+    second = fetch_metadata(metadata_cfg, settings, http_cache=http_cache, stats=stats)
+
+    assert first == second
+    assert call_count["value"] == 4
+    snapshot = stats.snapshot()
+    assert snapshot["stale_used"] == 1
+    assert snapshot["failures"] == 0
 
 
 def test_metadata_normalizer_loads_show_with_rounds() -> None:

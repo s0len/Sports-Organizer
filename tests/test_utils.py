@@ -21,6 +21,12 @@ def test_sanitize_component_replaces_disallowed_characters() -> None:
     assert sanitize_component("???") == "untitled"
 
 
+def test_sanitize_component_rejects_dot_segments() -> None:
+    assert sanitize_component(".") == "untitled"
+    assert sanitize_component("..") == "untitled"
+    assert sanitize_component(" .. ") == "untitled"
+
+
 def test_link_file_creates_destination_and_detects_existing(tmp_path) -> None:
     source = tmp_path / "source.txt"
     source.write_text("test-data", encoding="utf-8")

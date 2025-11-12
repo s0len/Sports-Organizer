@@ -1,10 +1,12 @@
 from __future__ import annotations
 
 import argparse
+import difflib
 import logging
 import os
 import sys
 import time
+import traceback
 from pathlib import Path
 from typing import Optional, Tuple
 
@@ -12,7 +14,9 @@ from rich.console import Console
 from rich.logging import RichHandler
 
 from .config import AppConfig, Settings, load_config
-from .processor import Processor
+from .processor import Processor, TraceOptions
+from .utils import load_yaml_file
+from .validation import ValidationIssue, validate_config_data
 
 LOGGER = logging.getLogger(__name__)
 CONSOLE = Console()
@@ -49,7 +53,14 @@ def _env_int(name: str) -> Tuple[Optional[int], bool]:
         return None, True
 
 
-def parse_args() -> argparse.Namespace:
+def parse_args(argv: Optional[Tuple[str, ...]] = None) -> argparse.Namespace:
+    arguments = list(argv or sys.argv[1:])
+    if arguments and arguments[0] == "validate-config":
+        return _parse_validate_args(arguments[1:])
+    return _parse_run_args(arguments)
+
+
+def _parse_run_args(arguments: list[str]) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Sports Organizer")
     parser.add_argument(
         "--config",
@@ -86,7 +97,44 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="Clear the processed-file cache before running",
     )
-    return parser.parse_args()
+    parser.add_argument(
+        "--trace-matches",
+        "--explain",
+        dest="trace_matches",
+        action="store_true",
+        help="Capture detailed match traces and store JSON artifacts (default directory: cache_dir/traces)",
+    )
+    parser.add_argument(
+        "--trace-output",
+        type=Path,
+        help="Directory where match trace JSON files are written (implies --trace-matches)",
+    )
+    namespace = parser.parse_args(arguments)
+    namespace.command = "run"
+    return namespace
+
+
+def _parse_validate_args(arguments: list[str]) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="Validate Sports Organizer configuration")
+    parser.add_argument(
+        "--config",
+        type=Path,
+        default=Path(os.getenv("CONFIG_PATH", "/config/sports.yaml")),
+        help="Path to the YAML configuration file",
+    )
+    parser.add_argument(
+        "--diff-sample",
+        action="store_true",
+        help="Display a unified diff against config/sports.sample.yaml when available",
+    )
+    parser.add_argument(
+        "--show-trace",
+        action="store_true",
+        help="Print exception tracebacks when validation fails",
+    )
+    namespace = parser.parse_args(arguments)
+    namespace.command = "validate-config"
+    return namespace
 
 
 def _resolve_previous_log_path(log_file: Path) -> Path:
@@ -195,8 +243,7 @@ def apply_runtime_overrides(config: AppConfig, args: argparse.Namespace) -> None
         config.settings.discord_webhook_url = webhook_override.strip() or None
 
 
-def main() -> int:
-    args = parse_args()
+def _execute_run(args: argparse.Namespace) -> int:
     env_verbose = _env_bool("VERBOSE")
     verbose = args.verbose
     if not verbose and env_verbose is not None:
@@ -250,7 +297,14 @@ def main() -> int:
     if env_clear_cache is not None:
         clear_processed_cache = env_clear_cache
 
-    processor = Processor(config, enable_notifications=not clear_processed_cache)
+    trace_enabled = bool(args.trace_matches or args.trace_output)
+    trace_options = TraceOptions(enabled=True, output_dir=args.trace_output) if trace_enabled else None
+
+    processor = Processor(
+        config,
+        enable_notifications=not clear_processed_cache,
+        trace_options=trace_options,
+    )
 
     if clear_processed_cache:
         LOGGER.info("Clearing processed file cache at %s", processor.processed_cache.cache_path)
@@ -279,6 +333,114 @@ def main() -> int:
     except KeyboardInterrupt:
         LOGGER.info("Interrupted by user")
     return 0
+
+
+def run_validate_config(args: argparse.Namespace) -> int:
+    config_path: Path = args.config
+    if not config_path.exists():
+        CONSOLE.print(f"[bold red]Configuration file not found: {config_path}[/bold red]")
+        return 1
+
+    try:
+        data = load_yaml_file(config_path)
+    except Exception as exc:  # noqa: BLE001
+        CONSOLE.print(f"[bold red]Failed to load configuration: {exc}[/bold red]")
+        if getattr(args, "show_trace", False):
+            CONSOLE.print(traceback.format_exc(), style="dim")
+        return 1
+
+    report = validate_config_data(data)
+
+    if report.is_valid:
+        try:
+            load_config(config_path)
+        except Exception as exc:  # noqa: BLE001
+            report.errors.append(
+                ValidationIssue(
+                    severity="error",
+                    path="<load_config>",
+                    message=f"{type(exc).__name__}: {exc}",
+                    code="load-config",
+                )
+            )
+            if getattr(args, "show_trace", False):
+                CONSOLE.print(traceback.format_exc(), style="dim")
+
+    if report.errors:
+        CONSOLE.print(f"[bold red]{len(report.errors)} validation error(s) detected:[/bold red]")
+        for issue in report.errors:
+            CONSOLE.print(f"  • [bold]{issue.path}[/bold] — {issue.message} ({issue.code})")
+    else:
+        CONSOLE.print("[bold green]Configuration passed validation.[/bold green]")
+
+    if report.warnings:
+        CONSOLE.print(f"[yellow]{len(report.warnings)} warning(s):[/yellow]")
+        for issue in report.warnings:
+            CONSOLE.print(f"  • [bold]{issue.path}[/bold] — {issue.message} ({issue.code})")
+
+    if getattr(args, "diff_sample", False):
+        sample_path = _resolve_sample_config_path()
+        if sample_path:
+            _print_sample_diff(sample_path, config_path)
+        else:
+            CONSOLE.print(
+                "[yellow]Sample configuration file config/sports.sample.yaml not found; skipping diff.[/yellow]"
+            )
+
+    return 0 if report.is_valid else 1
+
+
+def _resolve_sample_config_path() -> Optional[Path]:
+    root = Path(__file__).resolve().parents[2]
+    sample_path = root / "config" / "sports.sample.yaml"
+    if sample_path.exists():
+        return sample_path
+    return None
+
+
+def _print_sample_diff(sample_path: Path, target_path: Path) -> None:
+    try:
+        sample_lines = sample_path.read_text(encoding="utf-8").splitlines()
+        target_lines = target_path.read_text(encoding="utf-8").splitlines()
+    except OSError as exc:
+        CONSOLE.print(f"[yellow]Unable to compute diff: {exc}[/yellow]")
+        return
+
+    diff_lines = list(
+        difflib.unified_diff(
+            sample_lines,
+            target_lines,
+            fromfile=str(sample_path),
+            tofile=str(target_path),
+            lineterm="",
+        )
+    )
+
+    if not diff_lines:
+        CONSOLE.print("\n[cyan]No differences from sample configuration.[/cyan]")
+        return
+
+    CONSOLE.print("\n[cyan]Unified diff against sample configuration:[/cyan]")
+    for line in diff_lines:
+        style: Optional[str]
+        if line.startswith("---") or line.startswith("+++"):
+            style = "bold"
+        elif line.startswith("@@"):
+            style = "yellow"
+        elif line.startswith("+"):
+            style = "green"
+        elif line.startswith("-"):
+            style = "red"
+        else:
+            style = None
+        CONSOLE.print(line, style=style)
+
+
+def main(argv: Optional[Tuple[str, ...]] = None) -> int:
+    args = parse_args(argv)
+    if getattr(args, "command", "run") == "validate-config":
+        return run_validate_config(args)
+    return _execute_run(args)
 
 
 if __name__ == "__main__":

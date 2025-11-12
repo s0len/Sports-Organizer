@@ -39,9 +39,15 @@ def sanitize_component(component: str, replacement: str = "_") -> str:
     component = component.strip()
     if not component:
         return "untitled"
+
     cleaned = "".join(ch if ch in SAFE_FILENAME_CHARS else replacement for ch in component)
     cleaned = re.sub(r"%s+" % re.escape(replacement), replacement, cleaned)
-    return cleaned.strip(replacement) or "untitled"
+    cleaned = cleaned.strip(replacement) or "untitled"
+
+    if cleaned in {".", ".."}:
+        return "untitled"
+
+    return cleaned
 
 
 def ensure_directory(path: Path) -> None:

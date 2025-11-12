@@ -47,6 +47,7 @@
     - [4. Destination Templating](#4-destination-templating)
     - [5. Variants \& Reuse](#5-variants--reuse)
   - [Run Modes \& CLI](#run-modes--cli)
+    - [Config Validation](#config-validation)
   - [Logging \& Observability](#logging--observability)
   - [Directory Conventions](#directory-conventions)
   - [Plex Metadata via Kometa](#plex-metadata-via-kometa)
@@ -378,6 +379,16 @@ Each variant inherits the base config, tweaks fields from the variant block, and
 
 Environment variables always win over config defaults, and CLI flags win over environment variables.
 
+### Config Validation
+
+Preflight your YAML before running the processor:
+
+```bash
+python -m sports_organizer.cli validate-config --config /config/sports.yaml --diff-sample
+```
+
+The validator enforces the JSON schema, confirms referenced pattern sets exist, and then calls the same loader used by the runtime. Add `--show-trace` to surface Python tracebacks for deeper debugging. `--diff-sample` compares your file to `config/sports.sample.yaml` to highlight customizations.
+
 Continuous mode example:
 
 ```bash
@@ -545,6 +556,7 @@ pip install -r requirements.txt
 - Follow standard Python formatting (e.g., `ruff`, `black`) to keep diffs tidy.
 - Install test tooling: `pip install -r requirements-dev.txt`.
 - Run the automated tests: `pytest`.
+- Bootstrap a brand-new sandbox (e.g., Cursor/MCP agents) and run the full test suite in one step: `bash scripts/bootstrap_and_test.sh`.
 - Validate filename samples: edit `tests/data/pattern_samples.yaml` and run `pytest tests/test_pattern_samples.py` to confirm new or modified patterns resolve correctly.
 - Open a draft pull request early—sample configs and matching logic benefit from collaborative review.
 

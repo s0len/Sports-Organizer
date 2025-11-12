@@ -4,6 +4,8 @@ import json
 from pathlib import Path
 from typing import Dict, List
 
+import pytest
+
 from sports_organizer.config import AppConfig, MetadataConfig, PatternConfig, Settings, SportConfig
 from sports_organizer.metadata import (
     MetadataChangeResult,
@@ -14,6 +16,7 @@ from sports_organizer.metadata import (
 )
 from sports_organizer.models import Episode, Season, Show
 from sports_organizer.processor import Processor
+from sports_organizer.utils import sanitize_component
 
 
 def _build_raw_metadata(episode_number: int) -> dict:
@@ -137,7 +140,7 @@ def test_processor_removes_changed_entries_when_metadata_changes(tmp_path, monke
 
     call_counter = {"value": 0}
 
-    def fake_load_show(settings_arg, metadata_cfg_arg):
+    def fake_load_show(settings_arg, metadata_cfg_arg, **kwargs):
         index = 0 if call_counter["value"] == 0 else 1
         call_counter["value"] += 1
         raw = raw_v1 if index == 0 else raw_v2
@@ -223,7 +226,7 @@ def test_metadata_change_relinks_and_removes_old_destination(tmp_path, monkeypat
 
     call_counter = {"value": 0}
 
-    def fake_load_show(settings_arg, metadata_cfg_arg):
+    def fake_load_show(settings_arg, metadata_cfg_arg, **kwargs):
         index = 0 if call_counter["value"] == 0 else 1
         call_counter["value"] += 1
         raw = raw_v1 if index == 0 else raw_v2
@@ -296,7 +299,7 @@ def test_skips_mac_resource_fork_files(tmp_path, monkeypatch) -> None:
     )
     show = Show(key="demo", title="Demo Series", summary=None, seasons=[season])
 
-    monkeypatch.setattr("sports_organizer.processor.load_show", lambda settings_arg, metadata_cfg_arg: show)
+    monkeypatch.setattr("sports_organizer.processor.load_show", lambda settings_arg, metadata_cfg_arg, **kwargs: show)
     monkeypatch.setattr(
         "sports_organizer.processor.compute_show_fingerprint",
         lambda show_arg, metadata_cfg_arg: ShowFingerprint(digest="fingerprint", season_hashes={}, episode_hashes={}),
@@ -311,6 +314,139 @@ def test_skips_mac_resource_fork_files(tmp_path, monkeypatch) -> None:
     assert stats.errors == []
     assert stats.warnings == []
 
+
+def test_destination_stays_within_root_for_hostile_metadata(tmp_path, monkeypatch) -> None:
+    settings = Settings(
+        source_dir=tmp_path / "source",
+        destination_dir=tmp_path / "dest",
+        cache_dir=tmp_path / "cache",
+    )
+    settings.source_dir.mkdir(parents=True)
+    settings.destination_dir.mkdir(parents=True)
+    settings.cache_dir.mkdir(parents=True)
+
+    source_file = settings.source_dir / "demo.r01.qualifying.mkv"
+    source_file.write_bytes(b"payload")
+
+    metadata_cfg = MetadataConfig(url="https://example.com/demo.yaml", show_key="demo")
+    pattern = PatternConfig(
+        regex=r"(?i)^demo\.r(?P<round>\d{2})\.(?P<session>qualifying)\.mkv$",
+    )
+    sport = SportConfig(id="demo", name="Demo", metadata=metadata_cfg, patterns=[pattern])
+    config = AppConfig(settings=settings, sports=[sport])
+
+    episode = Episode(
+        title="../Episode",
+        summary=None,
+        originally_available=None,
+        index=1,
+        display_number=1,
+        aliases=["qualifying"],
+    )
+    season = Season(
+        key="01",
+        title="..",
+        summary=None,
+        index=1,
+        episodes=[episode],
+        display_number=1,
+        round_number=1,
+    )
+    show = Show(key="demo", title="../Evil Series", summary=None, seasons=[season])
+
+    monkeypatch.setattr("sports_organizer.processor.load_show", lambda *args, **kwargs: show)
+    monkeypatch.setattr(
+        "sports_organizer.processor.compute_show_fingerprint",
+        lambda *args, **kwargs: ShowFingerprint(digest="fingerprint", season_hashes={}, episode_hashes={}),
+    )
+
+    processor = Processor(config, enable_notifications=False)
+    stats = processor.run_once()
+
+    assert stats.processed == 1
+    files = [path for path in settings.destination_dir.rglob("*") if path.is_file()]
+    assert len(files) == 1
+    destination = files[0]
+
+    base_resolved = settings.destination_dir.resolve()
+    assert destination.resolve().is_relative_to(base_resolved)
+
+    relative_parts = destination.relative_to(settings.destination_dir).parts
+    assert all(part not in {".", ".."} for part in relative_parts)
+    expected_root = sanitize_component(show.title)
+    expected_season_template = f"{season.display_number:02d} {season.title}"
+    expected_season = sanitize_component(expected_season_template)
+    expected_episode_template = (
+        f"{show.title} - S{season.display_number:02d}E{episode.display_number:02d} - {episode.title}.mkv"
+    )
+    expected_episode = sanitize_component(expected_episode_template)
+
+    assert relative_parts[0] == expected_root
+    assert relative_parts[1] == expected_season
+    assert relative_parts[2] == expected_episode
+
+
+def test_symlink_sources_are_skipped(tmp_path, monkeypatch) -> None:
+    settings = Settings(
+        source_dir=tmp_path / "source",
+        destination_dir=tmp_path / "dest",
+        cache_dir=tmp_path / "cache",
+        dry_run=True,
+    )
+    settings.source_dir.mkdir(parents=True)
+    settings.destination_dir.mkdir(parents=True)
+    settings.cache_dir.mkdir(parents=True)
+
+    real_file = settings.source_dir / "demo.r01.qualifying.mkv"
+    real_file.write_bytes(b"video")
+
+    outside = tmp_path / "outside.txt"
+    outside.write_text("secret", encoding="utf-8")
+    symlink_path = settings.source_dir / "symlink.mkv"
+    try:
+        symlink_path.symlink_to(outside)
+    except OSError as exc:  # pragma: no cover - platform specific guard
+        pytest.skip(f"symlinks not supported: {exc}")
+
+    metadata_cfg = MetadataConfig(url="https://example.com/demo.yaml", show_key="demo")
+    pattern = PatternConfig(
+        regex=r"(?i)^demo\.r(?P<round>\d{2})\.(?P<session>qualifying)\.mkv$",
+    )
+    sport = SportConfig(id="demo", name="Demo", metadata=metadata_cfg, patterns=[pattern])
+    config = AppConfig(settings=settings, sports=[sport])
+
+    episode = Episode(
+        title="Qualifying",
+        summary=None,
+        originally_available=None,
+        index=1,
+        display_number=1,
+    )
+    season = Season(
+        key="01",
+        title="Season 1",
+        summary=None,
+        index=1,
+        episodes=[episode],
+        display_number=1,
+        round_number=1,
+    )
+    show = Show(key="demo", title="Demo Series", summary=None, seasons=[season])
+
+    monkeypatch.setattr("sports_organizer.processor.load_show", lambda *args, **kwargs: show)
+    monkeypatch.setattr(
+        "sports_organizer.processor.compute_show_fingerprint",
+        lambda *args, **kwargs: ShowFingerprint(digest="fingerprint", season_hashes={}, episode_hashes={}),
+    )
+
+    processor = Processor(config, enable_notifications=False)
+    stats = processor.run_once()
+
+    assert stats.processed == 1
+    assert stats.skipped == 0
+    assert stats.ignored == 0
+    assert stats.errors == []
+    assert stats.warnings == []
 
 def test_should_suppress_sample_variants() -> None:
     assert Processor._should_suppress_sample_ignored(Path("sample.mkv"))
