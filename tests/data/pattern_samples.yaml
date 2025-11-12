@@ -185,3 +185,80 @@ samples:
         expect_episode: "Suns at Clippers"
       - value: "NBA.2025.11.05.Washington.Wizards.Vs.Boston.Celtics.1080p.WEB.H264-GAMETiME.mkv"
         expect_episode: "Wizards at Celtics"
+
+  - description: "Premier League 2025-26 match samples"
+    sport:
+      id: "premier_league"
+      name: "Premier League"
+      pattern_sets:
+        - premier_league
+    show:
+      key: "premier_league_2025_26"
+      title: "Premier League 2025-26"
+      seasons:
+        - title: "Matchweek 1"
+          display_number: 1
+          episodes: []
+        - title: "Matchweek 2"
+          display_number: 2
+          episodes: []
+        - title: "Matchweek 3"
+          display_number: 3
+          episodes: []
+        - title: "Matchweek 4"
+          display_number: 4
+          episodes: []
+        - title: "Matchweek 5"
+          display_number: 5
+          episodes:
+            - title: "Brighton & Hove Albion vs Tottenham Hotspur"
+              aliases:
+                - "Brighton and Hove Albion vs Tottenham Hotspur"
+                - "Brighton Hove Albion vs Tottenham Hotspur"
+                - "Brighton And Hove Albion vs Tottenham Hotspur"
+                - "Brighton.and.Hove.Albion.vs.Tottenham.Hotspur"
+        - title: "Matchweek 6"
+          display_number: 6
+          episodes: []
+        - title: "Matchweek 7"
+          display_number: 7
+          episodes: []
+        - title: "Matchweek 8"
+          display_number: 8
+          episodes: []
+        - title: "Matchweek 9"
+          display_number: 9
+          episodes: []
+        - title: "Matchweek 10"
+          display_number: 10
+          episodes:
+            - title: "Burnley vs Arsenal"
+              aliases:
+                - "Burnley v Arsenal"
+                - "Burnley versus Arsenal"
+                - "Burnley Vs Arsenal"
+                - "Burnley.Vs.Arsenal"
+        - title: "Matchweek 11"
+          display_number: 11
+          episodes:
+            - title: "Sunderland vs Arsenal"
+              aliases:
+                - "Sunderland v Arsenal"
+                - "Sunderland versus Arsenal"
+                - "Sunderland Vs Arsenal"
+                - "Sunderland.Vs.Arsenal"
+            - title: "Tottenham Hotspur vs Manchester United"
+              aliases:
+                - "Tottenham Hotspur v Manchester United"
+                - "Tottenham Hotspur versus Manchester United"
+                - "Tottenham Hotspur Vs Manchester United"
+                - "Tottenham.Hotspur.Vs.Manchester.United"
+    filenames:
+      - value: "epl.2025.09.20.brighton.and.hove.albion.vs.tottenham.hotspur.1080p.web.h264-nightninjas.mkv"
+        expect_episode: "Brighton & Hove Albion vs Tottenham Hotspur"
+      - value: "EPL.2025.11.01.Burnley.Vs.Arsenal.1080p.WEB.H264-NiGHTNiNJAS/epl.2025.11.01.burnley.vs.arsenal.1080p.web.h264-nightninjas.mkv"
+        expect_episode: "Burnley vs Arsenal"
+      - value: "EPL.2025.11.08.Sunderland.Vs.Arsenal.1080p.WEB.H264-NiGHTNiNJAS/epl.2025.11.08.sunderland.vs.arsenal.1080p.web.h264-nightninjas.mkv"
+        expect_episode: "Sunderland vs Arsenal"
+      - value: "EPL.2025.11.08.Tottenham.Hotspur.Vs.Manchester.United.1080p.WEB.H264-NiGHTNiNJAS/epl.2025.11.08.tottenham.hotspur.vs.manchester.united.1080p.web.h264-nightninjas.mkv"
+        expect_episode: "Tottenham Hotspur vs Manchester United"
