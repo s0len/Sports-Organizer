@@ -17,21 +17,37 @@
 ######################################################################
 
 settings:
+  ####################################################################
+  # REQUIRED DIRECTORIES
+  ####################################################################
   source_dir: ${SOURCE_DIR:-/data/source} # Where Sports Organizer looks for newly downloaded media files.
   destination_dir: ${DESTINATION_DIR:-/data/destination} # Destination root for organized media. Files are written here (or hard-linked).
-  cache_dir: ${CACHE_DIR:-/var/cache/sports-organizer} # Directory that holds cached metadata responses and other temp files.
-  dry_run: false # Enable for "what would happen" runs without touching the filesystem.
-  skip_existing: true # Skip files that already exist at the destination path when true.
-  poll_interval: 0 # Seconds between scans when running continuously; 0 disables polling.
-  link_mode: hardlink # Use `hardlink` to avoid copies on the same filesystem; switch to `copy` otherwise.
-  discord_webhook_url: ${DISCORD_WEBHOOK_URL:-} # Optional Discord webhook for notifications when a file is processed.
+  cache_dir: ${CACHE_DIR:-/var/cache/sports-organizer} # Location for metadata caches, fingerprints, and temp state.
+
+  ####################################################################
+  # EXECUTION BEHAVIOUR
+  ####################################################################
+  dry_run: false          # When true, identify matches and log actions without touching the filesystem.
+  skip_existing: true     # When true, leave destinations alone unless a better (e.g. PROPER/REPACK) source is detected.
+  poll_interval: 0        # Seconds between passes in watch mode. Use 0 to run once and exit.
+  link_mode: hardlink     # Global default for linking: hardlink | copy | symlink.
+
+  ####################################################################
+  # NOTIFICATIONS (OPTIONAL)
+  ####################################################################
+  discord_webhook_url: ${DISCORD_WEBHOOK_URL:-} # Discord webhook for processed notifications. Leave empty to disable.
   notifications:
-    batch_daily: false # When true, group Discord updates by sport/day and edit the same message instead of sending new ones.
-    flush_time: "00:00" # Local time boundary for batched messages. Entries before this time are counted toward the previous day.
+    batch_daily: false    # When true, send one message per sport/day and edit it with new entries instead of posting each file.
+    flush_time: "00:00"   # Local HH:MM (or HH:MM:SS) boundary for the batching day rollover. Useful for overnight events.
+
+  ####################################################################
+  # DEFAULT DESTINATION TEMPLATES
+  ####################################################################
+  # These templates are used for every sport unless overridden under that sport's `destination` block.
   destination:
     root_template: "{show_title}" # Top-level folder pattern for each sport/show.
-    season_dir_template: "{season_number:02d} {season_title}" # Sub-folder per season or round. Zero-padded for neat ordering.
-    episode_template: "{show_title} - S{season_number:02d}E{episode_number:02d} - {episode_title}.{extension}" # Final filename applied to every organized episode/session.
+    season_dir_template: "{season_number:02d} {season_title}" # Sub-folder per season or round (zero-padded for ordering).
+    episode_template: "{show_title} - S{season_number:02d}E{episode_number:02d} - {episode_title}.{extension}" # Final filename.
 
 
 ######################################################################
