@@ -1,3 +1,19 @@
+regex_tokens:
+  resolution: &resolution_token "(?:2160p|1440p|1080p|1080i|720p|720i|576p|576i|480p|360p|4k|sd|hd|fhd|uhd|hdr10plus|hdr10|hdr|hlg|dv|dolby|vision)"
+  source: &source_token "(?:web(?:-?dl|rip)?|webrdl|hdtv|bluray|brrip|hdrip|amzn|amazon|prime|now|stan|webrip|web|rip)"
+  codec: &codec_token "(?:h264|x264|h265|x265|hevc|avc)"
+  audio: &audio_token "(?:aac|eac3|ddp(?:lus)?|dd5(?:1)?|dd51|ddplus|dd\\+|atmos|dts|truehd|ac3)"
+  release_group: &release_group_token "(?:nightninjas|gametime|skynz|verum|mwr)"
+  network: &network_token "(?:f1tv|atv|itv|sky|peacock|paramount|espn|dazn|bt|bbc|nbc|cbs|fox|abc|tsn|bein|viaplay|apple|atvp|nf|netflix|hulu|disney|max|prime|amzn)"
+  distribution: &distribution_token "(?:ppv|payperview|pay-per-view)"
+  bit_depth: &bit_depth_token "(?:10bit|8bit)"
+  language: &language_token "(?:english|en|multi|dual)"
+  quality: &quality_token "(?:proper|repack|hybrid|extended|complete|collection|pack|webrip|hdrip|remux)"
+  subtitle: &subtitle_token "(?:subs?|subbed|dubbed|captioned|cc)"
+  extras: &extras_token "(?:bonus|extras?|sample|trailer)"
+  suffix_token: &suffix_token "(?:(?:<resolution>|<source>|<codec>|<audio>|<network>|<release_group>|<distribution>|<bit_depth>|<language>|<quality>|<subtitle>|<extras>|pack|set|cut|remux|hybrid)(?:[-_](?:<release_group>|<codec>|<audio>|<quality>|<subtitle>))*)"
+  extension: &extension_token "(?:mkv|mp4|ts|m4v|avi)"
+
 pattern_sets:
   # ------------------------------------------------------------------
   # Formula 1 releases
@@ -72,7 +88,7 @@ pattern_sets:
     - description: NBA regular season date-based releases
       # Example: NBA.2025.11.04.Phoenix.Suns.Vs.Golden.State.Warriors.1080p.WEB.H264-GAMETiME.mkv
       regex: >-
-        (?i)^NBA\.(?P<date>(?P<year>\d{4})\.(?P<month>\d{2})\.(?P<day>\d{2}))\.(?P<matchup>(?P<away>[A-Za-z0-9&'-]+(?:\.[A-Za-z0-9&'-]+){0,4})\.(?P<separator>vs|v|at)\.(?P<home>[A-Za-z0-9&'-]+(?:\.[A-Za-z0-9&'-]+){0,4}))(?=\.)(?:\.[^.]+)*\.(?P<extension>mkv|mp4|ts|m4v|avi)$
+        (?i)^NBA\.(?P<date>(?P<year>\d{4})\.(?P<month>\d{2})\.(?P<day>\d{2}))\.(?P<matchup>(?P<away>[A-Za-z0-9&'-]+(?:\.[A-Za-z0-9&'-]+){0,4})\.(?P<separator>vs|v|at)\.(?P<home>[A-Za-z0-9&'-]+(?:\.[A-Za-z0-9&'-]+){0,4}))(?=\.)(?:\.[^.]+)*\.(?P<extension><extension>)$
       season_selector:
         mode: key
         group: date
@@ -5255,7 +5271,7 @@ pattern_sets:
         - Villarreal.vs.Manchester.City
     - description: UEFA Champions League spaced releases
       regex: >-
-        (?i)^UEFA\s+Champions\s+League\s+(?P<season_year>\d{4}(?:-\d{2,4})?)\s+(?P<matchup>(?P<away>[A-Za-z&'’À-ÖØ-öø-ÿ]+(?:\s+[A-Za-z&'’À-ÖØ-öø-ÿ]+){0,3})\s+(?:vs?|VS?|V|versus)\s+(?P<home>[A-Za-z&'’À-ÖØ-öø-ÿ]+(?:\s+[A-Za-z&'’À-ÖØ-öø-ÿ]+){0,3}))\s+(?P<match_date>\d{2}[ .-]\d{2}[ .-]\d{4}|\d{4}[ .-]\d{2}[ .-]\d{2})(?:\s+.+)?\.(?P<extension>mkv|mp4|ts|m4v|avi)$
+        (?i)^UEFA\s+Champions\s+League\s+(?P<season_year>\d{4}(?:-\d{2,4})?)\s+(?P<matchup>(?P<away>[A-Za-z&'’À-ÖØ-öø-ÿ]+(?:\s+[A-Za-z&'’À-ÖØ-öø-ÿ]+){0,3})\s+(?:vs?|VS?|V|versus)\s+(?P<home>[A-Za-z&'’À-ÖØ-öø-ÿ]+(?:\s+[A-Za-z&'’À-ÖØ-öø-ÿ]+){0,3}))\s+(?P<match_date>\d{2}[ .-]\d{2}[ .-]\d{4}|\d{4}[ .-]\d{2}[ .-]\d{2})(?:\s+.+)?\.(?P<extension><extension>)$
       season_selector:
         mode: key
         group: match_date
@@ -5368,7 +5384,7 @@ pattern_sets:
     - description: Premier League dot releases
       # Example: EPL.2025.11.02.Manchester.City.Vs.Bournemouth.1080p.WEB.H264-NiGHTNiNJAS.mkv
       regex: >-
-        (?i)^(?:EPL|English\.?Premier\.?League|Premier\.?League)\.(?P<date>(?P<year>\d{4})\.(?P<month>\d{2})\.(?P<day>\d{2}))\.(?P<matchup>(?P<away>[A-Za-z0-9&'-]+(?:\.[A-Za-z0-9&'-]+){0,5})\.(?P<separator>Vs|vs|VS|V|v)\.(?P<home>[A-Za-z0-9&'-]+(?:\.(?!1080p(?:$|\.)|2160p(?:$|\.)|1440p(?:$|\.)|720p(?:$|\.)|576p(?:$|\.)|480p(?:$|\.)|360p(?:$|\.)|4k(?:$|\.)|1080i(?:$|\.)|720i(?:$|\.)|576i(?:$|\.)|sd(?:$|\.)|hd(?:$|\.)|fhd(?:$|\.)|uhd(?:$|\.)|hdr(?:$|\.)|hdr10(?:$|\.)|hdr10plus(?:$|\.)|hlg(?:$|\.)|dv(?:$|\.)|dolby(?:$|\.)|vision(?:$|\.)|web(?:$|\.)|webrip(?:$|\.)|web-dl(?:$|\.)|webdl(?:$|\.)|webrdl(?:$|\.)|hdtv(?:$|\.)|h264(?:$|\.)|x264(?:$|\.)|h265(?:$|\.)|x265(?:$|\.)|hevc(?:$|\.)|avc(?:$|\.)|aac(?:$|\.)|ddp(?:$|\.)|dd5(?:$|\.)|dd51(?:$|\.)|ddplus(?:$|\.)|dd\+(?:$|\.)|atmos(?:$|\.)|dts(?:$|\.)|truehd(?:$|\.)|ac3(?:$|\.)|remux(?:$|\.)|rip(?:$|\.)|proper(?:$|\.)|repack(?:$|\.)|amzn(?:$|\.)|amazon(?:$|\.)|prime(?:$|\.)|now(?:$|\.)|sky(?:$|\.)|peacock(?:$|\.)|paramount(?:$|\.)|espn(?:$|\.)|dazn(?:$|\.)|bt(?:$|\.)|bbc(?:$|\.)|itv(?:$|\.)|nbc(?:$|\.)|cbs(?:$|\.)|fox(?:$|\.)|abc(?:$|\.)|tsn(?:$|\.)|bein(?:$|\.)|viaplay(?:$|\.)|apple(?:$|\.)|atvp(?:$|\.)|nf(?:$|\.)|netflix(?:$|\.)|hulu(?:$|\.)|disney(?:$|\.)|max(?:$|\.)|ppv(?:$|\.)|payperview(?:$|\.)|pay-per-view(?:$|\.)|bluray(?:$|\.)|brrip(?:$|\.)|hdrip(?:$|\.)|nightninjas(?:$|\.)|gametime(?:$|\.)|skynz(?:$|\.)|mkv(?:$|\.)|mp4(?:$|\.)|ts(?:$|\.)|m4v(?:$|\.)|avi(?:$|\.))[A-Za-z0-9&'-]+){0,5}))(?:\.[^.]+)*\.(?P<extension>mkv|mp4|ts|m4v|avi)$
+        (?i)^(?:EPL|English\.?Premier\.?League|Premier\.?League)\.(?P<date>(?P<year>\d{4})\.(?P<month>\d{2})\.(?P<day>\d{2}))\.(?P<matchup>(?P<away>[A-Za-z0-9&'-]+(?:\.[A-Za-z0-9&'-]+){0,5})\.(?P<separator>Vs|vs|VS|V|v)\.(?P<home>[A-Za-z0-9&'-]+(?:\.(?!(?:<suffix_token>|<extension>)(?:$|\.))[A-Za-z0-9&'-]+){0,5}))(?:\.(?:<suffix_token>|[^.]+))*\.(?P<extension><extension>)$
       season_selector:
         mode: key
         group: date

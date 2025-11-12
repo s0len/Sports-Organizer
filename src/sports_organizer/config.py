@@ -8,7 +8,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional
 
-from .pattern_templates import load_builtin_pattern_sets
+from .pattern_templates import expand_regex_with_tokens, load_builtin_pattern_sets
 from .utils import load_yaml_file
 
 
@@ -40,7 +40,7 @@ class PatternConfig:
     priority: int = 100
 
     def compiled_regex(self) -> re.Pattern[str]:
-        return re.compile(self.regex)
+        return re.compile(self.regex, re.IGNORECASE)
 
 
 @dataclass(slots=True)
@@ -121,8 +121,9 @@ def _build_episode_selector(data: Dict[str, Any]) -> EpisodeSelector:
 
 
 def _build_pattern_config(data: Dict[str, Any]) -> PatternConfig:
+    raw_regex = str(data["regex"])
     pattern = PatternConfig(
-        regex=data["regex"],
+        regex=expand_regex_with_tokens(raw_regex),
         description=data.get("description"),
         season_selector=_build_season_selector(data.get("season_selector", {})),
         episode_selector=_build_episode_selector(data.get("episode_selector", {})),
