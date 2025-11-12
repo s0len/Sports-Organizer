@@ -2,9 +2,11 @@ from __future__ import annotations
 
 import json
 import logging
+import smtplib
 import time
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import date, datetime, timedelta, timezone
+from email.message import EmailMessage
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
@@ -13,7 +15,6 @@ from requests import Response
 from requests.exceptions import RequestException
 
 from .config import NotificationSettings
-from .models import SportFileMatch
 from .utils import ensure_directory
 
 LOGGER = logging.getLogger(__name__)
@@ -29,6 +30,26 @@ class BatchRequest:
     events: List[Dict[str, Any]]
 
 
+@dataclass(slots=True)
+class NotificationEvent:
+    sport_id: str
+    sport_name: str
+    show_title: str
+    season: str
+    session: str
+    episode: str
+    summary: Optional[str]
+    destination: str
+    source: str
+    action: str
+    link_mode: str
+    replaced: bool = False
+    skip_reason: Optional[str] = None
+    trace_path: Optional[str] = None
+    match_details: Dict[str, Any] = field(default_factory=dict)
+    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+
+
 class NotificationBatcher:
     """Persisted per-sport batches that group notifications by day."""
 
@@ -39,9 +60,9 @@ class NotificationBatcher:
         self._dirty = False
         self._load()
 
-    def prepare_event(self, context: Dict[str, Any], now: datetime) -> BatchRequest:
-        sport_id = context["sport_id"]
-        sport_name = context["sport_name"]
+    def prepare_event(self, event: NotificationEvent, now: datetime) -> BatchRequest:
+        sport_id = event.sport_id
+        sport_name = event.sport_name
         bucket = self._bucket_date(now)
         bucket_key = bucket.isoformat()
 
@@ -57,13 +78,18 @@ class NotificationBatcher:
         event_payload = {
             "sport_id": sport_id,
             "sport_name": sport_name,
-            "season": context.get("season"),
-            "session": context["session"],
-            "episode": context["episode"],
-            "destination": context["destination"],
-            "source": context["source"],
-            "summary": context.get("summary"),
-            "timestamp": now.isoformat(),
+            "season": event.season,
+            "session": event.session,
+            "episode": event.episode,
+            "destination": event.destination,
+            "source": event.source,
+            "summary": event.summary,
+            "action": event.action,
+            "link_mode": event.link_mode,
+            "replaced": event.replaced,
+            "skip_reason": event.skip_reason,
+            "trace_path": event.trace_path,
+            "timestamp": event.timestamp.isoformat(),
         }
 
         events = entry["events"]
@@ -136,6 +162,8 @@ class NotificationBatcher:
             for item in events_raw:
                 if not isinstance(item, dict):
                     continue
+                trace_path = item.get("trace_path")
+                trace_str = str(trace_path) if trace_path else None
                 events.append(
                     {
                         "sport_id": str(item.get("sport_id") or sport_id),
@@ -146,6 +174,11 @@ class NotificationBatcher:
                         "destination": str(item.get("destination") or ""),
                         "source": str(item.get("source") or ""),
                         "summary": item.get("summary"),
+                        "action": str(item.get("action") or "link"),
+                        "link_mode": str(item.get("link_mode") or ""),
+                        "replaced": bool(item.get("replaced") or False),
+                        "skip_reason": item.get("skip_reason"),
+                        "trace_path": trace_str,
                         "timestamp": str(item.get("timestamp") or ""),
                     }
                 )
@@ -175,8 +208,18 @@ class NotificationBatcher:
         self._dirty = False
 
 
-class DiscordNotifier:
-    """Send Discord notifications for processed files."""
+class NotificationTarget:
+    name: str = "target"
+
+    def enabled(self) -> bool:
+        return True
+
+    def send(self, event: NotificationEvent) -> None:
+        raise NotImplementedError
+
+
+class DiscordTarget(NotificationTarget):
+    name = "discord"
 
     def __init__(
         self,
@@ -184,28 +227,27 @@ class DiscordNotifier:
         *,
         cache_dir: Path,
         settings: NotificationSettings,
+        batch: Optional[bool] = None,
     ) -> None:
         self.webhook_url = webhook_url.strip() if isinstance(webhook_url, str) else None
         self._settings = settings
+        use_batch = batch if batch is not None else settings.batch_daily
         self._batcher: Optional[NotificationBatcher]
-        if self.enabled and settings.batch_daily:
+        if self.enabled() and use_batch:
             self._batcher = NotificationBatcher(cache_dir, settings)
         else:
             self._batcher = None
 
-    @property
     def enabled(self) -> bool:
         return bool(self.webhook_url)
 
-    def notify_processed(self, match: SportFileMatch, *, destination_display: str) -> None:
-        if not self.enabled:
+    def send(self, event: NotificationEvent) -> None:
+        if not self.enabled():
             return
 
-        context = self._gather_context(match, destination_display)
-        now = datetime.now(timezone.utc)
-
+        now = event.timestamp
         if self._batcher is not None:
-            request = self._batcher.prepare_event(context, now)
+            request = self._batcher.prepare_event(event, now)
             payload = self._build_batch_payload(request, now)
             response = self._send_with_retries(
                 request.action,
@@ -218,71 +260,38 @@ class DiscordNotifier:
                     self._batcher.register_message_id(request.sport_id, request.bucket_date, message_id)
             return
 
-        payload = self._build_single_payload(context, now)
+        payload = self._build_single_payload(event, now)
         self._send_with_retries("POST", self.webhook_url, payload)
 
-    def _gather_context(self, match: SportFileMatch, destination_display: str) -> Dict[str, Any]:
-        show_title = match.show.title
-        season_display = str(match.context.get("season_title") or match.season.title or "Season")
-        session_display = str(match.context.get("session") or match.episode.title or "Session")
-        episode_display = str(match.context.get("episode_title") or match.episode.title or session_display)
-        summary = match.context.get("episode_summary") or match.episode.summary
-
-        return {
-            "sport_id": match.sport.id,
-            "sport_name": match.sport.name,
-            "show_title": show_title,
-            "season": season_display,
-            "session": session_display,
-            "episode": episode_display,
-            "summary": summary,
-            "destination": destination_display,
-            "source": match.source_path.name,
-        }
-
-    def _build_single_payload(self, context: Dict[str, Any], now: datetime) -> Dict[str, Any]:
-        embed_title = self._trim(f"{context['show_title']} – {context['session']}", 256)
-        description = self._trim(str(context["summary"]), 2048) if context.get("summary") else None
-
-        fields = [
-            self._embed_field("Sport", context["sport_name"], inline=True),
-            self._embed_field("Season", context["season"], inline=True),
-            self._embed_field("Session", context["session"], inline=True),
-            self._embed_field("Episode", context["episode"], inline=True),
-            self._embed_field("Destination", f"`{context['destination']}`", inline=False),
-            self._embed_field("Source", f"`{context['source']}`", inline=False),
-        ]
-
+    def _build_single_payload(self, event: NotificationEvent, now: datetime) -> Dict[str, Any]:
         embed: Dict[str, Any] = {
-            "title": embed_title,
-            "color": 0x5865F2,
+            "title": self._trim(f"{event.show_title} – {event.session}", 256),
+            "color": self._embed_color(event),
             "timestamp": now.isoformat(),
-            "fields": [field for field in fields if field is not None],
+            "fields": [field for field in self._fields_for_event(event) if field is not None],
             "footer": {"text": "Sports Organizer"},
         }
-        if description:
-            embed["description"] = description
+        if event.summary:
+            embed["description"] = self._trim(str(event.summary), 2048)
 
-        content = self._trim(
-            f"New {context['sport_name']} entry is ready: {context['episode']}",
-            limit=2000,
-        )
-
-        return {
-            "content": content,
-            "embeds": [embed],
-        }
+        content = self._trim(self._render_content(event), 2000)
+        return {"content": content, "embeds": [embed]}
 
     def _build_batch_payload(self, request: BatchRequest, now: datetime) -> Dict[str, Any]:
         events = request.events
         total = len(events)
-
-        # Keep recent entries visible to stay within Discord limits.
         visible_events = events[-20:]
+
         lines: List[str] = []
-        for event in visible_events:
-            season_part = f"{event['season']} – " if event.get("season") else ""
-            line = f"• {season_part}{event['episode']} ({event['session']}) → `{event['destination']}`"
+        for item in visible_events:
+            action = item.get("action", "link")
+            mode = item.get("link_mode") or ""
+            season_part = f"{item.get('season')} – " if item.get("season") else ""
+            reason = f" [{item.get('skip_reason')}]" if item.get("skip_reason") else ""
+            line = (
+                f"• {season_part}{item.get('episode')} ({item.get('session')}) → "
+                f"`{item.get('destination')}` [{action}{' '+mode if mode else ''}]{reason}"
+            )
             lines.append(self._trim(line, 190))
 
         hidden_count = total - len(visible_events)
@@ -290,15 +299,17 @@ class DiscordNotifier:
             lines.append(f"… and {hidden_count} more.")
 
         description = self._trim("\n".join(lines), 2048) if lines else None
+        latest_payload = events[-1]
+        latest_timestamp = latest_payload.get("timestamp") or now.isoformat()
 
-        latest_timestamp = events[-1].get("timestamp") or now.isoformat()
         fields = [
             self._embed_field("Sport", request.sport_name, inline=True),
             self._embed_field("Updates", str(total), inline=True),
         ]
-
-        latest_event = events[-1]
-        latest_value = f"{latest_event['episode']} ({latest_event['session']}) → `{latest_event['destination']}`"
+        latest_value = (
+            f"{latest_payload.get('episode')} ({latest_payload.get('session')}) → "
+            f"`{latest_payload.get('destination')}` [{latest_payload.get('action')}]"
+        )
         fields.append(self._embed_field("Latest", latest_value, inline=False))
 
         embed: Dict[str, Any] = {
@@ -315,11 +326,49 @@ class DiscordNotifier:
             f"{request.sport_name} updates for {request.bucket_date.isoformat()}: {total} item{'s' if total != 1 else ''}",
             limit=2000,
         )
+        return {"content": content, "embeds": [embed]}
 
-        return {
-            "content": content,
-            "embeds": [embed],
-        }
+    def _render_content(self, event: NotificationEvent) -> str:
+        if event.action == "skipped":
+            reason = f" — {event.skip_reason}" if event.skip_reason else ""
+            return f"Skipped {event.sport_name}: {event.episode} ({event.session}){reason}"
+        if event.action == "error":
+            reason = f" — {event.skip_reason}" if event.skip_reason else ""
+            return f"Failed {event.sport_name}: {event.episode} ({event.session}){reason}"
+        if event.action == "dry-run":
+            return f"[Dry-Run] {event.sport_name}: {event.episode} ({event.session}) via {event.link_mode}"
+
+        replaced = " (replaced existing)" if event.replaced else ""
+        return f"{event.sport_name}: {event.episode} ({event.session}) {event.action} via {event.link_mode}{replaced}"
+
+    def _fields_for_event(self, event: NotificationEvent) -> List[Optional[Dict[str, Any]]]:
+        fields = [
+            self._embed_field("Sport", event.sport_name, inline=True),
+            self._embed_field("Season", event.season, inline=True),
+            self._embed_field("Session", event.session, inline=True),
+            self._embed_field("Episode", event.episode, inline=True),
+            self._embed_field(
+                "Action",
+                f"{event.action} ({event.link_mode}){' – replaced' if event.replaced else ''}",
+                inline=True,
+            ),
+            self._embed_field("Destination", f"`{event.destination}`", inline=False),
+            self._embed_field("Source", f"`{event.source}`", inline=False),
+        ]
+        if event.skip_reason:
+            fields.append(self._embed_field("Reason", event.skip_reason, inline=False))
+        if event.trace_path:
+            fields.append(self._embed_field("Trace", event.trace_path, inline=False))
+        return fields
+
+    def _embed_color(self, event: NotificationEvent) -> int:
+        if event.action == "error":
+            return 0xED4245
+        if event.action == "skipped":
+            return 0xFEE75C
+        if event.action == "dry-run":
+            return 0x95A5A6
+        return 0x5865F2
 
     def _send_with_retries(self, method: str, url: str, payload: Dict[str, Any]) -> Optional[Response]:
         attempt = 0
@@ -370,11 +419,7 @@ class DiscordNotifier:
         text = self._trim(str(value), 1024)
         if not text:
             return None
-        return {
-            "name": self._trim(name, 256),
-            "value": text,
-            "inline": inline,
-        }
+        return {"name": self._trim(name, 256), "value": text, "inline": inline}
 
     @staticmethod
     def _trim(value: str, limit: int) -> str:
@@ -391,7 +436,7 @@ class DiscordNotifier:
             text = response.text
         except Exception:  # pragma: no cover - defensive fallback
             return "<no response body>"
-        return DiscordNotifier._trim(text or "<empty>", 200)
+        return DiscordTarget._trim(text or "<empty>", 200)
 
     @staticmethod
     def _extract_message_id(response: Response) -> Optional[str]:
@@ -423,3 +468,313 @@ class DiscordNotifier:
 
         return max(wait, 1.0)
 
+
+class SlackTarget(NotificationTarget):
+    name = "slack"
+
+    def __init__(self, webhook_url: Optional[str], template: Optional[str] = None) -> None:
+        self.webhook_url = webhook_url.strip() if isinstance(webhook_url, str) else None
+        self.template = template
+
+    def enabled(self) -> bool:
+        return bool(self.webhook_url)
+
+    def send(self, event: NotificationEvent) -> None:
+        if not self.enabled():
+            return
+        payload = {"text": self._render(event)}
+        try:
+            response = requests.post(self.webhook_url, json=payload, timeout=10)
+        except RequestException as exc:
+            LOGGER.warning("Failed to send Slack notification: %s", exc)
+            return
+
+        if response.status_code >= 400:
+            LOGGER.warning("Slack webhook responded with %s: %s", response.status_code, response.text)
+
+    def _render(self, event: NotificationEvent) -> str:
+        if self.template:
+            return self.template.format(
+                sport=event.sport_name,
+                season=event.season,
+                session=event.session,
+                episode=event.episode,
+                destination=event.destination,
+                source=event.source,
+                action=event.action,
+                link_mode=event.link_mode,
+                skip_reason=event.skip_reason or "",
+            )
+        base = f"{event.sport_name}: {event.episode} ({event.session})"
+        if event.action == "error":
+            return f":warning: Failed {base}{' - '+event.skip_reason if event.skip_reason else ''}"
+        if event.action == "skipped":
+            return f":information_source: Skipped {base}{' - '+event.skip_reason if event.skip_reason else ''}"
+        if event.action == "dry-run":
+            return f":grey_question: [Dry-Run] {base} via {event.link_mode}"
+        replaced = " (replaced)" if event.replaced else ""
+        return f":white_check_mark: {base} {event.action} via {event.link_mode}{replaced} → {event.destination}"
+
+
+class GenericWebhookTarget(NotificationTarget):
+    name = "webhook"
+
+    def __init__(
+        self,
+        url: Optional[str],
+        *,
+        method: str = "POST",
+        headers: Optional[Dict[str, str]] = None,
+        template: Optional[Any] = None,
+    ) -> None:
+        self.url = url.strip() if isinstance(url, str) else None
+        self.method = method.upper()
+        self.headers = {str(k): str(v) for k, v in (headers or {}).items()}
+        self.template = template
+
+    def enabled(self) -> bool:
+        return bool(self.url)
+
+    def send(self, event: NotificationEvent) -> None:
+        if not self.enabled():
+            return
+        payload = self._build_payload(event)
+        try:
+            response = requests.request(
+                self.method,
+                self.url,
+                json=payload,
+                headers=self.headers or None,
+                timeout=10,
+            )
+        except RequestException as exc:
+            LOGGER.warning("Failed to send webhook notification: %s", exc)
+            return
+
+        if response.status_code >= 400:
+            LOGGER.warning("Webhook %s responded with %s: %s", self.url, response.status_code, response.text)
+
+    def _build_payload(self, event: NotificationEvent) -> Any:
+        data = _flatten_event(event)
+        template = self.template
+        if template is None:
+            return data
+        return _render_template(template, data)
+
+
+class EmailTarget(NotificationTarget):
+    name = "email"
+
+    def __init__(self, config: Dict[str, Any]) -> None:
+        smtp_config = config.get("smtp") or {}
+        self.host = smtp_config.get("host")
+        self.port = int(smtp_config.get("port", 587))
+        self.username = smtp_config.get("username")
+        self.password = smtp_config.get("password")
+        self.use_tls = bool(smtp_config.get("use_tls", True))
+        self.timeout = int(smtp_config.get("timeout", 10))
+        self.sender = config.get("from")
+        recipients = config.get("to") or []
+        if isinstance(recipients, str):
+            recipients = [recipients]
+        self.recipients = [addr.strip() for addr in recipients if addr]
+        self.subject_template = config.get("subject")
+        self.body_template = config.get("body")
+
+    def enabled(self) -> bool:
+        return bool(self.host and self.sender and self.recipients)
+
+    def send(self, event: NotificationEvent) -> None:
+        if not self.enabled():
+            return
+
+        message = EmailMessage()
+        message["From"] = self.sender
+        message["To"] = ", ".join(self.recipients)
+        message["Subject"] = self._compose_subject(event)
+        message.set_content(self._compose_body(event))
+
+        try:
+            with smtplib.SMTP(self.host, self.port, timeout=self.timeout) as server:
+                if self.use_tls:
+                    server.starttls()
+                if self.username and self.password:
+                    server.login(self.username, self.password)
+                server.send_message(message)
+        except Exception as exc:  # pragma: no cover - environment dependent
+            LOGGER.warning("Failed to send email notification via %s:%s - %s", self.host, self.port, exc)
+
+    def _compose_subject(self, event: NotificationEvent) -> str:
+        if self.subject_template:
+            return self.subject_template.format(**_flatten_event(event))
+        return f"{event.sport_name}: {event.episode} ({event.session}) [{event.action}]"
+
+    def _compose_body(self, event: NotificationEvent) -> str:
+        if self.body_template:
+            return self.body_template.format(**_flatten_event(event))
+
+        lines = [
+            f"Sport: {event.sport_name}",
+            f"Season: {event.season}",
+            f"Session: {event.session}",
+            f"Episode: {event.episode}",
+            f"Action: {event.action} ({event.link_mode})",
+            f"Destination: {event.destination}",
+            f"Source: {event.source}",
+        ]
+        if event.skip_reason:
+            lines.append(f"Reason: {event.skip_reason}")
+        if event.trace_path:
+            lines.append(f"Trace: {event.trace_path}")
+        if event.summary:
+            lines.append("")
+            lines.append("Summary:")
+            lines.append(event.summary)
+        return "\n".join(lines)
+
+
+class NotificationService:
+    def __init__(
+        self,
+        settings: NotificationSettings,
+        *,
+        cache_dir: Path,
+        default_discord_webhook: Optional[str],
+        enabled: bool = True,
+    ) -> None:
+        self._settings = settings
+        self._enabled = enabled
+        self._targets = self._build_targets(settings.targets, cache_dir, default_discord_webhook)
+        self._throttle_map = settings.throttle
+        self._last_sent: Dict[str, datetime] = {}
+
+    @property
+    def enabled(self) -> bool:
+        return self._enabled and any(target.enabled() for target in self._targets)
+
+    def notify(self, event: NotificationEvent) -> None:
+        if not self.enabled:
+            return
+        throttle_seconds = self._resolve_throttle(event.sport_id)
+        last_event = self._last_sent.get(event.sport_id)
+        if throttle_seconds and last_event:
+            delta = (event.timestamp - last_event).total_seconds()
+            if delta < throttle_seconds:
+                LOGGER.debug(
+                    "Skipping notification for %s due to throttle (%ss remaining)",
+                    event.sport_id,
+                    round(throttle_seconds - delta, 2),
+                )
+                return
+
+        for target in self._targets:
+            if not target.enabled():
+                continue
+            try:
+                target.send(event)
+            except Exception as exc:  # pragma: no cover - defensive logging
+                LOGGER.warning("Notification target %s failed: %s", target.name, exc)
+
+        self._last_sent[event.sport_id] = event.timestamp
+
+    def _build_targets(
+        self,
+        targets_raw: List[Dict[str, Any]],
+        cache_dir: Path,
+        default_discord_webhook: Optional[str],
+    ) -> List[NotificationTarget]:
+        targets: List[NotificationTarget] = []
+        configs = list(targets_raw)
+        if not configs and default_discord_webhook:
+            configs.append(
+                {
+                    "type": "discord",
+                    "webhook_url": default_discord_webhook,
+                    "batch": self._settings.batch_daily,
+                }
+            )
+
+        for entry in configs:
+            target_type = entry.get("type", "").lower()
+            if target_type == "discord":
+                webhook = entry.get("webhook_url") or default_discord_webhook
+                if webhook:
+                    batch = entry.get("batch")
+                    targets.append(
+                        DiscordTarget(
+                            webhook,
+                            cache_dir=cache_dir,
+                            settings=self._settings,
+                            batch=batch if batch is not None else entry.get("batch_daily"),
+                        )
+                    )
+                else:
+                    LOGGER.warning("Skipped Discord target because webhook_url was not provided.")
+            elif target_type == "slack":
+                url = entry.get("webhook_url") or entry.get("url")
+                if url:
+                    targets.append(SlackTarget(url, template=entry.get("template")))
+                else:
+                    LOGGER.warning("Skipped Slack target because webhook_url/url was not provided.")
+            elif target_type == "webhook":
+                url = entry.get("url")
+                if url:
+                    targets.append(
+                        GenericWebhookTarget(
+                            url,
+                            method=entry.get("method", "POST"),
+                            headers=entry.get("headers"),
+                            template=entry.get("template"),
+                        )
+                    )
+                else:
+                    LOGGER.warning("Skipped webhook target because url was not provided.")
+            elif target_type == "email":
+                targets.append(EmailTarget(entry))
+            else:
+                LOGGER.warning("Unknown notification target type '%s'", target_type or "<missing>")
+
+        return [target for target in targets if target.enabled()]
+
+    def _resolve_throttle(self, sport_id: str) -> int:
+        if not self._throttle_map:
+            return 0
+        if sport_id in self._throttle_map:
+            return max(0, int(self._throttle_map[sport_id]))
+        default = self._throttle_map.get("default")
+        return max(0, int(default)) if default is not None else 0
+
+
+def _flatten_event(event: NotificationEvent) -> Dict[str, Any]:
+    data = {
+        "sport_id": event.sport_id,
+        "sport_name": event.sport_name,
+        "show_title": event.show_title,
+        "season": event.season,
+        "session": event.session,
+        "episode": event.episode,
+        "summary": event.summary,
+        "destination": event.destination,
+        "source": event.source,
+        "action": event.action,
+        "link_mode": event.link_mode,
+        "replaced": event.replaced,
+        "skip_reason": event.skip_reason,
+        "trace_path": event.trace_path,
+        "timestamp": event.timestamp.isoformat(),
+    }
+    data.update(event.match_details or {})
+    return data
+
+
+def _render_template(template: Any, data: Dict[str, Any]) -> Any:
+    if isinstance(template, dict):
+        return {key: _render_template(value, data) for key, value in template.items()}
+    if isinstance(template, list):
+        return [_render_template(value, data) for value in template]
+    if isinstance(template, str):
+        try:
+            return template.format(**data)
+        except Exception:
+            return template
+    return template

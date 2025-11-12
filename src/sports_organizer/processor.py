@@ -1,28 +1,31 @@
 from __future__ import annotations
 
+import json
 import logging
 import re
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass
 from fnmatch import fnmatch
 from pathlib import Path
-from typing import Dict, Iterable, List, Mapping, Optional, Set, Tuple
+from typing import Any, Dict, Iterable, List, Mapping, Optional, Set, Tuple
 
 from rich.progress import Progress
 
-from .cache import ProcessedFileCache
+from .cache import MetadataHttpCache, ProcessedFileCache
 from .config import AppConfig, SportConfig
 from .matcher import PatternRuntime, compile_patterns, match_file_to_episode
 from .metadata import (
     MetadataChangeResult,
     MetadataFetchError,
+    MetadataFetchStatistics,
     MetadataFingerprintStore,
     compute_show_fingerprint,
     load_show,
 )
 from .models import ProcessingStats, Show, SportFileMatch
-from .notifications import DiscordNotifier
+from .notifications import NotificationEvent, NotificationService
 from .templating import render_template
-from .utils import ensure_directory, link_file, sanitize_component, slugify, normalize_token
+from .utils import ensure_directory, link_file, normalize_token, sanitize_component, sha1_of_text, slugify
 
 LOGGER = logging.getLogger(__name__)
 
@@ -37,25 +40,40 @@ class SportRuntime:
     extensions: Set[str]
 
 
+@dataclass(slots=True)
+class TraceOptions:
+    enabled: bool = False
+    output_dir: Optional[Path] = None
+
+
 class Processor:
-    def __init__(self, config: AppConfig, *, enable_notifications: bool = True) -> None:
+    def __init__(
+        self,
+        config: AppConfig,
+        *,
+        enable_notifications: bool = True,
+        trace_options: Optional[TraceOptions] = None,
+    ) -> None:
         self.config = config
         if not self.config.settings.dry_run:
             ensure_directory(self.config.settings.destination_dir)
             ensure_directory(self.config.settings.cache_dir)
         self.processed_cache = ProcessedFileCache(self.config.settings.cache_dir)
         self.metadata_fingerprints = MetadataFingerprintStore(self.config.settings.cache_dir)
+        self.metadata_http_cache = MetadataHttpCache(self.config.settings.cache_dir)
+        self.trace_options = trace_options or TraceOptions()
         settings = self.config.settings
-        webhook_url = settings.discord_webhook_url if enable_notifications else None
-        self.notifier = DiscordNotifier(
-            webhook_url,
+        self.notification_service = NotificationService(
+            settings.notifications,
             cache_dir=settings.cache_dir,
-            settings=settings.notifications,
+            default_discord_webhook=settings.discord_webhook_url if enable_notifications else None,
+            enabled=enable_notifications,
         )
         self._previous_summary: Optional[Tuple[int, int, int]] = None
         self._metadata_changed_sports: List[Tuple[str, str]] = []
         self._metadata_change_map: Dict[str, MetadataChangeResult] = {}
         self._stale_destinations: Dict[str, Path] = {}
+        self._metadata_fetch_stats = MetadataFetchStatistics()
 
     @staticmethod
     def _format_log(event: str, fields: Optional[Mapping[str, object]] = None) -> str:
@@ -85,36 +103,65 @@ class Processor:
         runtimes: List[SportRuntime] = []
         self._metadata_changed_sports = []
         self._metadata_change_map = {}
-        for sport in self.config.sports:
-            if not sport.enabled:
-                LOGGER.debug(self._format_log("Skipping Disabled Sport", {"Sport": sport.id}))
-                continue
-            LOGGER.debug(self._format_log("Loading Metadata", {"Sport": sport.name}))
-            try:
-                show = load_show(self.config.settings, sport.metadata)
-            except MetadataFetchError as exc:
-                LOGGER.error(
-                    self._format_log(
-                        "Failed To Fetch Metadata",
-                        {
-                            "Sport": sport.id,
-                            "Name": sport.name,
-                            "Error": exc,
-                        },
-                    )
+        self._metadata_fetch_stats = MetadataFetchStatistics()
+
+        disabled_sports = [sport for sport in self.config.sports if not sport.enabled]
+        for sport in disabled_sports:
+            LOGGER.debug(self._format_log("Skipping Disabled Sport", {"Sport": sport.id}))
+
+        enabled_sports = [sport for sport in self.config.sports if sport.enabled]
+        if not enabled_sports:
+            return runtimes
+
+        shows: Dict[str, Show] = {}
+        max_workers = min(8, max(1, len(enabled_sports)))
+
+        with ThreadPoolExecutor(max_workers=max_workers) as executor:
+            future_map = {}
+            for sport in enabled_sports:
+                LOGGER.debug(self._format_log("Loading Metadata", {"Sport": sport.name}))
+                future = executor.submit(
+                    load_show,
+                    self.config.settings,
+                    sport.metadata,
+                    http_cache=self.metadata_http_cache,
+                    stats=self._metadata_fetch_stats,
                 )
-                continue
-            except Exception as exc:  # pragma: no cover - defensive
-                LOGGER.error(
-                    self._format_log(
-                        "Failed To Load Metadata",
-                        {
-                            "Sport": sport.id,
-                            "Name": sport.name,
-                            "Error": exc,
-                        },
+                future_map[future] = sport
+
+            for future in as_completed(future_map):
+                sport = future_map[future]
+                try:
+                    show = future.result()
+                except MetadataFetchError as exc:
+                    LOGGER.error(
+                        self._format_log(
+                            "Failed To Fetch Metadata",
+                            {
+                                "Sport": sport.id,
+                                "Name": sport.name,
+                                "Error": exc,
+                            },
+                        )
                     )
-                )
+                    continue
+                except Exception as exc:  # pragma: no cover - defensive
+                    LOGGER.error(
+                        self._format_log(
+                            "Failed To Load Metadata",
+                            {
+                                "Sport": sport.id,
+                                "Name": sport.name,
+                                "Error": exc,
+                            },
+                        )
+                    )
+                    continue
+                shows[sport.id] = show
+
+        for sport in enabled_sports:
+            show = shows.get(sport.id)
+            if show is None:
                 continue
             patterns = compile_patterns(sport)
             extensions = {ext.lower() for ext in sport.source_extensions}
@@ -138,6 +185,22 @@ class Processor:
                     self._metadata_change_map[sport.id] = change
 
             runtimes.append(SportRuntime(sport=sport, show=show, patterns=patterns, extensions=extensions))
+
+        if self._metadata_fetch_stats.has_activity():
+            snapshot = self._metadata_fetch_stats.snapshot()
+            LOGGER.info(
+                self._format_inline_log(
+                    "Metadata Cache",
+                    {
+                        "Hits": snapshot["cache_hits"],
+                        "Misses": snapshot["cache_misses"],
+                        "Refreshed": snapshot["network_requests"],
+                        "Not Modified": snapshot["not_modified"],
+                        "Stale": snapshot["stale_used"],
+                        "Failures": snapshot["failures"],
+                    },
+                )
+            )
         return runtimes
 
     def clear_processed_cache(self) -> None:
@@ -253,6 +316,7 @@ class Processor:
                 self._log_detailed_summary(stats)
             return stats
         finally:
+            self.metadata_http_cache.save()
             if not self.config.settings.dry_run:
                 self.processed_cache.save()
                 self.metadata_fingerprints.save()
@@ -272,6 +336,18 @@ class Processor:
 
         for path in root.rglob("*"):
             if not path.is_file():
+                continue
+
+            if path.is_symlink():
+                LOGGER.debug(
+                    self._format_log(
+                        "Skipping Source File",
+                        {
+                            "Source": path,
+                            "Reason": "symlink",
+                        },
+                    )
+                )
                 continue
 
             skip_reason = self._skip_reason_for_source_file(path)
@@ -327,6 +403,14 @@ class Processor:
             return False, ignored_reasons
 
         for runtime in matching_runtimes:
+            trace_context: Optional[Dict[str, Any]] = None
+            if self.trace_options.enabled:
+                trace_context = {
+                    "filename": str(source_path),
+                    "sport_id": runtime.sport.id,
+                    "sport_name": runtime.sport.name,
+                    "source_name": source_path.name,
+                }
             if not self._matches_globs(source_path, runtime.sport):
                 patterns = runtime.sport.source_globs or ["*"]
                 message = f"Excluded by source_globs {patterns}"
@@ -342,6 +426,15 @@ class Processor:
                         },
                     )
                 )
+                if trace_context is not None:
+                    trace_context.update(
+                        {
+                            "status": "glob-excluded",
+                            "reason": message,
+                            "patterns": patterns,
+                        }
+                    )
+                    self._persist_trace(trace_context)
                 continue
 
             detection_messages: List[Tuple[str, str]] = []
@@ -351,7 +444,12 @@ class Processor:
                 runtime.show,
                 runtime.patterns,
                 diagnostics=detection_messages,
+                trace=trace_context,
             )
+            if trace_context is not None:
+                trace_context["diagnostics"] = [
+                    {"severity": severity, "message": message} for severity, message in detection_messages
+                ]
             if detection:
                 season = detection["season"]
                 episode = detection["episode"]
@@ -359,7 +457,29 @@ class Processor:
                 groups = detection["groups"]
 
                 context = self._build_context(runtime, source_path, season, episode, groups)
-                destination = self._build_destination(runtime, pattern, context)
+                try:
+                    destination = self._build_destination(runtime, pattern, context)
+                except ValueError as exc:
+                    message = (
+                        f"{runtime.sport.id}: Unsafe destination for {source_path.name} - {exc}"
+                    )
+                    LOGGER.error(
+                        self._format_log(
+                            "Unsafe Destination",
+                            {
+                                "Source": source_path,
+                                "Sport": runtime.sport.id,
+                                "Error": exc,
+                            },
+                        )
+                    )
+                    stats.register_skipped(message, is_error=True)
+                    if trace_context is not None:
+                        trace_context["status"] = "error"
+                        trace_context["error"] = str(exc)
+                        trace_context["destination_context"] = context
+                        self._persist_trace(trace_context)
+                    return False, [("error", message)]
 
                 match = SportFileMatch(
                     source_path=source_path,
@@ -372,7 +492,18 @@ class Processor:
                     sport=runtime.sport,
                 )
 
-                self._handle_match(match, stats)
+                event = self._handle_match(match, stats)
+                if trace_context is not None:
+                    trace_context.setdefault("status", event.action if event else "matched")
+                    trace_context["destination"] = str(destination)
+                    trace_context["context"] = context
+                    trace_path = self._persist_trace(trace_context)
+                else:
+                    trace_path = None
+                if event:
+                    if trace_path is not None:
+                        event.trace_path = str(trace_path)
+                    self.notification_service.notify(event)
                 return True, []
 
             if not detection_messages:
@@ -396,6 +527,9 @@ class Processor:
                     stats.register_warning(f"{source_path.name}: {tagged_message}")
                 elif severity == "error":
                     stats.errors.append(f"{source_path.name}: {tagged_message}")
+            if trace_context is not None:
+                trace_context.setdefault("status", "ignored")
+                self._persist_trace(trace_context)
 
         return False, ignored_reasons
 
@@ -403,6 +537,38 @@ class Processor:
     def _should_suppress_sample_ignored(source_path: Path) -> bool:
         name = source_path.name.lower()
         return bool(SAMPLE_FILENAME_PATTERN.search(name))
+
+    def _persist_trace(self, trace: Optional[Dict[str, Any]]) -> Optional[Path]:
+        if not trace or not self.trace_options.enabled:
+            return None
+        output_dir = self.trace_options.output_dir or (self.config.settings.cache_dir / "traces")
+        ensure_directory(output_dir)
+        trace_key = f"{trace.get('filename', '')}|{trace.get('sport_id', '')}"
+        trace_path = output_dir / f"{sha1_of_text(trace_key)}.json"
+        trace["trace_path"] = str(trace_path)
+        try:
+            with trace_path.open("w", encoding="utf-8") as handle:
+                json.dump(trace, handle, ensure_ascii=False, indent=2)
+        except Exception as exc:  # noqa: BLE001
+            LOGGER.debug(
+                self._format_log(
+                    "Failed To Write Trace",
+                    {
+                        "Path": trace_path,
+                        "Error": exc,
+                    },
+                )
+            )
+            return None
+        LOGGER.debug(
+            self._format_log(
+                "Wrote Match Trace",
+                {
+                    "Path": trace_path,
+                },
+            )
+        )
+        return trace_path
 
     def _format_ignored_detail(self, source_path: Path, diagnostics: List[Tuple[str, str]]) -> str:
         if not diagnostics:
@@ -479,22 +645,6 @@ class Processor:
             or stats.skipped_details
             or stats.ignored_details
         )
-
-    def _notify_processed(self, match: SportFileMatch, destination_display: str) -> None:
-        if not self.notifier.enabled:
-            return
-        try:
-            self.notifier.notify_processed(match, destination_display=destination_display)
-        except Exception as exc:  # pragma: no cover - defensive fallback
-            LOGGER.debug(
-                self._format_log(
-                    "Failed To Send Notification",
-                    {
-                        "Sport": match.sport.id,
-                        "Error": exc,
-                    },
-                )
-            )
 
     def _build_context(self, runtime: SportRuntime, source_path: Path, season, episode, groups) -> Dict[str, object]:
         show = runtime.show
@@ -573,9 +723,17 @@ class Processor:
             / season_component
             / episode_component
         )
+
+        base_dir = settings.destination_dir.resolve()
+        destination_resolved = destination.resolve(strict=False)
+        if not destination_resolved.is_relative_to(base_dir):
+            raise ValueError(
+                f"destination {destination_resolved} escapes destination_dir {base_dir}"
+            )
+
         return destination
 
-    def _handle_match(self, match: SportFileMatch, stats: ProcessingStats) -> None:
+    def _handle_match(self, match: SportFileMatch, stats: ProcessingStats) -> Optional[NotificationEvent]:
         destination = match.destination_path
         settings = self.config.settings
         link_mode = (match.sport.link_mode or settings.link_mode).lower()
@@ -586,6 +744,22 @@ class Processor:
             "season_key": self._season_cache_key(match),
             "episode_key": self._episode_cache_key(match),
         }
+
+        destination_display = self._format_relative_destination(destination)
+        event = NotificationEvent(
+            sport_id=match.sport.id,
+            sport_name=match.sport.name,
+            show_title=match.show.title,
+            season=str(match.context.get("season_title") or match.season.title or "Season"),
+            session=str(match.context.get("session") or match.episode.title or "Session"),
+            episode=str(match.context.get("episode_title") or match.episode.title or match.episode.title),
+            summary=match.context.get("episode_summary") or match.episode.summary,
+            destination=destination_display,
+            source=match.source_path.name,
+            action="link",
+            link_mode=link_mode,
+            match_details=dict(match.context),
+        )
 
         replace_existing = False
         if destination.exists():
@@ -614,7 +788,9 @@ class Processor:
                     )
                     if not settings.dry_run:
                         self.processed_cache.mark_processed(match.source_path, destination, **cache_kwargs)
-                    return
+                    event.action = "skipped"
+                    event.skip_reason = message
+                    return event
 
         if replace_existing:
             LOGGER.debug(
@@ -640,9 +816,9 @@ class Processor:
                         f"Failed to replace destination {destination}: {exc}",
                         is_error=True,
                     )
-                    return
-
-        destination_display = self._format_relative_destination(destination)
+                    event.action = "error"
+                    event.skip_reason = f"failed-to-remove: {exc}"
+                    return event
 
         LOGGER.info(
             self._format_log(
@@ -673,21 +849,26 @@ class Processor:
 
         if settings.dry_run:
             stats.register_processed()
-            return
+            event.action = "dry-run"
+            event.replaced = replace_existing
+            return event
 
         result = link_file(match.source_path, destination, mode=link_mode)
         if result.created:
             stats.register_processed()
             self.processed_cache.mark_processed(match.source_path, destination, **cache_kwargs)
-            self._notify_processed(match, destination_display)
             self._cleanup_old_destination(
                 source_key,
                 old_destination,
                 destination,
                 dry_run=settings.dry_run,
             )
+            event.action = link_mode
+            event.replaced = replace_existing
+            return event
         else:
-            stats.register_skipped(f"Failed to link {match.source_path} -> {destination}: {result.reason}")
+            failure_message = f"Failed to link {match.source_path} -> {destination}: {result.reason}"
+            stats.register_skipped(failure_message)
             if result.reason == "destination-exists":
                 self.processed_cache.mark_processed(match.source_path, destination, **cache_kwargs)
                 self._cleanup_old_destination(
@@ -696,6 +877,12 @@ class Processor:
                     destination,
                     dry_run=settings.dry_run,
                 )
+                event.action = "skipped"
+                event.skip_reason = failure_message
+                return event
+            event.action = "error"
+            event.skip_reason = failure_message
+            return event
 
     def _should_overwrite_existing(self, match: SportFileMatch) -> bool:
         source_name = match.source_path.name.lower()

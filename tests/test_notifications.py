@@ -3,12 +3,10 @@ from __future__ import annotations
 import datetime as dt
 import json
 from pathlib import Path
-from types import SimpleNamespace
 from typing import Any, Dict, List
 
-from sports_organizer.config import NotificationSettings, PatternConfig
-from sports_organizer.models import Episode, Season, Show, SportFileMatch
-from sports_organizer.notifications import DiscordNotifier
+from sports_organizer.config import NotificationSettings
+from sports_organizer.notifications import NotificationEvent, NotificationService
 
 
 class FakeResponse:
@@ -24,73 +22,58 @@ class FakeResponse:
         return self._payload
 
 
-def _build_match(tmp_path: Path, *, sport_id: str = "demo", sport_name: str = "Demo", session: str = "Qualifying") -> SportFileMatch:
-    episode = Episode(
-        title=session,
+def _build_event(destination: str = "Demo.mkv", action: str = "link") -> NotificationEvent:
+    return NotificationEvent(
+        sport_id="demo",
+        sport_name="Demo Sport",
+        show_title="Demo Series",
+        season="Season 1",
+        session="Qualifying",
+        episode="Qualifying",
         summary="Session summary",
-        originally_available=None,
-        index=1,
-        display_number=1,
-    )
-    season = Season(
-        key="01",
-        title="Season 1",
-        summary=None,
-        index=1,
-        episodes=[episode],
-        display_number=1,
-        round_number=1,
-    )
-    show = Show(key="demo", title="Demo Series", summary=None, seasons=[season])
-    pattern = PatternConfig(regex=r".*")
-    sport = SimpleNamespace(id=sport_id, name=sport_name, link_mode="hardlink")
-    context = {
-        "season_title": "Season 1",
-        "session": session,
-        "episode_title": session,
-        "episode_summary": "Session summary",
-    }
-    source = tmp_path / "source.mkv"
-    destination = tmp_path / "dest.mkv"
-    return SportFileMatch(
-        source_path=source,
-        destination_path=destination,
-        show=show,
-        season=season,
-        episode=episode,
-        pattern=pattern,
-        context=context,
-        sport=sport,
+        destination=destination,
+        source="source.mkv",
+        action=action,
+        link_mode="hardlink",
+        timestamp=dt.datetime.now(dt.timezone.utc),
     )
 
 
-def test_discord_notifier_sends_direct_message_without_batching(tmp_path, monkeypatch) -> None:
+def test_notification_service_sends_discord_message(tmp_path, monkeypatch) -> None:
     settings = NotificationSettings(batch_daily=False, flush_time=dt.time(hour=0, minute=0))
-    notifier = DiscordNotifier("https://discord.test/webhook", cache_dir=tmp_path, settings=settings)
-    match = _build_match(tmp_path)
+    service = NotificationService(
+        settings,
+        cache_dir=tmp_path,
+        default_discord_webhook="https://discord.test/webhook",
+        enabled=True,
+    )
 
     calls: List[Dict[str, Any]] = []
 
-    def fake_request(method, url, json=None, timeout=None):
+    def fake_request(method, url, json=None, timeout=None, headers=None):
         calls.append({"method": method, "url": url, "json": json})
         return FakeResponse(204)
 
     monkeypatch.setattr("sports_organizer.notifications.requests.request", fake_request)
 
-    notifier.notify_processed(match, destination_display="Demo.mkv")
+    service.notify(_build_event())
 
     assert len(calls) == 1
     request = calls[0]
     assert request["method"] == "POST"
     assert request["url"] == "https://discord.test/webhook"
     payload = request["json"]
-    assert payload["embeds"][0]["fields"][0]["value"] == "Demo"
+    assert payload["embeds"][0]["fields"][0]["value"] == "Demo Sport"
 
 
-def test_discord_notifier_batches_and_edits_message(tmp_path, monkeypatch) -> None:
+def test_notification_service_batches_discord_messages(tmp_path, monkeypatch) -> None:
     settings = NotificationSettings(batch_daily=True, flush_time=dt.time(hour=0, minute=0))
-    notifier = DiscordNotifier("https://discord.test/webhook", cache_dir=tmp_path, settings=settings)
-    match = _build_match(tmp_path)
+    service = NotificationService(
+        settings,
+        cache_dir=tmp_path,
+        default_discord_webhook="https://discord.test/webhook",
+        enabled=True,
+    )
 
     responses = [
         FakeResponse(200, {"id": "message123"}),
@@ -98,14 +81,14 @@ def test_discord_notifier_batches_and_edits_message(tmp_path, monkeypatch) -> No
     ]
     calls: List[Dict[str, Any]] = []
 
-    def fake_request(method, url, json=None, timeout=None):
+    def fake_request(method, url, json=None, timeout=None, headers=None):
         calls.append({"method": method, "url": url, "json": json})
         return responses.pop(0)
 
     monkeypatch.setattr("sports_organizer.notifications.requests.request", fake_request)
 
-    notifier.notify_processed(match, destination_display="Demo-1.mkv")
-    notifier.notify_processed(match, destination_display="Demo-2.mkv")
+    service.notify(_build_event(destination="Demo-1.mkv"))
+    service.notify(_build_event(destination="Demo-2.mkv"))
 
     assert [call["method"] for call in calls] == ["POST", "PATCH"]
     assert calls[0]["url"] == "https://discord.test/webhook"
@@ -118,27 +101,30 @@ def test_discord_notifier_batches_and_edits_message(tmp_path, monkeypatch) -> No
     assert state["demo"]["message_id"] == "message123"
 
 
-def test_discord_notifier_retries_after_rate_limit(tmp_path, monkeypatch) -> None:
+def test_notification_service_handles_rate_limiting(tmp_path, monkeypatch) -> None:
     settings = NotificationSettings(batch_daily=False, flush_time=dt.time(hour=0, minute=0))
-    notifier = DiscordNotifier("https://discord.test/webhook", cache_dir=tmp_path, settings=settings)
-    match = _build_match(tmp_path)
+    service = NotificationService(
+        settings,
+        cache_dir=tmp_path,
+        default_discord_webhook="https://discord.test/webhook",
+        enabled=True,
+    )
 
-    request_calls: List[str] = []
     responses = [
         FakeResponse(429, {"retry_after": 0.3}, headers={"Retry-After": "0.2"}),
         FakeResponse(204),
     ]
+    request_calls: List[str] = []
+    sleep_calls: List[float] = []
 
-    def fake_request(method, url, json=None, timeout=None):
+    def fake_request(method, url, json=None, timeout=None, headers=None):
         request_calls.append(method)
         return responses.pop(0)
-
-    sleep_calls: List[float] = []
 
     monkeypatch.setattr("sports_organizer.notifications.requests.request", fake_request)
     monkeypatch.setattr("sports_organizer.notifications.time.sleep", lambda seconds: sleep_calls.append(seconds))
 
-    notifier.notify_processed(match, destination_display="Demo.mkv")
+    service.notify(_build_event())
 
     assert request_calls == ["POST", "POST"]
     assert sleep_calls and sleep_calls[0] >= 1.0

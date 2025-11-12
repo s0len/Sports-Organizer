@@ -65,6 +65,8 @@ class DestinationTemplates:
 class NotificationSettings:
     batch_daily: bool = False
     flush_time: dt.time = field(default_factory=lambda: dt.time(hour=0, minute=0))
+    targets: List[Dict[str, Any]] = field(default_factory=list)
+    throttle: Dict[str, int] = field(default_factory=dict)
 
 
 @dataclass(slots=True)
@@ -321,9 +323,35 @@ def _build_settings(data: Dict[str, Any]) -> Settings:
     except ValueError as exc:
         raise ValueError(str(exc)) from exc
 
+    targets_raw = notifications_raw.get("targets", []) or []
+    if not isinstance(targets_raw, list):
+        raise ValueError("'notifications.targets' must be provided as a list when specified")
+    targets: List[Dict[str, Any]] = []
+    for entry in targets_raw:
+        if not isinstance(entry, dict):
+            raise ValueError("Each entry in 'notifications.targets' must be a mapping")
+        target_type = entry.get("type")
+        if not isinstance(target_type, str):
+            raise ValueError("Notification target entries must include a string 'type'")
+        normalized_entry: Dict[str, Any] = {str(k): v for k, v in entry.items()}
+        normalized_entry["type"] = target_type.strip().lower()
+        targets.append(normalized_entry)
+
+    throttle_raw = notifications_raw.get("throttle", {}) or {}
+    if not isinstance(throttle_raw, dict):
+        raise ValueError("'notifications.throttle' must be provided as a mapping when specified")
+    throttle: Dict[str, int] = {}
+    for key, value in throttle_raw.items():
+        try:
+            throttle[str(key)] = int(value)
+        except (TypeError, ValueError) as exc:  # noqa: PERF203
+            raise ValueError(f"'notifications.throttle[{key}]' must be an integer") from exc
+
     notifications = NotificationSettings(
         batch_daily=bool(notifications_raw.get("batch_daily", False)),
         flush_time=flush_time,
+        targets=targets,
+        throttle=throttle,
     )
 
     return Settings(

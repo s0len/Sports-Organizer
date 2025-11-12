@@ -4,7 +4,7 @@ import difflib
 import logging
 import re
 from dataclasses import dataclass
-from typing import Dict, List, Optional, Set, Tuple
+from typing import Any, Dict, List, Optional, Set, Tuple
 
 try:
     from rapidfuzz.distance import DamerauLevenshtein, Levenshtein
@@ -190,6 +190,7 @@ def _select_episode(
     season: Season,
     session_lookup: Dict[str, str],
     match_groups: Dict[str, str],
+    trace: Optional[Dict[str, Any]] = None,
 ) -> Optional[Episode]:
     group = pattern_config.episode_selector.group
     raw_value = match_groups.get(group)
@@ -227,6 +228,7 @@ def _select_episode(
         return _tokens_close(candidate, target)
 
     lookup_attempts: List[Tuple[str, str, str]] = []
+    trace_lookup_records: List[Dict[str, str]] = []
     seen_tokens: Set[str] = set()
 
     def add_lookup(label: str, value: Optional[str]) -> None:
@@ -234,6 +236,7 @@ def _select_episode(
             return
 
         variants: List[str] = []
+        source_variants: List[str] = []
 
         def push_variant(candidate: Optional[str]) -> None:
             if not candidate:
@@ -241,6 +244,7 @@ def _select_episode(
             if candidate in variants:
                 return
             variants.append(candidate)
+            source_variants.append(candidate)
 
         push_variant(value)
 
@@ -261,11 +265,27 @@ def _select_episode(
                 continue
             seen_tokens.add(normalized_variant)
             lookup_attempts.append((label, variant, normalized_variant))
+            if trace is not None:
+                trace_lookup_records.append(
+                    {
+                        "label": label,
+                        "value": variant,
+                        "normalized": normalized_variant,
+                    }
+                )
 
     add_lookup("session", raw_value)
 
     if normalized_without_part and normalized_without_part not in seen_tokens:
         lookup_attempts.append(("session_without_part", raw_value, normalized_without_part))
+        if trace is not None:
+            trace_lookup_records.append(
+                {
+                    "label": "session_without_part",
+                    "value": raw_value,
+                    "normalized": normalized_without_part,
+                }
+            )
         seen_tokens.add(normalized_without_part)
 
     for key, value in match_groups.items():
@@ -327,11 +347,23 @@ def _select_episode(
                 continue
             episode = find_episode_for_token(token)
             if episode:
+                if trace is not None:
+                    trace["match"] = {
+                        "label": label,
+                        "value": variant,
+                        "normalized": normalized_variant,
+                        "token": token,
+                        "episode_title": episode.title,
+                        "matched_via_alias": normalize_token(episode.title) != token,
+                    }
+                    trace["lookup_attempts"] = trace_lookup_records
                 return episode
 
     if attempted_variants:
         match_groups["_attempted_session_tokens"] = attempted_variants
-
+    if trace is not None:
+        trace.setdefault("match", None)
+        trace["lookup_attempts"] = trace_lookup_records
     return None
 
 
@@ -355,13 +387,21 @@ def match_file_to_episode(
     patterns: List[PatternRuntime],
     *,
     diagnostics: Optional[List[Tuple[str, str]]] = None,
+    trace: Optional[Dict[str, Any]] = None,
 ) -> Optional[Dict[str, object]]:
     matched_patterns = 0
     failed_resolutions: List[str] = []
+    trace_attempts: Optional[List[Dict[str, Any]]] = None
+    if trace is not None:
+        trace_attempts = trace.setdefault("attempts", [])
+        trace.setdefault("messages", [])
+        trace["matched_patterns"] = 0
 
     def record(severity: str, message: str) -> None:
         if diagnostics is not None:
             diagnostics.append((severity, message))
+        if trace is not None:
+            trace["messages"].append({"severity": severity, "message": message})
 
     def summarize_groups(groups: Dict[str, str]) -> str:
         if not groups:
@@ -379,15 +419,26 @@ def match_file_to_episode(
             titles.append("…")
         return ", ".join(titles) if titles else "none"
     for pattern_runtime in patterns:
+        descriptor = pattern_runtime.config.description or pattern_runtime.config.regex
         match = pattern_runtime.regex.search(filename)
         if not match:
+            if trace_attempts is not None:
+                trace_attempts.append(
+                    {
+                        "pattern": descriptor,
+                        "regex": pattern_runtime.config.regex,
+                        "status": "regex-no-match",
+                    }
+                )
             continue
 
         matched_patterns += 1
+        if trace is not None:
+            trace["matched_patterns"] = matched_patterns
         groups = {key: value for key, value in match.groupdict().items() if value is not None}
+        groups_for_trace = dict(groups)
         season = _select_season(show, pattern_runtime.config.season_selector, groups)
         if not season:
-            descriptor = pattern_runtime.config.description or pattern_runtime.config.regex
             selector = pattern_runtime.config.season_selector
             selector_group = selector.group or selector.mode or "season"
             candidate_value = groups.get(selector.group or selector.mode or "season")
@@ -400,12 +451,33 @@ def match_file_to_episode(
             failed_resolutions.append(message)
             severity = "ignored" if sport.allow_unmatched else "warning"
             record(severity, message)
+            if trace_attempts is not None:
+                trace_attempts.append(
+                    {
+                        "pattern": descriptor,
+                        "regex": pattern_runtime.config.regex,
+                        "status": "season-unresolved",
+                        "season_selector": {
+                            "mode": selector.mode,
+                            "group": selector.group,
+                            "value": candidate_value,
+                        },
+                        "groups": groups_for_trace,
+                        "message": message,
+                    }
+                )
             continue
 
         pattern_runtime.session_lookup = _build_session_lookup(pattern_runtime.config, season)
-        episode = _select_episode(pattern_runtime.config, season, pattern_runtime.session_lookup, groups)
+        episode_trace: Dict[str, Any] = {}
+        episode = _select_episode(
+            pattern_runtime.config,
+            season,
+            pattern_runtime.session_lookup,
+            groups,
+            trace=episode_trace,
+        )
         if not episode:
-            descriptor = pattern_runtime.config.description or pattern_runtime.config.regex
             selector = pattern_runtime.config.episode_selector
             raw_value = groups.get(selector.group)
             normalized_value = normalize_token(raw_value) if raw_value else None
@@ -432,14 +504,61 @@ def match_file_to_episode(
             failed_resolutions.append(message)
             severity = "ignored" if sport.allow_unmatched else "warning"
             record(severity, message)
+            if trace_attempts is not None:
+                trace_entry = {
+                    "pattern": descriptor,
+                    "regex": pattern_runtime.config.regex,
+                    "status": "episode-unresolved",
+                    "season": {
+                        "title": season.title,
+                        "round_number": season.round_number,
+                        "display_number": season.display_number,
+                    },
+                    "episode_selector": {
+                        "group": selector.group,
+                        "allow_fallback_to_title": selector.allow_fallback_to_title,
+                    },
+                    "groups": groups_for_trace,
+                    "message": message,
+                }
+                if episode_trace:
+                    trace_entry["episode_trace"] = episode_trace
+                trace_attempts.append(trace_entry)
             continue
 
-        return {
+        result = {
             "season": season,
             "episode": episode,
             "pattern": pattern_runtime.config,
             "groups": groups,
         }
+        if trace_attempts is not None:
+            trace_entry = {
+                "pattern": descriptor,
+                "regex": pattern_runtime.config.regex,
+                "status": "matched",
+                "groups": groups_for_trace,
+                "season": {
+                    "title": season.title,
+                    "round_number": season.round_number,
+                    "display_number": season.display_number,
+                },
+                "episode": {
+                    "title": episode.title,
+                    "index": episode.index,
+                    "display_number": episode.display_number,
+                },
+            }
+            if episode_trace:
+                trace_entry["episode_trace"] = episode_trace
+            trace_attempts.append(trace_entry)
+            trace["status"] = "matched"
+            trace["result"] = {
+                "season": trace_entry["season"],
+                "episode": trace_entry["episode"],
+                "pattern": descriptor,
+            }
+        return result
     if failed_resolutions:
         log_fn = LOGGER.debug if sport.allow_unmatched else LOGGER.warning
         log_fn(
@@ -455,7 +574,11 @@ def match_file_to_episode(
         )
         severity = "ignored" if sport.allow_unmatched else "warning"
         record(severity, message)
+        if trace is not None:
+            trace["status"] = "unresolved"
     elif matched_patterns == 0:
         LOGGER.debug("File %s did not match any configured patterns", filename)
         record("ignored", "Did not match any configured patterns")
+        if trace is not None:
+            trace["status"] = "no-match"
     return None
