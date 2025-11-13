@@ -165,6 +165,16 @@ def _select_season(show: Show, selector: SeasonSelector, match_groups: Dict[str,
         title = match_groups.get(selector.group or "season")
         if not title:
             return None
+        if selector.aliases:
+            alias_target = selector.aliases.get(title)
+            if alias_target is None:
+                normalized_title = normalize_token(title)
+                for alias_key, mapped_title in selector.aliases.items():
+                    if normalize_token(alias_key) == normalized_title:
+                        alias_target = mapped_title
+                        break
+            if alias_target:
+                title = alias_target
         normalized = normalize_token(title)
         for season in show.seasons:
             if normalize_token(season.title) == normalized:

@@ -119,6 +119,8 @@ pattern_sets:
         mode: title        # Use the slug to match metadata titles directly.
         group: season_slug
         offset: 0
+        aliases:
+          american.grand.prix: "United States Grand Prix"
       episode_selector:
         group: session
         allow_fallback_to_title: true

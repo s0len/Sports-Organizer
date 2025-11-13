@@ -219,6 +219,28 @@ samples:
       - value: "Formula1.2025.Round04.Bahrain.FP1.F1TV-1080p.mkv"
         expect_episode: "Free Practice 1"
 
+  - description: "Formula 1 VERUM sprint release resolves via season alias"
+    sport:
+      id: "formula1_verum_alias"
+      name: "Formula 1 VERUM Alias"
+      pattern_sets:
+        - formula1
+    show:
+      key: "formula1_2025"
+      title: "Formula 1 2025"
+      seasons:
+        - title: "Round 19 United States Grand Prix"
+          round_number: 19
+          display_number: 19
+          episodes:
+            - title: "Sprint"
+              aliases:
+                - "Sprint Race"
+            - title: "Race"
+    filenames:
+      - value: "formula1.2025.american.grand.prix.sprint.race.1080p.web.h264-verum.mkv"
+        expect_episode: "Sprint"
+
   - description: "World Superbike PROPER and REPACK releases"
     sport:
       id: "wsbk_proper_samples"
