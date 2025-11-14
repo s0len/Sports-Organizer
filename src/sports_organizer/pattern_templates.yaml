@@ -114,13 +114,19 @@ pattern_sets:
     - description: Formula 1 VERUM releases
       # Example: Formula1.2024.Saudi.Arabian.Grand.Prix.Qualifying.1080p.VERUM.mkv
       regex: >-
-        (?i)^Formula1\.(?P<year>\d{4})\.(?P<season_slug>[^.]+(?:\.[^.]+){1,2})\.(?P<session>Qualifying|Sprint\.Race|Race)(?=\.1080p)
+        (?i)^Formula1\.(?P<year>\d{4})\.(?P<season_slug>[^.]+(?:\.[^.]+){1,2})\.(?P<session>Qualifying|Sprint\.Qualifying|Sprint\.Race|Sprint|Race)(?=\.1080p)
       season_selector:
         mode: title        # Use the slug to match metadata titles directly.
         group: season_slug
         offset: 0
         aliases:
           american.grand.prix: "United States Grand Prix"
+          mexican.grand.prix: "Mexico City Grand Prix"
+          mexican: "Mexico City Grand Prix"
+          mexico.city: "Mexico City Grand Prix"
+          brazilian.grand.prix: "S\u00E3o Paulo Grand Prix"
+          brazilian: "S\u00E3o Paulo Grand Prix"
+          sao.paulo: "S\u00E3o Paulo Grand Prix"
       episode_selector:
         group: session
         allow_fallback_to_title: true
@@ -136,6 +142,15 @@ pattern_sets:
       season_selector:
         mode: title
         group: season_slug
+        aliases:
+          american: "United States Grand Prix"
+          american.grand.prix: "United States Grand Prix"
+          mexican: "Mexico City Grand Prix"
+          mexican.grand.prix: "Mexico City Grand Prix"
+          mexico.city: "Mexico City Grand Prix"
+          brazilian: "S\u00E3o Paulo Grand Prix"
+          brazilian.grand.prix: "S\u00E3o Paulo Grand Prix"
+          sao.paulo: "S\u00E3o Paulo Grand Prix"
       episode_selector:
         group: session
       session_aliases:

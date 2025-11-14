@@ -241,6 +241,49 @@ samples:
       - value: "formula1.2025.american.grand.prix.sprint.race.1080p.web.h264-verum.mkv"
         expect_episode: "Sprint"
 
+  - description: "Formula 1 VERUM full race pack resolves via aliases"
+    sport:
+      id: "formula1_verum_full_pack_alias"
+      name: "Formula 1 VERUM Full Pack Alias"
+      pattern_sets:
+        - formula1
+    show:
+      key: "formula1_2025"
+      title: "Formula 1 2025"
+      seasons:
+        - title: "Round 20 Mexico City Grand Prix"
+          round_number: 20
+          display_number: 20
+          episodes:
+            - title: "Qualifying"
+            - title: "Race"
+              aliases:
+                - "Grand Prix"
+        - title: "Round 21 S\u00E3o Paulo Grand Prix"
+          round_number: 21
+          display_number: 21
+          episodes:
+            - title: "Sprint Qualifying"
+              aliases:
+                - "Sprint Shootout"
+            - title: "Sprint"
+              aliases:
+                - "Sprint Race"
+            - title: "Race"
+              aliases:
+                - "Grand Prix"
+    filenames:
+      - value: "formula1.2025.mexican.grand.prix.qualifying.1080p.web.h264-verum.mkv"
+        expect_episode: "Qualifying"
+      - value: "formula1.2025.mexican.grand.prix.grand.prix.1080p.web.h264-verum.mkv"
+        expect_episode: "Race"
+      - value: "formula1.2025.brazilian.grand.prix.sprint.race.1080p.web.h264-verum.mkv"
+        expect_episode: "Sprint"
+      - value: "formula1.2025.brazilian.grand.prix.grand.prix.1080p.web.h264-verum.mkv"
+        expect_episode: "Race"
+      - value: "formula1.2025.brazilian.grand.prix.sprint.qualifying.1080p.web.h264-verum.mkv"
+        expect_episode: "Sprint Qualifying"
+
   - description: "World Superbike PROPER and REPACK releases"
     sport:
       id: "wsbk_proper_samples"
