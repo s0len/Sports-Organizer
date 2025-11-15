@@ -507,11 +507,31 @@ def fetch_metadata(
         if stale is not None:
             LOGGER.debug("Metadata not modified for %s", metadata.url)
             return stale
-        if stats:
-            stats.record_failure()
-        raise MetadataFetchError(
-            f"Received 304 Not Modified for {metadata.url} without cached copy",
+        LOGGER.warning(
+            "Received 304 Not Modified for %s without cached copy; retrying without conditional headers",
+            metadata.url,
         )
+        if http_cache:
+            http_cache.invalidate(metadata.url)
+        retry_headers = dict(metadata.headers or {})
+        try:
+            response = requests.get(metadata.url, headers=retry_headers or None, timeout=30)
+            if stats:
+                stats.record_network_request()
+        except requests.RequestException as exc:  # noqa: BLE001
+            if stats:
+                stats.record_failure()
+            raise MetadataFetchError(
+                f"Unable to refetch metadata from {metadata.url} after 304 Not Modified"
+            ) from exc
+        status_code = response.status_code
+        if http_cache:
+            http_cache.update(
+                metadata.url,
+                etag=response.headers.get("ETag"),
+                last_modified=response.headers.get("Last-Modified"),
+                status_code=status_code,
+            )
 
     try:
         response.raise_for_status()
