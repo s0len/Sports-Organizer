@@ -5489,6 +5489,187 @@ pattern_sets:
       filename_template: "{show_title} - S{season_number:02d}E{episode_number:02d} - {episode_title}.{extension}"
 
   # ------------------------------------------------------------------
+  # Figure Skating Grand Prix releases
+  # ------------------------------------------------------------------
+  figure_skating_grand_prix: &figure_skating_grand_prix_patterns
+    - description: Figure Skating Grand Prix date-based releases
+      regex: >-
+        (?i)^Figure\s+Skating(?:(?:\s+(?!Grand\b)[A-Za-z&'’-]+)+)?\s+Grand\s+Prix(?:(?:\s+(?!\d{4})[A-Za-z&'’-]+)+)?\s+(?P<year>\d{4})\s+(?P<session>[A-Za-z&'’-]+(?:\s+[A-Za-z&'’-]+)*)\s+(?P<event_date>\d{2}(?:[ .-]\d{2})(?:[ .-]\d{4})?)(?:\s+(?:<suffix_token>|[A-Za-z0-9]+(?:[._-][A-Za-z0-9]+)*))*?(?:\.(?P<extension><extension>))?$
+      season_selector:
+        mode: key
+        group: event_date
+        mapping:
+          '17 10': 1
+          '17-10': 1
+          '17.10': 1
+          '17 10 2025': 1
+          '17-10-2025': 1
+          '17.10.2025': 1
+          '18 10': 1
+          '18-10': 1
+          '18.10': 1
+          '18 10 2025': 1
+          '18-10-2025': 1
+          '18.10.2025': 1
+          '19 10': 1
+          '19-10': 1
+          '19.10': 1
+          '19 10 2025': 1
+          '19-10-2025': 1
+          '19.10.2025': 1
+          '24 10': 2
+          '24-10': 2
+          '24.10': 2
+          '24 10 2025': 2
+          '24-10-2025': 2
+          '24.10.2025': 2
+          '25 10': 2
+          '25-10': 2
+          '25.10': 2
+          '25 10 2025': 2
+          '25-10-2025': 2
+          '25.10.2025': 2
+          '26 10': 2
+          '26-10': 2
+          '26.10': 2
+          '26 10 2025': 2
+          '26-10-2025': 2
+          '26.10.2025': 2
+          '01 11': 3
+          '01-11': 3
+          '01.11': 3
+          '01 11 2025': 3
+          '01-11-2025': 3
+          '01.11.2025': 3
+          '02 11': 3
+          '02-11': 3
+          '02.11': 3
+          '02 11 2025': 3
+          '02-11-2025': 3
+          '02.11.2025': 3
+          '07 11': 4
+          '07-11': 4
+          '07.11': 4
+          '07 11 2025': 4
+          '07-11-2025': 4
+          '07.11.2025': 4
+          '08 11': 4
+          '08-11': 4
+          '08.11': 4
+          '08 11 2025': 4
+          '08-11-2025': 4
+          '08.11.2025': 4
+          '09 11': 4
+          '09-11': 4
+          '09.11': 4
+          '09 11 2025': 4
+          '09-11-2025': 4
+          '09.11.2025': 4
+          '15 11': 5
+          '15-11': 5
+          '15.11': 5
+          '15 11 2025': 5
+          '15-11-2025': 5
+          '15.11.2025': 5
+          '21 11': 6
+          '21-11': 6
+          '21.11': 6
+          '21 11 2025': 6
+          '21-11-2025': 6
+          '21.11.2025': 6
+          '22 11': 6
+          '22-11': 6
+          '22.11': 6
+          '22 11 2025': 6
+          '22-11-2025': 6
+          '22.11.2025': 6
+          '23 11': 6
+          '23-11': 6
+          '23.11': 6
+          '23 11 2025': 6
+          '23-11-2025': 6
+          '23.11.2025': 6
+          '04 12': 7
+          '04-12': 7
+          '04.12': 7
+          '04 12 2025': 7
+          '04-12-2025': 7
+          '04.12.2025': 7
+          '06 12': 7
+          '06-12': 7
+          '06.12': 7
+          '06 12 2025': 7
+          '06-12-2025': 7
+          '06.12.2025': 7
+          '07 12': 7
+          '07-12': 7
+          '07.12': 7
+          '07 12 2025': 7
+          '07-12-2025': 7
+          '07.12.2025': 7
+      episode_selector:
+        group: session
+        allow_fallback_to_title: true
+      session_aliases: &figure_skating_grand_prix_session_aliases
+        Pairs Short Program:
+          - "Pairs Short Program"
+          - "Pair Short Program"
+          - "Pairs Short"
+          - "Mixed Pairs Short Program"
+          - "Mixed Pair Short Program"
+        Pairs Free Program:
+          - "Pairs Free Program"
+          - "Pair Free Program"
+          - "Pairs Free"
+          - "Pairs Free Skate"
+          - "Mixed Pairs Free Program"
+        Women Short Program:
+          - "Women Short Program"
+          - "Women's Short Program"
+          - "Womens Short Program"
+          - "Women SP"
+          - "Ladies Short Program"
+        Women Free Program:
+          - "Women Free Program"
+          - "Women's Free Program"
+          - "Womens Free Program"
+          - "Women FS"
+          - "Women Free Skate"
+          - "Ladies Free Program"
+        Men Short Program:
+          - "Men Short Program"
+          - "Men's Short Program"
+          - "Mens Short Program"
+          - "Men SP"
+        Men Free Program:
+          - "Men Free Program"
+          - "Men's Free Program"
+          - "Mens Free Program"
+          - "Men FS"
+          - "Men Free Skate"
+        Ice Dance Rhythm Dance:
+          - "Ice Dance Rhythm Dance"
+          - "Ice Dancing Rhythm Dance"
+          - "Rhythm Dance"
+          - "Ice Dancing Short Program"
+          - "Ice Dance Short Program"
+          - "RD"
+        Ice Dance Free Dance:
+          - "Ice Dance Free Dance"
+          - "Ice Dancing Free Dance"
+          - "Ice Dance Free Program"
+          - "Ice Dancing Free Program"
+          - "Free Dance"
+        Exhibition Gala:
+          - "Exhibition Gala"
+          - "Gala Exhibition"
+          - "Exhibition"
+          - "Gala"
+      destination_root_template: "{show_title}"
+      season_dir_template: "{season_number:02d} {season_title}"
+      filename_template: "{show_title} - S{season_number:02d}E{episode_number:02d} - {episode_title}.{extension}"
+
+  # ------------------------------------------------------------------
   # NFL releases
   # ------------------------------------------------------------------
   nfl: &nfl_patterns

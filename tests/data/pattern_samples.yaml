@@ -385,3 +385,64 @@ samples:
         expect_episode: "Sunderland vs Arsenal"
       - value: "EPL.2025.11.08.Tottenham.Hotspur.Vs.Manchester.United.1080p.WEB.H264-NiGHTNiNJAS/epl.2025.11.08.tottenham.hotspur.vs.manchester.united.1080p.web.h264-nightninjas.mkv"
         expect_episode: "Tottenham Hotspur vs Manchester United"
+
+  - description: "Figure Skating Grand Prix 2025 samples"
+    sport:
+      id: "figure_skating_grand_prix_samples"
+      name: "Figure Skating Grand Prix Samples"
+      pattern_sets:
+        - figure_skating_grand_prix
+    show:
+      key: "figure_skating_grand_prix_2025"
+      title: "Figure Skating Grand Prix 2025"
+      seasons:
+        - title: "Grand Prix de France 2025"
+          display_number: 1
+          episodes:
+            - title: "Women Short Program"
+            - title: "Pairs Free Program"
+        - title: "Cup of China 2025"
+          display_number: 2
+          episodes:
+            - title: "Pairs Short Program"
+            - title: "Pairs Free Program"
+        - title: "Skate Canada International 2025"
+          display_number: 3
+          episodes:
+            - title: "Ice Dance Free Dance"
+        - title: "NHK Trophy 2025"
+          display_number: 4
+          episodes:
+            - title: "Ice Dance Rhythm Dance"
+        - title: "Skate America 2025"
+          display_number: 5
+          episodes:
+            - title: "Pairs Short Program"
+        - title: "Grand Prix Espoo 2025"
+          display_number: 6
+          episodes:
+            - title: "Exhibition Gala"
+        - title: "Grand Prix Final 2025"
+          display_number: 7
+          episodes:
+            - title: "Women Free Program"
+            - title: "Men Free Program"
+    filenames:
+      - value: "Figure Skating Grand Prix France 2025 Women Short Program 17 10 720pEN50fps ES"
+        expect_episode: "Women Short Program"
+      - value: "Figure Skating Grand Prix France 2025 Pairs Free Program 18-10-2025 1080pEN50fps.mkv"
+        expect_episode: "Pairs Free Program"
+      - value: "Figure Skating Grand Prix 2025 Pairs Free Program 25 10 720pEN50fps ES"
+        expect_episode: "Pairs Free Program"
+      - value: "Figure Skating Grand Prix China 2025 Mixed Pairs Short Program 24 10 720pEN50fps ES"
+        expect_episode: "Pairs Short Program"
+      - value: "Figure Skating Grand Prix Canada 2025 Ice Dancing Free Program 02 11 720pEN50fps ES"
+        expect_episode: "Ice Dance Free Dance"
+      - value: "Figure Skating Grand Prix Japan 2025 Ice Dancing Short Program 07 11 720pEN50fps ES"
+        expect_episode: "Ice Dance Rhythm Dance"
+      - value: "Figure Skating USA Grand Prix 2025 Pairs Short Program 15 11 720pEN50fps ES"
+        expect_episode: "Pairs Short Program"
+      - value: "Figure Skating Grand Prix Espoo 2025 Exhibition Gala 23 11 720pEN50fps ES"
+        expect_episode: "Exhibition Gala"
+      - value: "Figure Skating Grand Prix Final 2025 Women Free Program 06.12.2025 1080pEN50fps.mkv"
+        expect_episode: "Women Free Program"
