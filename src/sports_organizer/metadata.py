@@ -531,9 +531,8 @@ def fetch_metadata(
         raise ValueError(f"Unexpected metadata structure at {metadata.url}")
 
     if settings.dry_run:
-        LOGGER.debug("Dry-run: skipping metadata cache write for %s", metadata.url)
-    else:
-        _store_cache(cache_file, content)
+        LOGGER.debug("Dry-run: caching metadata for %s", metadata.url)
+    _store_cache(cache_file, content)
     return content
 
 

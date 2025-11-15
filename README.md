@@ -9,7 +9,7 @@
 ## TL;DR
 
 - Configure your `sports.yaml` (copy from `config/sports.sample.yaml` and set `SOURCE_DIR`, `DESTINATION_DIR`, and `CACHE_DIR`).
-- Dry-run the Docker image to confirm metadata downloads and filesystem access.
+- Dry-run the Docker image to confirm metadata downloads and filesystem access (metadata caches are still written so later runs stay warm).
 - Point Plex (or another media manager) at the destination directory once you're happy with the output.
 
 > Quick verification:
