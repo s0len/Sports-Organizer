@@ -477,7 +477,7 @@ These are examples that pair well with the built-in pattern packs and metadata f
 
 ```text
 # Premier League (EPL) 1080p releases by NiGHTNiNJAS
-EPL.*1080p.*NiGHTNiNJAS/i
+EPL.*1080p.*NiGHTNiNJAS
 
 # Formula 1 multi-session weekends by MWR
 (F1|Formula.*1).*\d{4}.Round\d+.*[^.]+\.*?(Drivers.*Press.*Conference|Weekend.*Warm.*Up|FP\d?|Practice|Sprint.Qualifying|Sprint|Qualifying|Pre.Qualifying|Post.Qualifying|Race|Pre.Race|Post.Race|Sprint.Race|Feature.*Race).*1080p.*MWR
@@ -501,7 +501,7 @@ NBA.*1080p.*GAMETiME
 NFL.*NiGHTNiNJAS
 
 # UFC by VERUM
-UFC.*VERUM
+[Uu][Ff][Cc][ ._-]?\d{3}.*[Vv][Ee][Rr][Uu][Mm]
 
 # WorldSBK / WorldSSP / WorldSSP300 by MWR
 ([Ww][Ss][Bb][Kk]|[Ww][Ss][Ss][Pp]|[Ww][Ss][Ss][Pp]300)\.\d{4}\.Round\d+\.[^.]+\.(FP\d?|[Ss]eason\.[Pp]review|[Ss]uperpole|[Rr]ace\.[Oo]ne|[Rr]ace\.[Tt]wo|[Ww]arm\.[Uu]p(\.[Oo]ne|\.[Tt]wo)?|[Ww]eekend\.[Hh]ighlights)\..*h264..*MWR
