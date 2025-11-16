@@ -177,3 +177,42 @@ def test_metadata_normalizer_loads_show_with_rounds() -> None:
     assert episode.aliases == ["FP1"]
     assert episode.originally_available.isoformat() == "2024-03-01"
 
+
+def test_metadata_normalizer_prefers_ufc_event_numbers_from_title() -> None:
+    metadata_cfg = MetadataConfig(url="https://example.com/demo.yaml", show_key="ufc_2025")
+    normalizer = MetadataNormalizer(metadata_cfg)
+
+    raw = {
+        "metadata": {
+            "ufc_2025": {
+                "title": "UFC 2025",
+                "seasons": {
+                    "29": {
+                        "title": "UFC 319 du Plessis vs Chimaev",
+                        "sort_title": "029_UFC 319 du Plessis vs Chimaev",
+                        "episodes": [{"title": "Prelims"}],
+                    },
+                    "30": {
+                        "title": "UFC Fight Night 263 Garcia vs Onama",
+                        "sort_title": "030_UFC Fight Night 263 Garcia vs Onama",
+                        "episodes": [{"title": "Main Card"}],
+                    },
+                },
+            }
+        }
+    }
+
+    show = normalizer.load_show(raw)
+
+    assert len(show.seasons) == 2
+    numbered = show.seasons[0]
+    fight_night = show.seasons[1]
+
+    assert numbered.title.startswith("UFC 319")
+    assert numbered.round_number == 319
+    assert numbered.display_number == 319
+
+    assert fight_night.title.startswith("UFC Fight Night 263")
+    assert fight_night.round_number == 263
+    assert fight_night.display_number == 263
+
