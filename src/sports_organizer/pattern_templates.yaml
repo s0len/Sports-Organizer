@@ -1185,7 +1185,7 @@ pattern_sets:
       regex: >-
         (?i)^UFC\.(?P<season>\d{3})\.(?P<event>.+?)\.(?P<session>Early[._-]Prelims|Prelims|Main(?:[._-]Card|Card)|PPV|Pay(?:[._-]?Per(?:[._-]?View)?)|Fight(?:[._-]?BB)|SHREDDiE)(?:\.[^.]+)*\.(?:mkv|mp4|ts|m4v|avi)$
       season_selector:
-        mode: key            # Use the UFC event number as the season identifier.
+        mode: round
         group: season
       episode_selector:
         group: session
@@ -1219,7 +1219,7 @@ pattern_sets:
         (?i)^UFC\.(?P<season>\d{3})\.(?P<session>Early[._-]Prelims|Prelims|Main(?:[._-]Card|Card)|PPV|Pay(?:[._-]?Per(?:[._-]?View)?)|Fight(?:[._-]?BB)|SHREDDiE)(?:\.[^.]+)*\.(?:mkv|mp4|ts|m4v|avi)$
       priority: 95
       season_selector:
-        mode: key
+        mode: round
         group: season
       episode_selector:
         group: session
@@ -1231,7 +1231,7 @@ pattern_sets:
         (?i)^UFC\s+(?P<season>\d{3})\s+(?P<session>Early(?:\s+|[._-])Prelims|Prelims|Main(?:\s+|[._-])Card|MainCard|PPV|Pay(?:\s+|[._-])?Per(?:\s+|[._-])?View|Fight(?:\s+BB|[._-]?BB)|SHREDDiE)(?:\s+.+)?\.(?:mkv|mp4|ts|m4v|avi)$
       priority: 95
       season_selector:
-        mode: key
+        mode: round
         group: season
       episode_selector:
         group: session
@@ -1242,7 +1242,52 @@ pattern_sets:
       regex: >-
         (?i)^UFC\s+(?P<season>\d{3})\s+(?P<event>.+?)\s+(?P<session>Early(?:\s+|[._-])Prelims|Prelims|Main(?:\s+|[._-])Card|MainCard|PPV|Pay(?:\s+|[._-])?Per(?:\s+|[._-])?View|Fight(?:\s+BB|[._-]?BB)|SHREDDiE)(?:\s+.+)?\.(?:mkv|mp4|ts|m4v|avi)$
       season_selector:
-        mode: key
+        mode: round
+        group: season
+      episode_selector:
+        group: session
+      session_aliases: *ufc_session_aliases
+
+    - description: UFC Fight Night events (dot separated)
+      # Example: UFC.Fight.Night.263.Garcia.vs.Onama.Prelims.1080p.WEB.h264-Fight-BB.mkv
+      regex: >-
+        (?i)^UFC\.Fight\.Night\.(?P<season>\d{3})\.(?P<event>.+?)\.(?P<session>Early[._-]Prelims|Prelims|Main(?:[._-]Card|Card)|PPV|Pay(?:[._-]?Per(?:[._-]?View)?)|Fight(?:[._-]?BB)|SHREDDiE)(?:\.[^.]+)*\.(?:mkv|mp4|ts|m4v|avi)$
+      season_selector:
+        mode: round
+        group: season
+      episode_selector:
+        group: session
+      session_aliases: *ufc_session_aliases
+
+    - description: UFC Fight Night events (dot separated, no matchup slug)
+      # Example: UFC.Fight.Night.263.Prelims.1080p.WEB.h264-Fight-BB.mkv
+      regex: >-
+        (?i)^UFC\.Fight\.Night\.(?P<season>\d{3})\.(?P<session>Early[._-]Prelims|Prelims|Main(?:[._-]Card|Card)|PPV|Pay(?:[._-]?Per(?:[._-]?View)?)|Fight(?:[._-]?BB)|SHREDDiE)(?:\.[^.]+)*\.(?:mkv|mp4|ts|m4v|avi)$
+      priority: 95
+      season_selector:
+        mode: round
+        group: season
+      episode_selector:
+        group: session
+      session_aliases: *ufc_session_aliases
+
+    - description: UFC Fight Night events (space separated)
+      # Example: UFC Fight Night 263 Garcia vs Onama Main Card 1080p WEB h264 Fight-BB.mkv
+      regex: >-
+        (?i)^UFC\s+Fight\s+Night\s+(?P<season>\d{3})\s+(?P<event>.+?)\s+(?P<session>Early(?:\s+|[._-])Prelims|Prelims|Main(?:\s+|[._-])Card|MainCard|PPV|Pay(?:\s+|[._-])?Per(?:\s+|[._-])?View|Fight(?:\s+BB|[._-]?BB)|SHREDDiE)(?:\s+.+)?\.(?:mkv|mp4|ts|m4v|avi)$
+      season_selector:
+        mode: round
+        group: season
+      episode_selector:
+        group: session
+      session_aliases: *ufc_session_aliases
+
+    - description: UFC Fight Night events (space separated, no matchup slug)
+      regex: >-
+        (?i)^UFC\s+Fight\s+Night\s+(?P<season>\d{3})\s+(?P<session>Early(?:\s+|[._-])Prelims|Prelims|Main(?:\s+|[._-])Card|MainCard|PPV|Pay(?:\s+|[._-])?Per(?:\s+|[._-])?View|Fight(?:\s+BB|[._-]?BB)|SHREDDiE)(?:\s+.+)?\.(?:mkv|mp4|ts|m4v|avi)$
+      priority: 95
+      season_selector:
+        mode: round
         group: season
       episode_selector:
         group: session

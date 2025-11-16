@@ -48,12 +48,14 @@ samples:
       seasons:
         - key: "321"
           title: "UFC 321"
+          round_number: 321
           episodes:
             - title: "Early Prelims"
             - title: "Prelims"
             - title: "Main Card"
         - key: "284"
           title: "UFC 284"
+          round_number: 284
           episodes:
             - title: "Early Prelims"
             - title: "Prelims"
@@ -84,6 +86,34 @@ samples:
       - value: "UFC 284 Fight-BB 1080p WEB.mp4"
         expect_episode: "Main Card"
       - value: "UFC 284 SHREDDiE 1080p WEB.mp4"
+        expect_episode: "Main Card"
+
+  - description: "UFC Fight Night releases resolve"
+    sport:
+      id: "ufc_fight_night"
+      name: "UFC Fight Night"
+      pattern_sets:
+        - ufc
+    show:
+      key: "ufc_2025"
+      title: "UFC 2025"
+      seasons:
+        - title: "UFC Fight Night 263 Garcia vs Onama"
+          round_number: 263
+          episodes:
+            - title: "Prelims"
+            - title: "Main Card"
+        - title: "UFC Fight Night 262 de Ridder vs Allen"
+          round_number: 262
+          episodes:
+            - title: "Prelims"
+            - title: "Main Card"
+    filenames:
+      - value: "UFC.Fight.Night.263.Garcia.vs.Onama.WEB-DL.H264.Fight-BB.mkv"
+        expect_episode: "Main Card"
+      - value: "UFC.Fight.Night.262.de.Ridder.vs.Allen.Prelims.WEB-DL.H264.Fight-BB.mkv"
+        expect_episode: "Prelims"
+      - value: "UFC.Fight.Night.262.de.Ridder.vs.Allen.WEB-DL.H264.Fight-BB.mkv"
         expect_episode: "Main Card"
 
   - description: "UEFA Champions League 2025 match samples"
