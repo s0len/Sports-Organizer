@@ -8,15 +8,15 @@ from typing import Dict, Iterable, List, Optional
 import pytest
 import yaml
 
-from sports_organizer.config import (
+from playbook.config import (
     DestinationTemplates,
     MetadataConfig,
     SportConfig,
     _build_pattern_config,
 )
-from sports_organizer.matcher import compile_patterns, match_file_to_episode
-from sports_organizer.models import Episode, Season, Show
-from sports_organizer.pattern_templates import load_builtin_pattern_sets
+from playbook.matcher import compile_patterns, match_file_to_episode
+from playbook.models import Episode, Season, Show
+from playbook.pattern_templates import load_builtin_pattern_sets
 
 
 DATA_PATH = Path(__file__).resolve().parent / "data" / "pattern_samples.yaml"

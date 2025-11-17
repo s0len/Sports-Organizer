@@ -1,14 +1,14 @@
-# Sports Organizer
+# Playbook
 
 [![License: GPLv3](https://img.shields.io/badge/license-GPLv3-blue.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.12%2B-3776ab.svg?logo=python&logoColor=white)](https://www.python.org/)
-[![Docker](https://img.shields.io/badge/docker-ghcr.io%2Fs0len%2Fsports--organizer-0db7ed.svg?logo=docker&logoColor=white)](https://github.com/users/s0len/packages/container/package/sports-organizer)
+[![Docker](https://img.shields.io/badge/docker-ghcr.io%2Fs0len%2Fplaybook-0db7ed.svg?logo=docker&logoColor=white)](https://github.com/users/s0len/packages/container/package/playbook)
 
 > Metadata-driven automation that turns chaotic sports releases into Plex-perfect TV libraries—no brittle scripts, just declarative YAML.
 
 ## TL;DR
 
-- Configure your `sports.yaml` (copy from `config/sports.sample.yaml` and set `SOURCE_DIR`, `DESTINATION_DIR`, and `CACHE_DIR`).
+- Configure your `playbook.yaml` (copy from `config/playbook.sample.yaml` and set `SOURCE_DIR`, `DESTINATION_DIR`, and `CACHE_DIR`).
 - Dry-run the Docker image to confirm metadata downloads and filesystem access (metadata caches are still written so later runs stay warm).
 - Point Plex (or another media manager) at the destination directory once you're happy with the output.
 
@@ -24,17 +24,17 @@
 >   -v /config:/config \
 >   -v /downloads:/data/source \
 >   -v /library:/data/destination \
->   -v /cache:/var/cache/sports-organizer \
->   ghcr.io/s0len/sports-organizer:latest --dry-run --verbose
+>   -v /cache:/var/cache/playbook \
+>   ghcr.io/s0len/playbook:latest --dry-run --verbose
 > ```
 
 ## Table of Contents
 
-- [Sports Organizer](#sports-organizer)
+- [Playbook](#playbook)
   - [TL;DR](#tldr)
   - [Table of Contents](#table-of-contents)
   - [Overview](#overview)
-  - [Why Sports Organizer?](#why-sports-organizer)
+  - [Why Playbook?](#why-playbook)
   - [Architecture at a Glance](#architecture-at-a-glance)
   - [Quickstart](#quickstart)
     - [Option A: Docker (Recommended)](#option-a-docker-recommended)
@@ -66,7 +66,7 @@
 
 ## Overview
 
-Sports Organizer consumes authoritative metadata feeds (the same YAML used for Plex enrichment), matches downloads to the correct season and episode, and renders deterministic filenames and folder structures. Everything is driven by configuration—switch leagues, release groups, or folder formats by editing YAML, not code.
+Playbook consumes authoritative metadata feeds (the same YAML used for Plex enrichment), matches downloads to the correct season and episode, and renders deterministic filenames and folder structures. Everything is driven by configuration—switch leagues, release groups, or folder formats by editing YAML, not code.
 
 Key ideas:
 
@@ -75,12 +75,12 @@ Key ideas:
 - Deterministic templating generates safe, Plex-friendly folder and file names.
 - Runtime switches (CLI flags and env vars) let you control dry-runs, polling intervals, logging, and target directories without editing the config.
 
-## Why Sports Organizer?
+## Why Playbook?
 
-Sports Organizer centers on predictable, configuration-driven workflows:
+Playbook centers on predictable, configuration-driven workflows:
 
 - **Metadata-first** – Honor official episode order, titles, and air dates straight from sanctioned YAML feeds.
-- **Point-and-configure** – Each sport lives in `sports.yaml`; add or override patterns without touching Python.
+- **Point-and-configure** – Each sport lives in `playbook.yaml`; add or override patterns without touching Python.
 - **Alias intelligence** – Match `Sprint.Shootout`, `Warm.Up`, or `FP1` releases to canonical episodes via fuzzy alias tables.
 - **Deterministic libraries** – Enforce consistent naming everywhere—from folder slugs to final filenames.
 - **Cache-aware** – Requests are cached and automatically refreshed when TTLs expire, keeping repeated runs fast.
@@ -119,7 +119,7 @@ Sports Organizer centers on predictable, configuration-driven workflows:
 
 Before running the organizer for real, confirm:
 
-- `sports.yaml` exists (copy `config/sports.sample.yaml` and tailor it).
+- `playbook.yaml` exists (copy `config/playbook.sample.yaml` and tailor it).
 - `SOURCE_DIR`, `DESTINATION_DIR`, and `CACHE_DIR` point at mounted paths with the right permissions.
 - You can reach the remote metadata URLs from the host/container (validate with the dry-run above).
 
@@ -129,7 +129,7 @@ Before running the organizer for real, confirm:
 
 ```bash
 docker run -d \
-  --name sports-organizer \
+  --name playbook \
   -e TZ="UTC" \
   -e SOURCE_DIR="/downloads" \
   -e DESTINATION_DIR="/library" \
@@ -137,14 +137,14 @@ docker run -d \
   -v /config:/config \
   -v /downloads:/data/source \
   -v /library:/data/destination \
-  -v /cache:/var/cache/sports-organizer \
-  -v /logs:/var/log/sports-organizer \
-  ghcr.io/s0len/sports-organizer:latest
+  -v /cache:/var/cache/playbook \
+  -v /logs:/var/log/playbook \
+  ghcr.io/s0len/playbook:latest
 ```
 
-1. Copy the sample configuration: `cp config/sports.sample.yaml /config/sports.yaml`.
-2. Update `sports.yaml` with your directories, enabled sports, and any overrides.
-3. Tail the logs (`docker logs -f sports-organizer`) to watch the first pass.
+1. Copy the sample configuration: `cp config/playbook.sample.yaml /config/playbook.yaml`.
+2. Update `playbook.yaml` with your directories, enabled sports, and any overrides.
+3. Tail the logs (`docker logs -f playbook`) to watch the first pass.
 
 > Tip: Dry-run everything first.
 >
@@ -158,9 +158,9 @@ docker run -d \
 >   -v /config:/config \
 >   -v /downloads:/data/source \
 >   -v /library:/data/destination \
->   -v /cache:/var/cache/sports-organizer \
->   -v /logs:/var/log/sports-organizer \
->   ghcr.io/s0len/sports-organizer:latest --dry-run --verbose
+>   -v /cache:/var/cache/playbook \
+>   -v /logs:/var/log/playbook \
+>   ghcr.io/s0len/playbook:latest --dry-run --verbose
 > ```
 
 ### Option B: Python Environment
@@ -169,7 +169,7 @@ docker run -d \
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
-python -m sports_organizer.cli --config /path/to/sports.yaml --dry-run --verbose
+python -m playbook.cli --config /path/to/playbook.yaml --dry-run --verbose
 ```
 
 Tips:
@@ -187,7 +187,7 @@ Use the [bjw-s/app-template](https://github.com/bjw-s/helm-charts/tree/main/char
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
-  name: &app sports-organizer
+  name: &app playbook
 spec:
   interval: 30m
   chartRef:
@@ -200,13 +200,13 @@ spec:
         containers:
           app:
             image:
-              repository: ghcr.io/s0len/sports-organizer
+              repository: ghcr.io/s0len/playbook
               tag: develop@sha256:586d8e06fae7d156d47130ed18b1a619a47d2c5378345e3f074ee6c282f09f02
               pullPolicy: Always
             env:
               RUN_ONCE: false
               LOG_LEVEL: INFO
-              CONFIG_PATH: /config/sports.yaml
+              CONFIG_PATH: /config/playbook.yaml
               CACHE_DIR: /settings/cache
               LOG_DIR: /settings/logs
               SOURCE_DIR: /data/torrents/sport
@@ -214,10 +214,10 @@ spec:
               PROCESS_INTERVAL: 60
             envFrom:
               - secretRef:
-                  name: sports-organizer-secret
+                  name: playbook-secret
     persistence:
       settings:
-        existingClaim: sports-organizer-settings
+        existingClaim: playbook-settings
         globalMounts:
           - path: /settings
       data:
@@ -228,24 +228,24 @@ spec:
           - path: /data
       config:
         type: configMap
-        name: sports-organizer-configmap
+        name: playbook-configmap
         globalMounts:
-          - path: /config/sports.yaml
-            subPath: sports.yaml
+          - path: /config/playbook.yaml
+            subPath: playbook.yaml
             readOnly: true
 ```
 
 Quick checklist:
 
-- Create a `sports-organizer-secret` with any sensitive values (`kubectl create secret generic ... --from-literal=API_TOKEN=...`).
-- Mount a `sports-organizer-configmap` containing your `sports.yaml` (or use an `externalSecret`).
+- Create a `playbook-secret` with any sensitive values (`kubectl create secret generic ... --from-literal=API_TOKEN=...`).
+- Mount a `playbook-configmap` containing your `playbook.yaml` (or use an `externalSecret`).
 - Backing storage: either bind an existing PVC (`settings`) for cache/logs or swap in another persistence strategy. The NFS block mounts downloads and media libraries.
 - Flip `RUN_ONCE`/`PROCESS_INTERVAL` for batch vs. continuous runs; the CLI picks up the same env vars as the Docker image.
 - Add `reloader.stakater.com/auto: "true"` (already in the example) to hot-reload when the config map changes.
 
 ## Configuration Deep Dive
 
-Start with `config/sports.sample.yaml`. The schema mirrors `sports_organizer.config` dataclasses.
+Start with `config/playbook.sample.yaml`. The schema mirrors `playbook.config` dataclasses.
 
 ### 1. Global Settings
 
@@ -263,7 +263,7 @@ Start with `config/sports.sample.yaml`. The schema mirrors `sports_organizer.con
 | `notifications.flush_time` | Local time boundary (`HH:MM`) used to roll daily batches forward. Entries before this time count toward the previous day. | `"00:00"` |
 | `destination.*` | Default templates for root folder, season folder, and filename. | See sample |
 
-When `discord_webhook_url` is set (or `DISCORD_WEBHOOK_URL` is exported), Sports Organizer will post a short embed to that channel each time a new file is linked or copied into the library. Enable `notifications.batch_daily` if you prefer a single rolling message per sport/day: the first processed file creates the message, later files edit it in place with cumulative details. Use `notifications.flush_time` to control when the “day” ends (useful for overnight events).
+When `discord_webhook_url` is set (or `DISCORD_WEBHOOK_URL` is exported), Playbook will post a short embed to that channel each time a new file is linked or copied into the library. Enable `notifications.batch_daily` if you prefer a single rolling message per sport/day: the first processed file creates the message, later files edit it in place with cumulative details. Use `notifications.flush_time` to control when the “day” ends (useful for overnight events).
 
 ### 2. Sport Entries
 
@@ -325,7 +325,7 @@ pattern_sets:
   - formula1
 ```
 
-You can still inline `file_patterns` (alone or in addition to templates) for overrides or experiments. Review `src/sports_organizer/pattern_templates.yaml` for the complete list and structure.
+You can still inline `file_patterns` (alone or in addition to templates) for overrides or experiments. Review `src/playbook/pattern_templates.yaml` for the complete list and structure.
 
 ### 4. Destination Templating
 
@@ -364,18 +364,18 @@ Each variant inherits the base config, tweaks fields from the variant block, and
 
 ## Run Modes & CLI
 
-`python -m sports_organizer.cli` powers both the Docker entrypoint and local runs.
+`python -m playbook.cli` powers both the Docker entrypoint and local runs.
 
 | CLI Flag | Environment | Default | Notes |
 |----------|-------------|---------|-------|
-| `--config PATH` | `CONFIG_PATH` | `/config/sports.yaml` | Path to the YAML config. |
+| `--config PATH` | `CONFIG_PATH` | `/config/playbook.yaml` | Path to the YAML config. |
 | `--dry-run` | `DRY_RUN` | Inherits `settings.dry_run` | Force no-write mode. |
 | `--once` | `RUN_ONCE` | `true` unless overridden | Loop continuously when `false` _and_ `poll_interval > 0`. |
 | `--interval SECONDS` | `PROCESS_INTERVAL` | `settings.poll_interval` | Polling interval for continuous mode. |
 | `--verbose` | `VERBOSE` / `DEBUG` | `false` | Enables console DEBUG output. |
 | `--log-level LEVEL` | `LOG_LEVEL` | `INFO` (or `DEBUG` with `--verbose`) | File log level. |
 | `--console-level LEVEL` | `CONSOLE_LEVEL` | matches file level | Console log level. |
-| `--log-file PATH` | `LOG_FILE` / `LOG_DIR` | `./sports.log` | Rotates to `*.previous` on start. |
+| `--log-file PATH` | `LOG_FILE` / `LOG_DIR` | `./playbook.log` | Rotates to `*.previous` on start. |
 | `--clear-processed-cache` | `CLEAR_PROCESSED_CACHE` | `false` | Truthy to reset processed file cache before processing. |
 
 Environment variables always win over config defaults, and CLI flags win over environment variables.
@@ -385,10 +385,10 @@ Environment variables always win over config defaults, and CLI flags win over en
 Preflight your YAML before running the processor:
 
 ```bash
-python -m sports_organizer.cli validate-config --config /config/sports.yaml --diff-sample
+python -m playbook.cli validate-config --config /config/playbook.yaml --diff-sample
 ```
 
-The validator enforces the JSON schema, confirms referenced pattern sets exist, and then calls the same loader used by the runtime. Add `--show-trace` to surface Python tracebacks for deeper debugging. `--diff-sample` compares your file to `config/sports.sample.yaml` to highlight customizations.
+The validator enforces the JSON schema, confirms referenced pattern sets exist, and then calls the same loader used by the runtime. Add `--show-trace` to surface Python tracebacks for deeper debugging. `--diff-sample` compares your file to `config/playbook.sample.yaml` to highlight customizations.
 
 Continuous mode example:
 
@@ -396,18 +396,18 @@ Continuous mode example:
 docker run -d \
   -e RUN_ONCE=false \
   -e PROCESS_INTERVAL=900 \
-  ghcr.io/s0len/sports-organizer:latest --interval 600
+  ghcr.io/s0len/playbook:latest --interval 600
 ```
 
 The CLI will sleep for `600` seconds between passes (flag) unless `PROCESS_INTERVAL` forces a different value.
 
 ## Logging & Observability
 
-- Logs stream to the console with rich formatting and to `sports.log` on disk.
-- On each run, the previous log rotates to `sports.log.previous`.
+- Logs stream to the console with rich formatting and to `playbook.log` on disk.
+- On each run, the previous log rotates to `playbook.log.previous`.
 - `VERBOSE=true` or `--verbose` enables DEBUG-level diagnostics, including pattern/alias decisions.
 - Summaries include processed/skipped/ignored counts; enable DEBUG to see per-file reasons and warnings.
-- `LOG_DIR=/var/log/sports-organizer` is honored by the Docker entrypoint, keeping container logs persistent.
+- `LOG_DIR=/var/log/playbook` is honored by the Docker entrypoint, keeping container logs persistent.
 
 ## Directory Conventions
 
@@ -426,7 +426,7 @@ Hardlinks preserve disk space; switch to `copy` or `symlink` when cross-filesyst
 
 ## Plex Metadata via Kometa
 
-Sports Organizer only handles **file and folder layout**. To get rich titles, posters and collections in Plex, you can pair it with [Kometa](https://github.com/Kometa-Team/Kometa) and the same YAML metadata feeds.
+Playbook only handles **file and folder layout**. To get rich titles, posters and collections in Plex, you can pair it with [Kometa](https://github.com/Kometa-Team/Kometa) and the same YAML metadata feeds.
 
 ### Example Kometa config
 
@@ -456,7 +456,7 @@ libraries:
 
 ## Downloading Sports with Autobrr
 
-Sports Organizer does **not** download anything itself – it expects files to appear in `SOURCE_DIR` from a downloader (qBittorrent, Deluge, etc.). One way to automate this is with [Autobrr](https://github.com/autobrr/autobrr).
+Playbook does **not** download anything itself – it expects files to appear in `SOURCE_DIR` from a downloader (qBittorrent, Deluge, etc.). One way to automate this is with [Autobrr](https://github.com/autobrr/autobrr).
 
 Below is one approach using **Autobrr filters** and regexes targeted at specific sports and release groups.
 
@@ -509,35 +509,35 @@ NFL.*NiGHTNiNJAS
 
 ## Plex Library Setup
 
-To let Plex correctly index everything that Sports Organizer creates, set up a dedicated **TV library** that points at your Sports Organizer destination directory.
+To let Plex correctly index everything that Playbook creates, set up a dedicated **TV library** that points at your Playbook destination directory.
 
 1. In the Plex web UI, go to **Libraries → Add Library**.
 2. Choose:
    - **Library type:** `TV Shows`
    - **Name:** e.g. `Sport`, `Sports`, or whatever fits your setup.
-3. Click **Next** and under **Add folders**, select the **same folder** you configured as `DESTINATION_DIR` for Sports Organizer (or the sports subfolder inside it).
+3. Click **Next** and under **Add folders**, select the **same folder** you configured as `DESTINATION_DIR` for Playbook (or the sports subfolder inside it).
 4. Click **Advanced** and set:
 
    - **Scanner:** `Plex Series Scanner`  
    - **Agent:** `Personal Media Shows`  
    - **Episode sorting:** `Newest first`
 
-5. Save the library, then run a **Scan Library Files** once Sports Organizer has populated the destination folder.
+5. Save the library, then run a **Scan Library Files** once Playbook has populated the destination folder.
 
 Using `TV Shows` + `Plex Series Scanner` + `Personal Media Shows` ensures Plex treats each sport/season/session as proper TV episodes, while Kometa applies all the rich metadata on top.
 
 ## Extending to New Sports
 
-1. Start from `sports.sample.yaml` and enable the sport by listing the appropriate `pattern_sets` (e.g., `formula1`, `motogp`).
+1. Start from `playbook.sample.yaml` and enable the sport by listing the appropriate `pattern_sets` (e.g., `formula1`, `motogp`).
 2. Update the `metadata.url` / `show_key`, along with `source_globs` and `source_extensions` for your release group.
 3. If no template exists yet (or you need tweaks), copy the closest set from `pattern_templates.yaml` into the `pattern_sets:` section of your config and adjust the regex/aliases.
-4. Run `--dry-run --verbose` and review both console output and `sports.log` for skipped/ignored diagnostics.
+4. Run `--dry-run --verbose` and review both console output and `playbook.log` for skipped/ignored diagnostics.
 5. Iterate on patterns, aliases, and templates until every file links where you expect—then consider opening a PR to upstream the new template.
 
 ## Troubleshooting & FAQ
 
 - **Nothing gets processed:** Confirm the `source_dir` is mounted, readable, and matches your `source_globs`. Enable `DEBUG` to see ignored reasons.
-- **Metadata looks stale:** Delete the cache directory (`rm -rf /var/cache/sports-organizer/metadata`) or lower `ttl_hours`.
+- **Metadata looks stale:** Delete the cache directory (`rm -rf /var/cache/playbook/metadata`) or lower `ttl_hours`.
 - **Hardlinks fail:** Set `link_mode: copy` (globally or per sport) when crossing filesystems or writing to SMB/NFS shares.
 - **Pattern matches but wrong season:** Adjust `season_selector` mappings or use `season_overrides` to force numbers for exhibitions/pre-season events.
 - **Need to re-run immediately:** Set `RUN_ONCE=true` (or use `--once`) to force a single pass even if `poll_interval` > 0.
@@ -545,15 +545,15 @@ Using `TV Shows` + `Plex Series Scanner` + `Personal Media Shows` ensures Plex t
 ## Development
 
 ```bash
-git clone https://github.com/s0len/sports-organizer.git
-cd sports-organizer
+git clone https://github.com/s0len/playbook.git
+cd playbook
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-- Run the CLI locally: `python -m sports_organizer.cli --config config/sports.sample.yaml --dry-run --verbose`.
-- Build the container image: `docker build -t sports-organizer:dev .`.
+- Run the CLI locally: `python -m playbook.cli --config config/playbook.sample.yaml --dry-run --verbose`.
+- Build the container image: `docker build -t playbook:dev .`.
 - Follow standard Python formatting (e.g., `ruff`, `black`) to keep diffs tidy.
 - Install test tooling: `pip install -r requirements-dev.txt`.
 - Run the automated tests: `pytest`.
@@ -575,7 +575,7 @@ Distributed under the [GNU GPLv3](LICENSE).
 
 ## Support
 
-Questions, feature ideas, or metadata feed requests? [Open an issue](https://github.com/s0len/sports-organizer/issues) or start a discussion. For bespoke integrations, reach out via the issue tracker and we can coordinate.
+Questions, feature ideas, or metadata feed requests? [Open an issue](https://github.com/s0len/playbook/issues) or start a discussion. For bespoke integrations, reach out via the issue tracker and we can coordinate.
 
 ## Sample Figure Skating Grand Prix Filenames
 

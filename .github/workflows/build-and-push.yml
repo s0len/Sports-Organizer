@@ -43,9 +43,9 @@ jobs:
           context: .
           push: true
           tags: |
-            ${{ github.ref == 'refs/heads/develop' && 'ghcr.io/s0len/sports-organizer:develop' || '' }}
-            ${{ startsWith(github.ref, 'refs/tags/v') && format('ghcr.io/s0len/sports-organizer:{0}', env.VERSION) || '' }}
-            ${{ startsWith(github.ref, 'refs/tags/v') && 'ghcr.io/s0len/sports-organizer:latest' || '' }}
+            ${{ github.ref == 'refs/heads/develop' && 'ghcr.io/s0len/playbook:develop' || '' }}
+            ${{ startsWith(github.ref, 'refs/tags/v') && format('ghcr.io/s0len/playbook:{0}', env.VERSION) || '' }}
+            ${{ startsWith(github.ref, 'refs/tags/v') && 'ghcr.io/s0len/playbook:latest' || '' }}
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2

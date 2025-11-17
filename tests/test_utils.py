@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from sports_organizer.utils import (
+from playbook.utils import (
     link_file,
     normalize_token,
     sanitize_component,

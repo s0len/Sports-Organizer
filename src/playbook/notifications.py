@@ -269,7 +269,7 @@ class DiscordTarget(NotificationTarget):
             "color": self._embed_color(event),
             "timestamp": now.isoformat(),
             "fields": [field for field in self._fields_for_event(event) if field is not None],
-            "footer": {"text": "Sports Organizer"},
+            "footer": {"text": "Playbook"},
         }
         if event.summary:
             embed["description"] = self._trim(str(event.summary), 2048)
@@ -317,7 +317,7 @@ class DiscordTarget(NotificationTarget):
             "color": 0x5865F2,
             "timestamp": latest_timestamp,
             "fields": [field for field in fields if field is not None],
-            "footer": {"text": "Sports Organizer"},
+            "footer": {"text": "Playbook"},
         }
         if description:
             embed["description"] = description

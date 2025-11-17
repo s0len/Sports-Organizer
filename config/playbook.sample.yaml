@@ -1,7 +1,7 @@
 ######################################################################
-# Sports Organizer Sample Configuration
+# Playbook Sample Configuration
 ######################################################################
-# This annotated example is designed to be copied to `sports.yaml`
+# This annotated example is designed to be copied to `playbook.yaml`
 # and tweaked for your environment. Comments call out what each block
 # controls so you can quickly adapt it for new sports or release formats.
 #
@@ -20,9 +20,9 @@ settings:
   ####################################################################
   # REQUIRED DIRECTORIES
   ####################################################################
-  source_dir: ${SOURCE_DIR:-/data/source} # Where Sports Organizer looks for newly downloaded media files.
+  source_dir: ${SOURCE_DIR:-/data/source} # Where Playbook looks for newly downloaded media files.
   destination_dir: ${DESTINATION_DIR:-/data/destination} # Destination root for organized media. Files are written here (or hard-linked).
-  cache_dir: ${CACHE_DIR:-/var/cache/sports-organizer} # Location for metadata caches, fingerprints, and temp state.
+  cache_dir: ${CACHE_DIR:-/var/cache/playbook} # Location for metadata caches, fingerprints, and temp state.
 
   ####################################################################
   # EXECUTION BEHAVIOUR

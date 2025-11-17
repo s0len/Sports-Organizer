@@ -1,4 +1,4 @@
-"""Sports Organizer core package."""
+"""Playbook core package."""
 
 __all__ = ["__version__"]
 

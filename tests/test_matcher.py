@@ -2,15 +2,15 @@ from __future__ import annotations
 
 from typing import Dict, List, Tuple
 
-from sports_organizer.config import (
+from playbook.config import (
     DestinationTemplates,
     MetadataConfig,
     PatternConfig,
     SeasonSelector,
     SportConfig,
 )
-from sports_organizer.matcher import compile_patterns, match_file_to_episode
-from sports_organizer.models import Episode, Season, Show
+from playbook.matcher import compile_patterns, match_file_to_episode
+from playbook.models import Episode, Season, Show
 
 
 def build_show() -> Tuple[Show, Season]:

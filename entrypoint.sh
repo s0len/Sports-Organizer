@@ -8,7 +8,7 @@ if [ "${DEBUG:-false}" = "true" ]; then
   set -x
 fi
 
-: "${CONFIG_PATH:=/config/sports.yaml}"
+: "${CONFIG_PATH:=/config/playbook.yaml}"
 
 if ! command -v python3 >/dev/null 2>&1; then
   echo "Python 3 is required but not found on PATH" >&2
@@ -105,4 +105,4 @@ require_path_setting "CACHE_DIR" "cache_dir"
 
 export CONFIG_PATH SOURCE_DIR DESTINATION_DIR CACHE_DIR PROCESS_INTERVAL RUN_ONCE DRY_RUN
 
-exec python3 -m sports_organizer.cli "$@"
+exec python3 -m playbook.cli "$@"
