@@ -4,13 +4,13 @@ from pathlib import Path
 
 import pytest
 
-from sports_organizer.utils import load_yaml_file
-from sports_organizer.validation import validate_config_data
+from playbook.utils import load_yaml_file
+from playbook.validation import validate_config_data
 
 
 def test_sample_configuration_passes_validation() -> None:
     project_root = Path(__file__).resolve().parents[1]
-    sample_path = project_root / "config" / "sports.sample.yaml"
+    sample_path = project_root / "config" / "playbook.sample.yaml"
     if not sample_path.exists():
         pytest.skip("Sample configuration not present in repository checkout")
     data = load_yaml_file(sample_path)

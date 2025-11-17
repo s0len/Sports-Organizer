@@ -5,9 +5,9 @@ from typing import List
 import pytest
 import requests
 
-from sports_organizer.cache import MetadataHttpCache
-from sports_organizer.config import MetadataConfig, Settings
-from sports_organizer.metadata import MetadataFetchStatistics, MetadataNormalizer, fetch_metadata
+from playbook.cache import MetadataHttpCache
+from playbook.config import MetadataConfig, Settings
+from playbook.metadata import MetadataFetchStatistics, MetadataNormalizer, fetch_metadata
 
 
 class DummyResponse:
@@ -42,7 +42,7 @@ def test_fetch_metadata_uses_cache(monkeypatch, settings) -> None:
         requests_called.append(url)
         return DummyResponse(payload)
 
-    monkeypatch.setattr("sports_organizer.metadata.requests.get", fake_get)
+    monkeypatch.setattr("playbook.metadata.requests.get", fake_get)
 
     metadata_cfg = MetadataConfig(url="https://example.com/demo.yaml")
 
@@ -80,7 +80,7 @@ def test_fetch_metadata_respects_conditional_requests(monkeypatch, settings) -> 
         response.headers = {"ETag": '"abc"'}
         return response
 
-    monkeypatch.setattr("sports_organizer.metadata.requests.get", fake_get)
+    monkeypatch.setattr("playbook.metadata.requests.get", fake_get)
 
     metadata_cfg = MetadataConfig(url="https://example.com/demo.yaml", ttl_hours=0)
     first = fetch_metadata(metadata_cfg, settings, http_cache=http_cache, stats=stats)
@@ -117,7 +117,7 @@ def test_fetch_metadata_uses_stale_on_failure(monkeypatch, settings) -> None:
             return response
         raise requests.RequestException("boom")
 
-    monkeypatch.setattr("sports_organizer.metadata.requests.get", flaky_get)
+    monkeypatch.setattr("playbook.metadata.requests.get", flaky_get)
 
     metadata_cfg = MetadataConfig(url="https://example.com/demo.yaml", ttl_hours=0)
     first = fetch_metadata(metadata_cfg, settings, http_cache=http_cache, stats=stats)

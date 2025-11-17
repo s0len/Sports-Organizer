@@ -51,7 +51,7 @@ def _expand_placeholders(text: str, tokens: Dict[str, str]) -> str:
 
 @lru_cache()
 def load_builtin_pattern_sets() -> Dict[str, List[Dict[str, Any]]]:
-    """Load the curated pattern sets shipped with Sports Organizer."""
+    """Load the curated pattern sets shipped with Playbook."""
 
     with resources.as_file(resources.files(__package__) / "pattern_templates.yaml") as path:
         data = load_yaml_file(path)

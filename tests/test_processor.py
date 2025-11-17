@@ -6,17 +6,17 @@ from typing import Dict, List
 
 import pytest
 
-from sports_organizer.config import AppConfig, MetadataConfig, PatternConfig, Settings, SportConfig
-from sports_organizer.metadata import (
+from playbook.config import AppConfig, MetadataConfig, PatternConfig, Settings, SportConfig
+from playbook.metadata import (
     MetadataChangeResult,
     MetadataFingerprintStore,
     MetadataNormalizer,
     ShowFingerprint,
     compute_show_fingerprint,
 )
-from sports_organizer.models import Episode, Season, Show
-from sports_organizer.processor import Processor
-from sports_organizer.utils import sanitize_component
+from playbook.models import Episode, Season, Show
+from playbook.processor import Processor
+from playbook.utils import sanitize_component
 
 
 def _build_raw_metadata(episode_number: int) -> dict:
@@ -146,7 +146,7 @@ def test_processor_removes_changed_entries_when_metadata_changes(tmp_path, monke
         raw = raw_v1 if index == 0 else raw_v2
         return normalizer.load_show(raw)
 
-    monkeypatch.setattr("sports_organizer.processor.load_show", fake_load_show)
+    monkeypatch.setattr("playbook.processor.load_show", fake_load_show)
 
     processor = Processor(config, enable_notifications=False)
     remove_calls: List[Dict[str, MetadataChangeResult]] = []
@@ -232,7 +232,7 @@ def test_metadata_change_relinks_and_removes_old_destination(tmp_path, monkeypat
         raw = raw_v1 if index == 0 else raw_v2
         return normalizer.load_show(raw)
 
-    monkeypatch.setattr("sports_organizer.processor.load_show", fake_load_show)
+    monkeypatch.setattr("playbook.processor.load_show", fake_load_show)
 
     processor = Processor(config, enable_notifications=False)
     processor.run_once()
@@ -299,9 +299,9 @@ def test_skips_mac_resource_fork_files(tmp_path, monkeypatch) -> None:
     )
     show = Show(key="demo", title="Demo Series", summary=None, seasons=[season])
 
-    monkeypatch.setattr("sports_organizer.processor.load_show", lambda settings_arg, metadata_cfg_arg, **kwargs: show)
+    monkeypatch.setattr("playbook.processor.load_show", lambda settings_arg, metadata_cfg_arg, **kwargs: show)
     monkeypatch.setattr(
-        "sports_organizer.processor.compute_show_fingerprint",
+        "playbook.processor.compute_show_fingerprint",
         lambda show_arg, metadata_cfg_arg: ShowFingerprint(digest="fingerprint", season_hashes={}, episode_hashes={}),
     )
 
@@ -354,9 +354,9 @@ def test_destination_stays_within_root_for_hostile_metadata(tmp_path, monkeypatc
     )
     show = Show(key="demo", title="../Evil Series", summary=None, seasons=[season])
 
-    monkeypatch.setattr("sports_organizer.processor.load_show", lambda *args, **kwargs: show)
+    monkeypatch.setattr("playbook.processor.load_show", lambda *args, **kwargs: show)
     monkeypatch.setattr(
-        "sports_organizer.processor.compute_show_fingerprint",
+        "playbook.processor.compute_show_fingerprint",
         lambda *args, **kwargs: ShowFingerprint(digest="fingerprint", season_hashes={}, episode_hashes={}),
     )
 
@@ -433,9 +433,9 @@ def test_symlink_sources_are_skipped(tmp_path, monkeypatch) -> None:
     )
     show = Show(key="demo", title="Demo Series", summary=None, seasons=[season])
 
-    monkeypatch.setattr("sports_organizer.processor.load_show", lambda *args, **kwargs: show)
+    monkeypatch.setattr("playbook.processor.load_show", lambda *args, **kwargs: show)
     monkeypatch.setattr(
-        "sports_organizer.processor.compute_show_fingerprint",
+        "playbook.processor.compute_show_fingerprint",
         lambda *args, **kwargs: ShowFingerprint(digest="fingerprint", season_hashes={}, episode_hashes={}),
     )
 

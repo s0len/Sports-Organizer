@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from sports_organizer.cache import CachedFileRecord, ProcessedFileCache
-from sports_organizer.metadata import MetadataChangeResult
+from playbook.cache import CachedFileRecord, ProcessedFileCache
+from playbook.metadata import MetadataChangeResult
 
 
 def test_remove_by_metadata_changes_drops_only_matching_entries(tmp_path) -> None:

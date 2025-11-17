@@ -5,8 +5,8 @@ import json
 from pathlib import Path
 from typing import Any, Dict, List
 
-from sports_organizer.config import NotificationSettings
-from sports_organizer.notifications import NotificationEvent, NotificationService
+from playbook.config import NotificationSettings
+from playbook.notifications import NotificationEvent, NotificationService
 
 
 class FakeResponse:
@@ -54,7 +54,7 @@ def test_notification_service_sends_discord_message(tmp_path, monkeypatch) -> No
         calls.append({"method": method, "url": url, "json": json})
         return FakeResponse(204)
 
-    monkeypatch.setattr("sports_organizer.notifications.requests.request", fake_request)
+    monkeypatch.setattr("playbook.notifications.requests.request", fake_request)
 
     service.notify(_build_event())
 
@@ -85,7 +85,7 @@ def test_notification_service_batches_discord_messages(tmp_path, monkeypatch) ->
         calls.append({"method": method, "url": url, "json": json})
         return responses.pop(0)
 
-    monkeypatch.setattr("sports_organizer.notifications.requests.request", fake_request)
+    monkeypatch.setattr("playbook.notifications.requests.request", fake_request)
 
     service.notify(_build_event(destination="Demo-1.mkv"))
     service.notify(_build_event(destination="Demo-2.mkv"))
@@ -121,8 +121,8 @@ def test_notification_service_handles_rate_limiting(tmp_path, monkeypatch) -> No
         request_calls.append(method)
         return responses.pop(0)
 
-    monkeypatch.setattr("sports_organizer.notifications.requests.request", fake_request)
-    monkeypatch.setattr("sports_organizer.notifications.time.sleep", lambda seconds: sleep_calls.append(seconds))
+    monkeypatch.setattr("playbook.notifications.requests.request", fake_request)
+    monkeypatch.setattr("playbook.notifications.time.sleep", lambda seconds: sleep_calls.append(seconds))
 
     service.notify(_build_event())
 

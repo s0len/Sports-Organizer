@@ -61,11 +61,11 @@ def parse_args(argv: Optional[Tuple[str, ...]] = None) -> argparse.Namespace:
 
 
 def _parse_run_args(arguments: list[str]) -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Sports Organizer")
+    parser = argparse.ArgumentParser(description="Playbook")
     parser.add_argument(
         "--config",
         type=Path,
-        default=Path(os.getenv("CONFIG_PATH", "/config/sports.yaml")),
+        default=Path(os.getenv("CONFIG_PATH", "/config/playbook.yaml")),
         help="Path to the YAML configuration file",
     )
     parser.add_argument("--dry-run", action="store_true", help="Execute without writing to destination")
@@ -90,7 +90,7 @@ def _parse_run_args(arguments: list[str]) -> argparse.Namespace:
     parser.add_argument(
         "--log-file",
         type=Path,
-        help="Path to the persistent log file (default ./sports.log or $LOG_FILE)",
+        help="Path to the persistent log file (default ./playbook.log or $LOG_FILE)",
     )
     parser.add_argument(
         "--clear-processed-cache",
@@ -115,17 +115,17 @@ def _parse_run_args(arguments: list[str]) -> argparse.Namespace:
 
 
 def _parse_validate_args(arguments: list[str]) -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Validate Sports Organizer configuration")
+    parser = argparse.ArgumentParser(description="Validate Playbook configuration")
     parser.add_argument(
         "--config",
         type=Path,
-        default=Path(os.getenv("CONFIG_PATH", "/config/sports.yaml")),
+        default=Path(os.getenv("CONFIG_PATH", "/config/playbook.yaml")),
         help="Path to the YAML configuration file",
     )
     parser.add_argument(
         "--diff-sample",
         action="store_true",
-        help="Display a unified diff against config/sports.sample.yaml when available",
+        help="Display a unified diff against config/playbook.sample.yaml when available",
     )
     parser.add_argument(
         "--show-trace",
@@ -258,11 +258,11 @@ def _execute_run(args: argparse.Namespace) -> int:
     if args.log_file:
         log_file = args.log_file
     elif log_dir_env:
-        log_file = Path(log_dir_env) / "sports.log"
+        log_file = Path(log_dir_env) / "playbook.log"
     elif log_file_env:
         log_file = Path(log_file_env)
     else:
-        log_file = Path("sports.log")
+        log_file = Path("playbook.log")
 
     log_level_env = os.getenv("LOG_LEVEL")
     console_level_env = os.getenv("CONSOLE_LEVEL")
@@ -317,7 +317,7 @@ def _execute_run(args: argparse.Namespace) -> int:
     once = args.once or default_run_once
     interval = config.settings.poll_interval
 
-    LOGGER.info("Starting Sports Organizer%s", " (dry-run)" if config.settings.dry_run else "")
+    LOGGER.info("Starting Playbook%s", " (dry-run)" if config.settings.dry_run else "")
 
     try:
         while True:
@@ -384,7 +384,7 @@ def run_validate_config(args: argparse.Namespace) -> int:
             _print_sample_diff(sample_path, config_path)
         else:
             CONSOLE.print(
-                "[yellow]Sample configuration file config/sports.sample.yaml not found; skipping diff.[/yellow]"
+                "[yellow]Sample configuration file config/playbook.sample.yaml not found; skipping diff.[/yellow]"
             )
 
     return 0 if report.is_valid else 1
@@ -392,7 +392,7 @@ def run_validate_config(args: argparse.Namespace) -> int:
 
 def _resolve_sample_config_path() -> Optional[Path]:
     root = Path(__file__).resolve().parents[2]
-    sample_path = root / "config" / "sports.sample.yaml"
+    sample_path = root / "config" / "playbook.sample.yaml"
     if sample_path.exists():
         return sample_path
     return None

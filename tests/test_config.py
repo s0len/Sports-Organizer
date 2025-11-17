@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import textwrap
 
-from sports_organizer.config import AppConfig, load_config
+from playbook.config import AppConfig, load_config
 
 
 def write_yaml(path, content: str) -> None:
@@ -10,7 +10,7 @@ def write_yaml(path, content: str) -> None:
 
 
 def test_load_config_expands_variants_and_merges_patterns(tmp_path) -> None:
-    config_path = tmp_path / "sports.yaml"
+    config_path = tmp_path / "playbook.yaml"
     write_yaml(
         config_path,
         f"""
