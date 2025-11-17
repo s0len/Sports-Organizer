@@ -41,6 +41,19 @@ settings:
     flush_time: "00:00"   # Local HH:MM (or HH:MM:SS) boundary for the batching day rollover. Useful for overnight events.
 
   ####################################################################
+  # FILESYSTEM WATCHER (OPTIONAL)
+  ####################################################################
+  file_watcher:
+    enabled: false        # When true, rely on filesystem events instead of fixed poll intervals.
+    paths: []             # Directories to watch; defaults to source_dir when empty. Relative paths resolve under source_dir.
+    include: []           # Optional glob filters (e.g. "*.mkv") to limit which files trigger a run.
+    ignore:               # Globs that should never trigger a run.
+      - "*.part"
+      - "*.tmp"
+    debounce_seconds: 5   # Minimum number of seconds between watcher-triggered processor runs.
+    reconcile_interval: 900 # Run a full scan every N seconds even if no events arrive. Set 0 to disable.
+
+  ####################################################################
   # DEFAULT DESTINATION TEMPLATES
   ####################################################################
   # These templates are used for every sport unless overridden under that sport's `destination` block.

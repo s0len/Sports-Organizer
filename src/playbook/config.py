@@ -71,6 +71,16 @@ class NotificationSettings:
 
 
 @dataclass(slots=True)
+class WatcherSettings:
+    enabled: bool = False
+    paths: List[str] = field(default_factory=list)
+    include: List[str] = field(default_factory=list)
+    ignore: List[str] = field(default_factory=list)
+    debounce_seconds: float = 5.0
+    reconcile_interval: int = 900
+
+
+@dataclass(slots=True)
 class SportConfig:
     id: str
     name: str
@@ -98,6 +108,7 @@ class Settings:
     link_mode: str = "hardlink"
     discord_webhook_url: Optional[str] = None
     notifications: NotificationSettings = field(default_factory=NotificationSettings)
+    file_watcher: WatcherSettings = field(default_factory=WatcherSettings)
 
 
 @dataclass(slots=True)
@@ -297,6 +308,53 @@ def _parse_time_of_day(value: Any, *, field_name: str) -> dt.time:
     return dt.time(hour=hour, minute=minute, second=second)
 
 
+def _ensure_string_list(value: Any, *, field_name: str) -> List[str]:
+    if value is None:
+        return []
+    if isinstance(value, str):
+        value = [value]
+    if not isinstance(value, list):
+        raise ValueError(f"'{field_name}' must be provided as a list of strings")
+    result: List[str] = []
+    for index, entry in enumerate(value):
+        if not isinstance(entry, str):
+            raise ValueError(f"'{field_name}[{index}]' must be a string")
+        cleaned = entry.strip()
+        if cleaned:
+            result.append(cleaned)
+    return result
+
+
+def _build_watcher_settings(data: Dict[str, Any]) -> WatcherSettings:
+    if not data:
+        return WatcherSettings()
+    if not isinstance(data, dict):
+        raise ValueError("'file_watcher' must be provided as a mapping when specified")
+
+    try:
+        debounce = float(data.get("debounce_seconds", 5.0))
+    except (TypeError, ValueError) as exc:  # noqa: PERF203
+        raise ValueError("'file_watcher.debounce_seconds' must be a number") from exc
+    if debounce < 0:
+        raise ValueError("'file_watcher.debounce_seconds' must be greater than or equal to 0")
+
+    try:
+        reconcile = int(data.get("reconcile_interval", 900))
+    except (TypeError, ValueError) as exc:  # noqa: PERF203
+        raise ValueError("'file_watcher.reconcile_interval' must be an integer") from exc
+    if reconcile < 0:
+        raise ValueError("'file_watcher.reconcile_interval' must be greater than or equal to 0")
+
+    return WatcherSettings(
+        enabled=bool(data.get("enabled", False)),
+        paths=_ensure_string_list(data.get("paths"), field_name="file_watcher.paths"),
+        include=_ensure_string_list(data.get("include"), field_name="file_watcher.include"),
+        ignore=_ensure_string_list(data.get("ignore"), field_name="file_watcher.ignore"),
+        debounce_seconds=debounce,
+        reconcile_interval=reconcile,
+    )
+
+
 def _build_settings(data: Dict[str, Any]) -> Settings:
     destination_defaults = DestinationTemplates(
         root_template=data.get("destination", {}).get("root_template", "{show_title}"),
@@ -356,10 +414,15 @@ def _build_settings(data: Dict[str, Any]) -> Settings:
         throttle=throttle,
     )
 
+    source_dir = Path(data.get("source_dir", "/data/source")).expanduser()
+    destination_dir = Path(data.get("destination_dir", "/data/destination")).expanduser()
+    cache_dir = Path(data.get("cache_dir", "/data/cache")).expanduser()
+    watcher_settings = _build_watcher_settings(data.get("file_watcher", {}) or {})
+
     return Settings(
-        source_dir=Path(data.get("source_dir", "/data/source")).expanduser(),
-        destination_dir=Path(data.get("destination_dir", "/data/destination")).expanduser(),
-        cache_dir=Path(data.get("cache_dir", "/data/cache")).expanduser(),
+        source_dir=source_dir,
+        destination_dir=destination_dir,
+        cache_dir=cache_dir,
         dry_run=bool(data.get("dry_run", False)),
         skip_existing=bool(data.get("skip_existing", True)),
         poll_interval=int(data.get("poll_interval", 0)),
@@ -367,6 +430,7 @@ def _build_settings(data: Dict[str, Any]) -> Settings:
         link_mode=data.get("link_mode", "hardlink"),
         discord_webhook_url=discord_webhook_url,
         notifications=notifications,
+        file_watcher=watcher_settings,
     )
 
 

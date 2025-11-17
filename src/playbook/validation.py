@@ -65,6 +65,33 @@ CONFIG_SCHEMA: Dict[str, Any] = {
                     },
                     "additionalProperties": True,
                 },
+                "file_watcher": {
+                    "type": "object",
+                    "properties": {
+                        "enabled": {"type": "boolean"},
+                        "paths": {
+                            "oneOf": [
+                                {"type": "array", "items": {"type": "string"}},
+                                {"type": "string"},
+                            ]
+                        },
+                        "include": {
+                            "oneOf": [
+                                {"type": "array", "items": {"type": "string"}},
+                                {"type": "string"},
+                            ]
+                        },
+                        "ignore": {
+                            "oneOf": [
+                                {"type": "array", "items": {"type": "string"}},
+                                {"type": "string"},
+                            ]
+                        },
+                        "debounce_seconds": {"type": ["number", "integer"], "minimum": 0},
+                        "reconcile_interval": {"type": "integer", "minimum": 0},
+                    },
+                    "additionalProperties": True,
+                },
             },
             "additionalProperties": True,
         },

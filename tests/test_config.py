@@ -65,3 +65,43 @@ def test_load_config_expands_variants_and_merges_patterns(tmp_path) -> None:
     first_patterns = [pattern.regex for pattern in first.patterns]
     assert first_patterns == ["custom", "(?P<round>\\d+)[._-](?P<session>[A-Za-z0-9]+)"]
 
+
+def test_file_watcher_settings_defaults_and_overrides(tmp_path) -> None:
+    config_path = tmp_path / "playbook.yaml"
+    source_dir = tmp_path / "downloads"
+    write_yaml(
+        config_path,
+        f"""
+        settings:
+          source_dir: "{source_dir}"
+          destination_dir: "{tmp_path / 'dest'}"
+          cache_dir: "{tmp_path / 'cache'}"
+          file_watcher:
+            enabled: true
+            paths:
+              - "{source_dir}"
+              - relative-folder
+            include: "*.mkv"
+            ignore:
+              - "*.part"
+              - "*.tmp"
+            debounce_seconds: 2.5
+            reconcile_interval: 60
+
+        sports:
+          - id: demo
+            metadata:
+              url: https://example.com/demo.yaml
+        """,
+    )
+
+    config = load_config(config_path)
+    watcher = config.settings.file_watcher
+
+    assert watcher.enabled is True
+    assert watcher.paths == [str(source_dir), "relative-folder"]
+    assert watcher.include == ["*.mkv"]
+    assert watcher.ignore == ["*.part", "*.tmp"]
+    assert watcher.debounce_seconds == 2.5
+    assert watcher.reconcile_interval == 60
+
