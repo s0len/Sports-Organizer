@@ -122,7 +122,6 @@ class MetadataHttpCache:
 class CachedFileRecord:
     mtime_ns: int
     size: int
-    checksum: Optional[str] = None
     destination: Optional[str] = None
     sport_id: Optional[str] = None
     season_key: Optional[str] = None
@@ -158,7 +157,6 @@ class ProcessedFileCache:
                 records[key] = CachedFileRecord(
                     mtime_ns=int(value["mtime_ns"]),
                     size=int(value["size"]),
-                    checksum=value.get("checksum"),
                     destination=str(value.get("destination") or "") or None,
                     sport_id=value.get("sport_id"),
                     season_key=value.get("season_key"),
@@ -174,7 +172,6 @@ class ProcessedFileCache:
             payload[key] = {
                 "mtime_ns": record.mtime_ns,
                 "size": record.size,
-                "checksum": record.checksum,
                 "destination": record.destination,
                 "sport_id": record.sport_id,
                 "season_key": record.season_key,
@@ -199,7 +196,6 @@ class ProcessedFileCache:
             key: CachedFileRecord(
                 mtime_ns=record.mtime_ns,
                 size=record.size,
-                checksum=record.checksum,
                 destination=record.destination,
                 sport_id=record.sport_id,
                 season_key=record.season_key,
@@ -245,7 +241,6 @@ class ProcessedFileCache:
         sport_id: Optional[str] = None,
         season_key: Optional[str] = None,
         episode_key: Optional[str] = None,
-        checksum: Optional[str] = None,
     ) -> None:
         try:
             stat = source_path.stat()
@@ -257,25 +252,12 @@ class ProcessedFileCache:
         self._records[str(source_path)] = CachedFileRecord(
             mtime_ns=stat.st_mtime_ns,
             size=stat.st_size,
-            checksum=checksum,
             destination=destination_str,
             sport_id=sport_id,
             season_key=season_key,
             episode_key=episode_key,
         )
         self._dirty = True
-
-    def get_checksum(self, source_path: Path) -> Optional[str]:
-        """Get the stored checksum for a file, if available."""
-        record = self._records.get(str(source_path))
-        return record.checksum if record else None
-
-    def has_content_changed(self, source_path: Path, current_checksum: str) -> bool:
-        """Check if file content has changed by comparing checksums."""
-        stored_checksum = self.get_checksum(source_path)
-        if stored_checksum is None:
-            return True  # No previous checksum means it's new or changed
-        return stored_checksum != current_checksum
 
     def clear(self) -> None:
         if self._records:
