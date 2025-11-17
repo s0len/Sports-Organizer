@@ -48,6 +48,7 @@ class NotificationEvent:
     trace_path: Optional[str] = None
     match_details: Dict[str, Any] = field(default_factory=dict)
     timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    event_type: str = "unknown"  # "new", "changed", "replaced", "skipped", "error", "dry-run"
 
 
 class NotificationBatcher:
@@ -90,6 +91,7 @@ class NotificationBatcher:
             "skip_reason": event.skip_reason,
             "trace_path": event.trace_path,
             "timestamp": event.timestamp.isoformat(),
+            "event_type": event.event_type,
         }
 
         events = entry["events"]
@@ -286,10 +288,12 @@ class DiscordTarget(NotificationTarget):
         for item in visible_events:
             action = item.get("action", "link")
             mode = item.get("link_mode") or ""
+            event_type = item.get("event_type", "unknown")
             season_part = f"{item.get('season')} – " if item.get("season") else ""
             reason = f" [{item.get('skip_reason')}]" if item.get("skip_reason") else ""
+            type_indicator = "🆕" if event_type == "new" else "🔄" if event_type == "changed" else ""
             line = (
-                f"• {season_part}{item.get('episode')} ({item.get('session')}) → "
+                f"• {type_indicator} {season_part}{item.get('episode')} ({item.get('session')}) → "
                 f"`{item.get('destination')}` [{action}{' '+mode if mode else ''}]{reason}"
             )
             lines.append(self._trim(line, 190))
@@ -374,6 +378,7 @@ class DiscordTarget(NotificationTarget):
         attempt = 0
         max_attempts = 5
         backoff = 1.0
+        max_backoff = 60.0  # Cap backoff at 60 seconds
 
         while attempt < max_attempts:
             try:
@@ -383,7 +388,7 @@ class DiscordTarget(NotificationTarget):
                 return None
 
             if response.status_code == 429:
-                wait_seconds = self._retry_after_seconds(response, backoff)
+                wait_seconds = min(self._retry_after_seconds(response, backoff), max_backoff)
                 LOGGER.warning(
                     "Discord rate limited notification request; retrying in %.2fs (attempt %d/%d)",
                     wait_seconds,
@@ -392,7 +397,7 @@ class DiscordTarget(NotificationTarget):
                 )
                 time.sleep(wait_seconds)
                 attempt += 1
-                backoff *= 2
+                backoff = min(backoff * 2, max_backoff)
                 continue
 
             if response.status_code >= 400:
@@ -655,6 +660,17 @@ class NotificationService:
     def notify(self, event: NotificationEvent) -> None:
         if not self.enabled:
             return
+        
+        # Only notify for new files, changed files, or errors
+        # Skip notifications for: skipped, replaced (without content change), dry-run (without change)
+        if event.event_type not in ("new", "changed", "error"):
+            LOGGER.debug(
+                "Skipping notification for %s: event_type=%s (only 'new', 'changed', or 'error' trigger notifications)",
+                event.sport_id,
+                event.event_type,
+            )
+            return
+        
         throttle_seconds = self._resolve_throttle(event.sport_id)
         last_event = self._last_sent.get(event.sport_id)
         if throttle_seconds and last_event:
@@ -762,6 +778,7 @@ def _flatten_event(event: NotificationEvent) -> Dict[str, Any]:
         "skip_reason": event.skip_reason,
         "trace_path": event.trace_path,
         "timestamp": event.timestamp.isoformat(),
+        "event_type": event.event_type,
     }
     data.update(event.match_details or {})
     return data

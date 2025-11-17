@@ -80,6 +80,21 @@ def sha1_of_text(text: str) -> str:
     return hashlib.sha1(text.encode("utf-8")).hexdigest()
 
 
+def sha1_of_file(path: Path, chunk_size: int = 65536) -> str:
+    """Compute SHA1 hash of a file's contents."""
+    sha1 = hashlib.sha1()
+    try:
+        with path.open("rb") as f:
+            while True:
+                chunk = f.read(chunk_size)
+                if not chunk:
+                    break
+                sha1.update(chunk)
+        return sha1.hexdigest()
+    except (OSError, IOError) as exc:
+        raise ValueError(f"Cannot compute hash for {path}: {exc}") from exc
+
+
 @dataclass
 class LinkResult:
     created: bool

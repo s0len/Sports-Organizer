@@ -25,7 +25,7 @@ from .metadata import (
 from .models import ProcessingStats, Show, SportFileMatch
 from .notifications import NotificationEvent, NotificationService
 from .templating import render_template
-from .utils import ensure_directory, link_file, normalize_token, sanitize_component, sha1_of_text, slugify
+from .utils import ensure_directory, link_file, normalize_token, sanitize_component, sha1_of_file, sha1_of_text, slugify
 
 LOGGER = logging.getLogger(__name__)
 
@@ -745,6 +745,20 @@ class Processor:
             "episode_key": self._episode_cache_key(match),
         }
 
+        # Compute file checksum to detect actual content changes
+        file_checksum: Optional[str] = None
+        is_new_file = not self.processed_cache.is_processed(match.source_path)
+        content_changed = False
+        
+        try:
+            file_checksum = sha1_of_file(match.source_path)
+            if not is_new_file:
+                content_changed = self.processed_cache.has_content_changed(match.source_path, file_checksum)
+        except Exception as exc:  # noqa: BLE001
+            LOGGER.debug("Failed to compute checksum for %s: %s", match.source_path, exc)
+            # If checksum fails, assume it's new/changed to be safe
+            is_new_file = True
+
         destination_display = self._format_relative_destination(destination)
         event = NotificationEvent(
             sport_id=match.sport.id,
@@ -759,6 +773,7 @@ class Processor:
             action="link",
             link_mode=link_mode,
             match_details=dict(match.context),
+            event_type="new" if is_new_file else ("changed" if content_changed else "replaced"),
         )
 
         replace_existing = False
@@ -785,10 +800,14 @@ class Processor:
                     skip_message = f"Destination exists: {destination} (source {match.source_path})"
                     stats.register_skipped(skip_message, is_error=False)
                     if not settings.dry_run:
-                        self.processed_cache.mark_processed(match.source_path, destination, **cache_kwargs)
+                        self.processed_cache.mark_processed(
+                            match.source_path, destination, checksum=file_checksum, **cache_kwargs
+                        )
                     event.action = "skipped"
+                    event.event_type = "skipped"
                     event.skip_reason = skip_message
-                    return event
+                    # Don't notify for skipped files - they're not new or changed
+                    return None
 
         if replace_existing:
             LOGGER.debug(
@@ -815,7 +834,9 @@ class Processor:
                         is_error=True,
                     )
                     event.action = "error"
+                    event.event_type = "error"
                     event.skip_reason = f"failed-to-remove: {exc}"
+                    # Always notify errors
                     return event
 
         LOGGER.info(
@@ -848,13 +869,19 @@ class Processor:
         if settings.dry_run:
             stats.register_processed()
             event.action = "dry-run"
+            event.event_type = "dry-run"
             event.replaced = replace_existing
+            # Don't notify for dry-run unless it's new/changed
+            if not is_new_file and not content_changed:
+                return None
             return event
 
         result = link_file(match.source_path, destination, mode=link_mode)
         if result.created:
             stats.register_processed()
-            self.processed_cache.mark_processed(match.source_path, destination, **cache_kwargs)
+            self.processed_cache.mark_processed(
+                match.source_path, destination, checksum=file_checksum, **cache_kwargs
+            )
             self._cleanup_old_destination(
                 source_key,
                 old_destination,
@@ -863,12 +890,18 @@ class Processor:
             )
             event.action = link_mode
             event.replaced = replace_existing
+            # Only notify if file is new or content changed
+            if not is_new_file and not content_changed:
+                # File was processed but content hasn't changed - don't notify
+                return None
             return event
         else:
             failure_message = f"Failed to link {match.source_path} -> {destination}: {result.reason}"
             stats.register_skipped(failure_message)
             if result.reason == "destination-exists":
-                self.processed_cache.mark_processed(match.source_path, destination, **cache_kwargs)
+                self.processed_cache.mark_processed(
+                    match.source_path, destination, checksum=file_checksum, **cache_kwargs
+                )
                 self._cleanup_old_destination(
                     source_key,
                     old_destination,
@@ -876,10 +909,14 @@ class Processor:
                     dry_run=settings.dry_run,
                 )
                 event.action = "skipped"
+                event.event_type = "skipped"
                 event.skip_reason = failure_message
-                return event
+                # Don't notify for skipped files
+                return None
             event.action = "error"
+            event.event_type = "error"
             event.skip_reason = failure_message
+            # Always notify errors
             return event
 
     def _should_overwrite_existing(self, match: SportFileMatch) -> bool:
