@@ -290,13 +290,14 @@ class DiscordTarget(NotificationTarget):
         lines: List[str] = []
         for item in visible_events:
             action = item.get("action", "link")
-            mode = item.get("link_mode") or ""
             indicator = self._event_indicator(item.get("event_type"))
             season_part = f"{item.get('season')} – " if item.get("season") else ""
             reason = f" [{item.get('skip_reason')}]" if item.get("skip_reason") else ""
+            destination_label = self._destination_label(item.get("destination"))
             line = (
-                f"• {indicator+' ' if indicator else ''}{season_part}{item.get('episode')} ({item.get('session')}) → "
-                f"`{item.get('destination')}` [{action}{' '+mode if mode else ''}]{reason}"
+                f"• {indicator+' ' if indicator else ''}{season_part}{item.get('episode')} "
+                f"({item.get('session')}) [{action}]"
+                f"{' — ' + destination_label if destination_label else ''}{reason}"
             )
             lines.append(self._trim(line, 190))
 
@@ -312,10 +313,14 @@ class DiscordTarget(NotificationTarget):
             self._embed_field("Sport", request.sport_name, inline=True),
             self._embed_field("Updates", str(total), inline=True),
         ]
-        latest_value = (
-            f"{self._event_indicator(latest_payload.get('event_type'))} "
-            f"{latest_payload.get('episode')} ({latest_payload.get('session')}) → "
-            f"`{latest_payload.get('destination')}` [{latest_payload.get('action')}]"
+        latest_value = self._trim(
+            (
+                f"{self._event_indicator(latest_payload.get('event_type'))} "
+                f"{latest_payload.get('episode')} ({latest_payload.get('session')}) "
+                f"[{latest_payload.get('action')}]"
+                f"{' — ' + self._destination_label(latest_payload.get('destination')) if latest_payload.get('destination') else ''}"
+            ).strip(),
+            1024,
         )
         fields.append(self._embed_field("Latest", latest_value, inline=False))
 
@@ -336,17 +341,19 @@ class DiscordTarget(NotificationTarget):
         return {"content": content, "embeds": [embed]}
 
     def _render_content(self, event: NotificationEvent) -> str:
+        destination_label = self._destination_label(event.destination)
+        label_suffix = f" — {destination_label}" if destination_label else ""
         if event.action == "skipped":
             reason = f" — {event.skip_reason}" if event.skip_reason else ""
-            return f"Skipped {event.sport_name}: {event.episode} ({event.session}){reason}"
+            return f"{event.sport_name}: {event.episode} ({event.session}) [skipped]{label_suffix}{reason}"
         if event.action == "error":
             reason = f" — {event.skip_reason}" if event.skip_reason else ""
-            return f"Failed {event.sport_name}: {event.episode} ({event.session}){reason}"
+            return f"{event.sport_name}: {event.episode} ({event.session}) [error]{label_suffix}{reason}"
         if event.action == "dry-run":
-            return f"[Dry-Run] {event.sport_name}: {event.episode} ({event.session}) via {event.link_mode}"
+            return f"{event.sport_name}: {event.episode} ({event.session}) [dry-run]{label_suffix}"
 
         replaced = " (replaced existing)" if event.replaced else ""
-        return f"{event.sport_name}: {event.episode} ({event.session}) {event.action} via {event.link_mode}{replaced}"
+        return f"{event.sport_name}: {event.episode} ({event.session}) [{event.action}]{label_suffix}{replaced}"
 
     def _fields_for_event(self, event: NotificationEvent) -> List[Optional[Dict[str, Any]]]:
         fields = [
@@ -359,8 +366,6 @@ class DiscordTarget(NotificationTarget):
                 f"{event.action} ({event.link_mode}){' – replaced' if event.replaced else ''}",
                 inline=True,
             ),
-            self._embed_field("Destination", f"`{event.destination}`", inline=False),
-            self._embed_field("Source", f"`{event.source}`", inline=False),
         ]
         if event.skip_reason:
             fields.append(self._embed_field("Reason", event.skip_reason, inline=False))
@@ -438,6 +443,14 @@ class DiscordTarget(NotificationTarget):
         if not event_type:
             return ""
         return mapping.get(str(event_type).lower(), "")
+
+    @staticmethod
+    def _destination_label(value: Optional[str]) -> str:
+        if not value:
+            return ""
+        path = Path(value)
+        label = path.stem or path.name
+        return label
 
     @staticmethod
     def _trim(value: str, limit: int) -> str:
