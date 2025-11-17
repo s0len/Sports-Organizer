@@ -48,6 +48,7 @@ class NotificationEvent:
     trace_path: Optional[str] = None
     match_details: Dict[str, Any] = field(default_factory=dict)
     timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    event_type: str = "unknown"  # new, changed, refresh, skipped, error, dry-run
 
 
 class NotificationBatcher:
@@ -90,6 +91,7 @@ class NotificationBatcher:
             "skip_reason": event.skip_reason,
             "trace_path": event.trace_path,
             "timestamp": event.timestamp.isoformat(),
+            "event_type": event.event_type,
         }
 
         events = entry["events"]
@@ -180,6 +182,7 @@ class NotificationBatcher:
                         "skip_reason": item.get("skip_reason"),
                         "trace_path": trace_str,
                         "timestamp": str(item.get("timestamp") or ""),
+                        "event_type": str(item.get("event_type") or "unknown"),
                     }
                 )
 
@@ -274,7 +277,9 @@ class DiscordTarget(NotificationTarget):
         if event.summary:
             embed["description"] = self._trim(str(event.summary), 2048)
 
-        content = self._trim(self._render_content(event), 2000)
+        indicator = self._event_indicator(event.event_type)
+        prefix = f"{indicator} " if indicator else ""
+        content = self._trim(prefix + self._render_content(event), 2000)
         return {"content": content, "embeds": [embed]}
 
     def _build_batch_payload(self, request: BatchRequest, now: datetime) -> Dict[str, Any]:
@@ -286,10 +291,11 @@ class DiscordTarget(NotificationTarget):
         for item in visible_events:
             action = item.get("action", "link")
             mode = item.get("link_mode") or ""
+            indicator = self._event_indicator(item.get("event_type"))
             season_part = f"{item.get('season')} – " if item.get("season") else ""
             reason = f" [{item.get('skip_reason')}]" if item.get("skip_reason") else ""
             line = (
-                f"• {season_part}{item.get('episode')} ({item.get('session')}) → "
+                f"• {indicator+' ' if indicator else ''}{season_part}{item.get('episode')} ({item.get('session')}) → "
                 f"`{item.get('destination')}` [{action}{' '+mode if mode else ''}]{reason}"
             )
             lines.append(self._trim(line, 190))
@@ -307,6 +313,7 @@ class DiscordTarget(NotificationTarget):
             self._embed_field("Updates", str(total), inline=True),
         ]
         latest_value = (
+            f"{self._event_indicator(latest_payload.get('event_type'))} "
             f"{latest_payload.get('episode')} ({latest_payload.get('session')}) → "
             f"`{latest_payload.get('destination')}` [{latest_payload.get('action')}]"
         )
@@ -420,6 +427,17 @@ class DiscordTarget(NotificationTarget):
         if not text:
             return None
         return {"name": self._trim(name, 256), "value": text, "inline": inline}
+
+    @staticmethod
+    def _event_indicator(event_type: Optional[str]) -> str:
+        mapping = {
+            "new": "[NEW]",
+            "changed": "[UPDATED]",
+            "error": "[ERROR]",
+        }
+        if not event_type:
+            return ""
+        return mapping.get(str(event_type).lower(), "")
 
     @staticmethod
     def _trim(value: str, limit: int) -> str:
@@ -655,6 +673,15 @@ class NotificationService:
     def notify(self, event: NotificationEvent) -> None:
         if not self.enabled:
             return
+        allowed_types = {"new", "changed", "error"}
+        event_type = (event.event_type or "unknown").lower()
+        if event_type not in allowed_types:
+            LOGGER.debug(
+                "Skipping notification for %s because event_type is %s",
+                event.sport_id,
+                event.event_type,
+            )
+            return
         throttle_seconds = self._resolve_throttle(event.sport_id)
         last_event = self._last_sent.get(event.sport_id)
         if throttle_seconds and last_event:
@@ -762,6 +789,7 @@ def _flatten_event(event: NotificationEvent) -> Dict[str, Any]:
         "skip_reason": event.skip_reason,
         "trace_path": event.trace_path,
         "timestamp": event.timestamp.isoformat(),
+        "event_type": event.event_type,
     }
     data.update(event.match_details or {})
     return data
