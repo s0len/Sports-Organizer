@@ -564,7 +564,7 @@ pattern_sets:
     - description: MotoGP DNU releases
       # Example: MotoGP.2024.Round03.Austin.Circuit.of.the.Americas.Qualifying-DNU.mkv
       regex: >-
-        (?i)^(?=.*-\s*DNU\.(?:mkv|mp4|ts)$)MotoGP\.(?P<year>\d{4})\.Round(?P<round>\d{2})\.(?P<location>[^.]+(?:\.[^.]+)*)\.(?P<session>FP[1-4]|Practice(?:\.One|\.Two|\.Three|\.Four)?|Q[a-z]+(?:\.Q[1-3]|\.One|\.Two|\.Three)?|Warm\.?Up|Sprint|Race)
+        (?i)^(?=.*-\s*DNU\.(?:mkv|mp4|ts)$)MotoGP\.(?P<year>\d{4})\.Round(?P<round>\d{2})\.(?P<location>[^.]+(?:\.[^.]+)*)\.(?P<session>FP[1-4]|Practice(?:\.One|\.Two|\.Three|\.Four)?|Q[a-z]+(?:\.Q[1-3]|\.One|\.Two|\.Three)?|Warm\.?Up|Sprint|Race)(?:\.[^.]+)*$
       season_selector:
         mode: round
         group: round
@@ -704,7 +704,7 @@ pattern_sets:
     - description: MotoGP MWR releases
       # Example: MotoGP.2024.Round05.Jerez.Qualifying-MWR.mp4
       regex: >-
-        (?i)^(?=.*-MWR\.(?:mkv|mp4|ts)$)MotoGP\.(?P<year>\d{4})\.Round(?P<round>\d{2})\.(?P<location>[^.]+(?:\.[^.]+)*)\.(?P<session>FP[1-4]|Practice(?:\.One|\.Two|\.Three|\.Four)?|Q[a-z]+(?:\.Q[1-3]|\.One|\.Two|\.Three)?|Warm\.?Up|Sprint|Race)
+        (?i)^(?=.*-MWR\.(?:mkv|mp4|ts)$)MotoGP\.(?P<year>\d{4})\.Round(?P<round>\d{2})\.(?P<location>[^.]+(?:\.[^.]+)*)\.(?P<session>FP[1-4]|Practice(?:\.One|\.Two|\.Three|\.Four)?|Q[a-z]+(?:\.Q[1-3]|\.One|\.Two|\.Three)?|Warm\.?Up|Sprint|Race)(?:\.[^.]+)*$
       season_selector:
         mode: round
         group: round
