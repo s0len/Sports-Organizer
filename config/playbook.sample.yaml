@@ -444,6 +444,12 @@ sports:
           url: https://raw.githubusercontent.com/s0len/meta-manager-config/refs/heads/main/metadata-files/ufc-2024.yaml
           show_key: UFC 2024
           ttl_hours: 24
-
+    
+    source_globs:
+      - "UFC.*"
+      - "UFC *"
+      - "ufc.*"
+      - "ufc *"
+    
     pattern_sets:
       - ufc
