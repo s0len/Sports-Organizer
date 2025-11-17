@@ -433,19 +433,17 @@ sports:
     name: UFC
     enabled: true
 
-    metadata:
-      # Point this to the yearly UFC metadata feed you want to process.
-      url: https://raw.githubusercontent.com/s0len/meta-manager-config/refs/heads/main/metadata-files/ufc-2025.yaml
-      # Match the show entry inside that feed (e.g., "UFC 2026" when you swap years).
-      show_key: UFC 2025
-      ttl_hours: 24
+    variants:
+      - year: 2025
+        metadata:
+          url: https://raw.githubusercontent.com/s0len/meta-manager-config/refs/heads/main/metadata-files/ufc-2025.yaml
+          show_key: UFC 2025
+          ttl_hours: 24
+      - year: 2024
+        metadata:
+          url: https://raw.githubusercontent.com/s0len/meta-manager-config/refs/heads/main/metadata-files/ufc-2024.yaml
+          show_key: UFC 2024
+          ttl_hours: 24
 
-    source_globs:
-      - "UFC.*"
-      - "UFC *"
-      - "ufc.*"
-      - "ufc *"
-
-    # Use the built-in UFC pattern template.
     pattern_sets:
       - ufc
