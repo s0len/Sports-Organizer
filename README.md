@@ -9,7 +9,7 @@
 ## TL;DR
 
 - Configure your `sports.yaml` (copy from `config/sports.sample.yaml` and set `SOURCE_DIR`, `DESTINATION_DIR`, and `CACHE_DIR`).
-- Dry-run the Docker image to confirm metadata downloads and filesystem access.
+- Dry-run the Docker image to confirm metadata downloads and filesystem access (metadata caches are still written so later runs stay warm).
 - Point Plex (or another media manager) at the destination directory once you're happy with the output.
 
 > Quick verification:
@@ -62,6 +62,7 @@
   - [Roadmap](#roadmap)
   - [License](#license)
   - [Support](#support)
+  - [Sample Figure Skating Grand Prix Filenames](#sample-figure-skating-grand-prix-filenames)
 
 ## Overview
 
@@ -446,7 +447,7 @@ libraries:
       - url: https://raw.githubusercontent.com/s0len/meta-manager-config/main/metadata-files/nfl-2025-26.yaml
       - url: https://raw.githubusercontent.com/s0len/meta-manager-config/main/metadata-files/premier-league-2025-26.yaml
       - url: https://raw.githubusercontent.com/s0len/meta-manager-config/main/metadata-files/uefa-champions-league-2025-26.yaml
-      - url: https://raw.githubusercontent.com/s0len/meta-manager-config/main/metadata-files/ufc.yaml
+      - url: https://raw.githubusercontent.com/s0len/meta-manager-config/main/metadata-files/ufc-2025.yaml
       - url: https://raw.githubusercontent.com/s0len/meta-manager-config/main/metadata-files/womens-uefa-euro.yaml
       - url: https://raw.githubusercontent.com/s0len/meta-manager-config/main/metadata-files/wsbk-2025.yaml
       - url: https://raw.githubusercontent.com/s0len/meta-manager-config/main/metadata-files/wssp-2025.yaml
@@ -476,7 +477,7 @@ These are examples that pair well with the built-in pattern packs and metadata f
 
 ```text
 # Premier League (EPL) 1080p releases by NiGHTNiNJAS
-EPL.*1080p.*NiGHTNiNJAS/i
+EPL.*1080p.*NiGHTNiNJAS
 
 # Formula 1 multi-session weekends by MWR
 (F1|Formula.*1).*\d{4}.Round\d+.*[^.]+\.*?(Drivers.*Press.*Conference|Weekend.*Warm.*Up|FP\d?|Practice|Sprint.Qualifying|Sprint|Qualifying|Pre.Qualifying|Post.Qualifying|Race|Pre.Race|Post.Race|Sprint.Race|Feature.*Race).*1080p.*MWR
@@ -500,7 +501,7 @@ NBA.*1080p.*GAMETiME
 NFL.*NiGHTNiNJAS
 
 # UFC by VERUM
-UFC.*VERUM
+[Uu][Ff][Cc][ ._-]?\d{3}.*[Vv][Ee][Rr][Uu][Mm]
 
 # WorldSBK / WorldSSP / WorldSSP300 by MWR
 ([Ww][Ss][Bb][Kk]|[Ww][Ss][Ss][Pp]|[Ww][Ss][Ss][Pp]300)\.\d{4}\.Round\d+\.[^.]+\.(FP\d?|[Ss]eason\.[Pp]review|[Ss]uperpole|[Rr]ace\.[Oo]ne|[Rr]ace\.[Tt]wo|[Ww]arm\.[Uu]p(\.[Oo]ne|\.[Tt]wo)?|[Ww]eekend\.[Hh]ighlights)\..*h264..*MWR
@@ -575,6 +576,21 @@ Distributed under the [GNU GPLv3](LICENSE).
 ## Support
 
 Questions, feature ideas, or metadata feed requests? [Open an issue](https://github.com/s0len/sports-organizer/issues) or start a discussion. For bespoke integrations, reach out via the issue tracker and we can coordinate.
+
+## Sample Figure Skating Grand Prix Filenames
+
+Bundle the `figure_skating_grand_prix` pattern set with the [Figure Skating Grand Prix 2025 metadata feed](https://raw.githubusercontent.com/s0len/meta-manager-config/refs/heads/main/metadata-files/figure-skating-grand-prix-2025.yaml) to normalize releases such as:
+
+- `Figure Skating Grand Prix France 2025 Pairs Short Program 17 10 720pEN50fps ES`
+- `Figure Skating Grand Prix France 2025 Ice Dancing Rhythm Dance 18 10 720pEN50fps ES`
+- `Figure Skating Grand Prix China 2025 Mixed Pairs Short Program 24 10 720pEN50fps ES`
+- `Figure Skating Grand Prix China 2025 Exhibition Gala 26 10 720pEN50fps ES`
+- `Figure Skating Grand Prix Canada 2025 Ice Dancing Free Program 02 11 720pEN50fps ES`
+- `Figure Skating Grand Prix Canada 2025 Men Free Program 02 11 720pEN50fps ES`
+- `Figure Skating Grand Prix Japan 2025 Ice Dancing Free Program 08 11 720pEN50fps ES`
+- `Figure Skating USA Grand Prix 2025 Pairs Short Program 15 11 720pEN50fps ES`
+- `Figure Skating Grand Prix Espoo 2025 Exhibition Gala 23 11 720pEN50fps ES`
+- `Figure Skating Grand Prix Final 2025 Women Free Program 06 12 1080pEN50fps.mkv`
 
 ---
 

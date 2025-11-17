@@ -61,7 +61,7 @@ settings:
 
 pattern_sets:
   # Built-in pattern templates load automatically from `pattern_templates.yaml`.
-  # Available names: formula1, formula_e, indycar, motogp, moto2, moto3, world_superbike, world_supersport, isle_of_man_tt, football, premier_league, ufc, uefa_champions_league.
+  # Available names: formula1, formula_e, indycar, motogp, moto2, moto3, world_superbike, world_supersport, isle_of_man_tt, football, premier_league, ufc, uefa_champions_league, figure_skating_grand_prix.
   # Add custom sets below if you need overrides or extra matchers.
   # Example:
   #   my_custom_pack:
@@ -385,6 +385,25 @@ sports:
     pattern_sets:
       - uefa_champions_league
 
+  - id: figure_skating_grand_prix
+    name: Figure Skating Grand Prix
+    enabled: true
+
+    metadata:
+      url: https://raw.githubusercontent.com/s0len/meta-manager-config/refs/heads/main/metadata-files/figure-skating-grand-prix-2025.yaml
+      show_key: Figure Skating Grand Prix 2025
+      ttl_hours: 24
+
+    source_globs:
+      - "Figure Skating Grand Prix *"
+      - "Figure Skating Grand Prix*"
+      - "Figure.Skating.Grand.Prix.*"
+      - "Figure.Skating.Grand.Prix*"
+      - "Figure Skating * Grand Prix *"
+
+    pattern_sets:
+      - figure_skating_grand_prix
+
   - id: premier_league
     name: Premier League
     enabled: true
@@ -415,8 +434,10 @@ sports:
     enabled: true
 
     metadata:
-      url: https://raw.githubusercontent.com/s0len/meta-manager-config/refs/heads/main/metadata-files/ufc.yaml
-      show_key: UFC
+      # Point this to the yearly UFC metadata feed you want to process.
+      url: https://raw.githubusercontent.com/s0len/meta-manager-config/refs/heads/main/metadata-files/ufc-2025.yaml
+      # Match the show entry inside that feed (e.g., "UFC 2026" when you swap years).
+      show_key: UFC 2025
       ttl_hours: 24
 
     source_globs:

@@ -98,6 +98,12 @@ class MetadataHttpCache:
             entry.status_code = None
             self._dirty = True
 
+    def invalidate(self, url: str) -> None:
+        with self._lock:
+            if url in self._entries:
+                del self._entries[url]
+                self._dirty = True
+
     def save(self) -> None:
         with self._lock:
             if not self._dirty:

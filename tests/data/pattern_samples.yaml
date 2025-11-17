@@ -48,12 +48,14 @@ samples:
       seasons:
         - key: "321"
           title: "UFC 321"
+          round_number: 321
           episodes:
             - title: "Early Prelims"
             - title: "Prelims"
             - title: "Main Card"
         - key: "284"
           title: "UFC 284"
+          round_number: 284
           episodes:
             - title: "Early Prelims"
             - title: "Prelims"
@@ -84,6 +86,34 @@ samples:
       - value: "UFC 284 Fight-BB 1080p WEB.mp4"
         expect_episode: "Main Card"
       - value: "UFC 284 SHREDDiE 1080p WEB.mp4"
+        expect_episode: "Main Card"
+
+  - description: "UFC Fight Night releases resolve"
+    sport:
+      id: "ufc_fight_night"
+      name: "UFC Fight Night"
+      pattern_sets:
+        - ufc
+    show:
+      key: "ufc_2025"
+      title: "UFC 2025"
+      seasons:
+        - title: "UFC Fight Night 263 Garcia vs Onama"
+          round_number: 263
+          episodes:
+            - title: "Prelims"
+            - title: "Main Card"
+        - title: "UFC Fight Night 262 de Ridder vs Allen"
+          round_number: 262
+          episodes:
+            - title: "Prelims"
+            - title: "Main Card"
+    filenames:
+      - value: "UFC.Fight.Night.263.Garcia.vs.Onama.WEB-DL.H264.Fight-BB.mkv"
+        expect_episode: "Main Card"
+      - value: "UFC.Fight.Night.262.de.Ridder.vs.Allen.Prelims.WEB-DL.H264.Fight-BB.mkv"
+        expect_episode: "Prelims"
+      - value: "UFC.Fight.Night.262.de.Ridder.vs.Allen.WEB-DL.H264.Fight-BB.mkv"
         expect_episode: "Main Card"
 
   - description: "UEFA Champions League 2025 match samples"
@@ -219,6 +249,71 @@ samples:
       - value: "Formula1.2025.Round04.Bahrain.FP1.F1TV-1080p.mkv"
         expect_episode: "Free Practice 1"
 
+  - description: "Formula 1 VERUM sprint release resolves via season alias"
+    sport:
+      id: "formula1_verum_alias"
+      name: "Formula 1 VERUM Alias"
+      pattern_sets:
+        - formula1
+    show:
+      key: "formula1_2025"
+      title: "Formula 1 2025"
+      seasons:
+        - title: "Round 19 United States Grand Prix"
+          round_number: 19
+          display_number: 19
+          episodes:
+            - title: "Sprint"
+              aliases:
+                - "Sprint Race"
+            - title: "Race"
+    filenames:
+      - value: "formula1.2025.american.grand.prix.sprint.race.1080p.web.h264-verum.mkv"
+        expect_episode: "Sprint"
+
+  - description: "Formula 1 VERUM full race pack resolves via aliases"
+    sport:
+      id: "formula1_verum_full_pack_alias"
+      name: "Formula 1 VERUM Full Pack Alias"
+      pattern_sets:
+        - formula1
+    show:
+      key: "formula1_2025"
+      title: "Formula 1 2025"
+      seasons:
+        - title: "Round 20 Mexico City Grand Prix"
+          round_number: 20
+          display_number: 20
+          episodes:
+            - title: "Qualifying"
+            - title: "Race"
+              aliases:
+                - "Grand Prix"
+        - title: "Round 21 S\u00E3o Paulo Grand Prix"
+          round_number: 21
+          display_number: 21
+          episodes:
+            - title: "Sprint Qualifying"
+              aliases:
+                - "Sprint Shootout"
+            - title: "Sprint"
+              aliases:
+                - "Sprint Race"
+            - title: "Race"
+              aliases:
+                - "Grand Prix"
+    filenames:
+      - value: "formula1.2025.mexican.grand.prix.qualifying.1080p.web.h264-verum.mkv"
+        expect_episode: "Qualifying"
+      - value: "formula1.2025.mexican.grand.prix.grand.prix.1080p.web.h264-verum.mkv"
+        expect_episode: "Race"
+      - value: "formula1.2025.brazilian.grand.prix.sprint.race.1080p.web.h264-verum.mkv"
+        expect_episode: "Sprint"
+      - value: "formula1.2025.brazilian.grand.prix.grand.prix.1080p.web.h264-verum.mkv"
+        expect_episode: "Race"
+      - value: "formula1.2025.brazilian.grand.prix.sprint.qualifying.1080p.web.h264-verum.mkv"
+        expect_episode: "Sprint Qualifying"
+
   - description: "World Superbike PROPER and REPACK releases"
     sport:
       id: "wsbk_proper_samples"
@@ -320,3 +415,64 @@ samples:
         expect_episode: "Sunderland vs Arsenal"
       - value: "EPL.2025.11.08.Tottenham.Hotspur.Vs.Manchester.United.1080p.WEB.H264-NiGHTNiNJAS/epl.2025.11.08.tottenham.hotspur.vs.manchester.united.1080p.web.h264-nightninjas.mkv"
         expect_episode: "Tottenham Hotspur vs Manchester United"
+
+  - description: "Figure Skating Grand Prix 2025 samples"
+    sport:
+      id: "figure_skating_grand_prix_samples"
+      name: "Figure Skating Grand Prix Samples"
+      pattern_sets:
+        - figure_skating_grand_prix
+    show:
+      key: "figure_skating_grand_prix_2025"
+      title: "Figure Skating Grand Prix 2025"
+      seasons:
+        - title: "Grand Prix de France 2025"
+          display_number: 1
+          episodes:
+            - title: "Women Short Program"
+            - title: "Pairs Free Program"
+        - title: "Cup of China 2025"
+          display_number: 2
+          episodes:
+            - title: "Pairs Short Program"
+            - title: "Pairs Free Program"
+        - title: "Skate Canada International 2025"
+          display_number: 3
+          episodes:
+            - title: "Ice Dance Free Dance"
+        - title: "NHK Trophy 2025"
+          display_number: 4
+          episodes:
+            - title: "Ice Dance Rhythm Dance"
+        - title: "Skate America 2025"
+          display_number: 5
+          episodes:
+            - title: "Pairs Short Program"
+        - title: "Grand Prix Espoo 2025"
+          display_number: 6
+          episodes:
+            - title: "Exhibition Gala"
+        - title: "Grand Prix Final 2025"
+          display_number: 7
+          episodes:
+            - title: "Women Free Program"
+            - title: "Men Free Program"
+    filenames:
+      - value: "Figure Skating Grand Prix France 2025 Women Short Program 17 10 720pEN50fps ES"
+        expect_episode: "Women Short Program"
+      - value: "Figure Skating Grand Prix France 2025 Pairs Free Program 18-10-2025 1080pEN50fps.mkv"
+        expect_episode: "Pairs Free Program"
+      - value: "Figure Skating Grand Prix 2025 Pairs Free Program 25 10 720pEN50fps ES"
+        expect_episode: "Pairs Free Program"
+      - value: "Figure Skating Grand Prix China 2025 Mixed Pairs Short Program 24 10 720pEN50fps ES"
+        expect_episode: "Pairs Short Program"
+      - value: "Figure Skating Grand Prix Canada 2025 Ice Dancing Free Program 02 11 720pEN50fps ES"
+        expect_episode: "Ice Dance Free Dance"
+      - value: "Figure Skating Grand Prix Japan 2025 Ice Dancing Short Program 07 11 720pEN50fps ES"
+        expect_episode: "Ice Dance Rhythm Dance"
+      - value: "Figure Skating USA Grand Prix 2025 Pairs Short Program 15 11 720pEN50fps ES"
+        expect_episode: "Pairs Short Program"
+      - value: "Figure Skating Grand Prix Espoo 2025 Exhibition Gala 23 11 720pEN50fps ES"
+        expect_episode: "Exhibition Gala"
+      - value: "Figure Skating Grand Prix Final 2025 Women Free Program 06.12.2025 1080pEN50fps.mkv"
+        expect_episode: "Women Free Program"

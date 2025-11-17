@@ -165,6 +165,16 @@ def _select_season(show: Show, selector: SeasonSelector, match_groups: Dict[str,
         title = match_groups.get(selector.group or "season")
         if not title:
             return None
+        if selector.aliases:
+            alias_target = selector.aliases.get(title)
+            if alias_target is None:
+                normalized_title = normalize_token(title)
+                for alias_key, mapped_title in selector.aliases.items():
+                    if normalize_token(alias_key) == normalized_title:
+                        alias_target = mapped_title
+                        break
+            if alias_target:
+                title = alias_target
         normalized = normalize_token(title)
         for season in show.seasons:
             if normalize_token(season.title) == normalized:
@@ -342,9 +352,28 @@ def _select_episode(
             candidate_tokens.append(target_token)
         candidate_tokens.append(normalized_variant)
 
+        metadata_token = normalize_token(metadata_title) if metadata_title else None
+
         for token in candidate_tokens:
             if not token:
                 continue
+            if metadata_token and token == metadata_token:
+                episode = next(
+                    (item for item in season.episodes if normalize_token(item.title) == metadata_token),
+                    None,
+                )
+                if episode:
+                    if trace is not None:
+                        trace["match"] = {
+                            "label": label,
+                            "value": variant,
+                            "normalized": normalized_variant,
+                            "token": token,
+                            "episode_title": episode.title,
+                            "matched_via_alias": False,
+                        }
+                        trace["lookup_attempts"] = trace_lookup_records
+                    return episode
             episode = find_episode_for_token(token)
             if episode:
                 if trace is not None:

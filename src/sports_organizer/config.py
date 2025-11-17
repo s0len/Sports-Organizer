@@ -18,6 +18,7 @@ class SeasonSelector:
     group: Optional[str] = None
     offset: int = 0
     mapping: Dict[str, int] = field(default_factory=dict)
+    aliases: Dict[str, str] = field(default_factory=dict)
 
 
 @dataclass(slots=True)
@@ -111,6 +112,7 @@ def _build_season_selector(data: Dict[str, Any]) -> SeasonSelector:
         group=data.get("group"),
         offset=int(data.get("offset", 0)),
         mapping={str(k): int(v) for k, v in data.get("mapping", {}).items()},
+        aliases={str(k): str(v) for k, v in data.get("aliases", {}).items()},
     )
     return selector
 

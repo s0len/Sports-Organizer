@@ -507,11 +507,31 @@ def fetch_metadata(
         if stale is not None:
             LOGGER.debug("Metadata not modified for %s", metadata.url)
             return stale
-        if stats:
-            stats.record_failure()
-        raise MetadataFetchError(
-            f"Received 304 Not Modified for {metadata.url} without cached copy",
+        LOGGER.warning(
+            "Received 304 Not Modified for %s without cached copy; retrying without conditional headers",
+            metadata.url,
         )
+        if http_cache:
+            http_cache.invalidate(metadata.url)
+        retry_headers = dict(metadata.headers or {})
+        try:
+            response = requests.get(metadata.url, headers=retry_headers or None, timeout=30)
+            if stats:
+                stats.record_network_request()
+        except requests.RequestException as exc:  # noqa: BLE001
+            if stats:
+                stats.record_failure()
+            raise MetadataFetchError(
+                f"Unable to refetch metadata from {metadata.url} after 304 Not Modified"
+            ) from exc
+        status_code = response.status_code
+        if http_cache:
+            http_cache.update(
+                metadata.url,
+                etag=response.headers.get("ETag"),
+                last_modified=response.headers.get("Last-Modified"),
+                status_code=status_code,
+            )
 
     try:
         response.raise_for_status()
@@ -531,9 +551,8 @@ def fetch_metadata(
         raise ValueError(f"Unexpected metadata structure at {metadata.url}")
 
     if settings.dry_run:
-        LOGGER.debug("Dry-run: skipping metadata cache write for %s", metadata.url)
-    else:
-        _store_cache(cache_file, content)
+        LOGGER.debug("Dry-run: caching metadata for %s", metadata.url)
+    _store_cache(cache_file, content)
     return content
 
 
@@ -635,6 +654,7 @@ class MetadataNormalizer:
             episodes_raw = season_dict.get("episodes", [])
 
             episodes = self._parse_episodes(episodes_raw)
+            title_round = _season_round_from_title(title)
 
             season = Season(
                 key=str(key),
@@ -649,20 +669,34 @@ class MetadataNormalizer:
             round_override = self.metadata_cfg.season_overrides.get(title, {}).get("round")
             display_override = self.metadata_cfg.season_overrides.get(title, {}).get("season_number")
 
-            season.round_number = (
-                int(round_override)
-                if round_override is not None
-                else (
-                    _season_round_from_sort_title(sort_title)
-                    or self._season_number_from_key(str(key))
-                    or _season_round_from_title(title)
-                )
+            derived_round = (
+                _season_round_from_sort_title(sort_title)
+                or self._season_number_from_key(str(key))
+                or title_round
             )
+            season.round_number = int(round_override) if round_override is not None else derived_round
             season.display_number = (
                 int(display_override)
                 if display_override is not None
                 else season.round_number
             )
+
+            # UFC yearly metadata uses sequential sort titles (001_, 002_, …). Prefer the actual event number
+            # from the title (e.g., "UFC 319 …") when we can detect it, so numbered PPVs/Fight Nights can
+            # still resolve via round selectors.
+            if (
+                round_override is None
+                and title_round
+                and title_round >= 100
+                and "ufc" in title.lower()
+                and (season.round_number is None or season.round_number < 100)
+            ):
+                season.round_number = title_round
+                if display_override is None and (
+                    season.display_number is None or season.display_number < 100
+                ):
+                    season.display_number = title_round
+
             seasons.append(season)
 
         return seasons
