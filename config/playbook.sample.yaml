@@ -449,12 +449,12 @@ sports:
     variants:
       - year: 2025
         metadata:
-          url: https://raw.githubusercontent.com/s0len/meta-manager-config/refs/heads/main/metadata-files/ufc-2025.yaml
+          url: https://raw.githubusercontent.com/s0len/meta-manager-config/refs/heads/main/metadata-files/ufc/2025.yaml
           show_key: UFC 2025
           ttl_hours: 24
       - year: 2024
         metadata:
-          url: https://raw.githubusercontent.com/s0len/meta-manager-config/refs/heads/main/metadata-files/ufc-2024.yaml
+          url: https://raw.githubusercontent.com/s0len/meta-manager-config/refs/heads/main/metadata-files/ufc/2024.yaml
           show_key: UFC 2024
           ttl_hours: 24
     

@@ -178,7 +178,7 @@ def test_metadata_normalizer_loads_show_with_rounds() -> None:
     assert episode.originally_available.isoformat() == "2024-03-01"
 
 
-def test_metadata_normalizer_prefers_ufc_event_numbers_from_title() -> None:
+def test_metadata_normalizer_keeps_sequential_round_numbers_for_ufc() -> None:
     metadata_cfg = MetadataConfig(url="https://example.com/demo.yaml", show_key="ufc_2025")
     normalizer = MetadataNormalizer(metadata_cfg)
 
@@ -187,15 +187,15 @@ def test_metadata_normalizer_prefers_ufc_event_numbers_from_title() -> None:
             "ufc_2025": {
                 "title": "UFC 2025",
                 "seasons": {
-                    "29": {
-                        "title": "UFC 319 du Plessis vs Chimaev",
-                        "sort_title": "029_UFC 319 du Plessis vs Chimaev",
-                        "episodes": [{"title": "Prelims"}],
-                    },
-                    "30": {
-                        "title": "UFC Fight Night 263 Garcia vs Onama",
-                        "sort_title": "030_UFC Fight Night 263 Garcia vs Onama",
+                    "1": {
+                        "title": "UFC Fight Night 249 Dern vs Ribas 2",
+                        "sort_title": "001_UFC Fight Night 249 Dern vs Ribas 2",
                         "episodes": [{"title": "Main Card"}],
+                    },
+                    "2": {
+                        "title": "UFC 311 Makhachev vs Moicano",
+                        "sort_title": "002_UFC 311 Makhachev vs Moicano",
+                        "episodes": [{"title": "Prelims"}],
                     },
                 },
             }
@@ -205,14 +205,41 @@ def test_metadata_normalizer_prefers_ufc_event_numbers_from_title() -> None:
     show = normalizer.load_show(raw)
 
     assert len(show.seasons) == 2
-    numbered = show.seasons[0]
-    fight_night = show.seasons[1]
+    first = show.seasons[0]
+    second = show.seasons[1]
 
-    assert numbered.title.startswith("UFC 319")
-    assert numbered.round_number == 319
-    assert numbered.display_number == 319
+    assert first.round_number == 1
+    assert first.display_number == 1
+    assert second.round_number == 2
+    assert second.display_number == 2
 
-    assert fight_night.title.startswith("UFC Fight Night 263")
-    assert fight_night.round_number == 263
-    assert fight_night.display_number == 263
+
+def test_metadata_normalizer_falls_back_to_index_when_no_numeric_hint() -> None:
+    metadata_cfg = MetadataConfig(url="https://example.com/demo.yaml", show_key="demo")
+    normalizer = MetadataNormalizer(metadata_cfg)
+
+    raw = {
+        "metadata": {
+            "demo": {
+                "title": "Demo Show",
+                "seasons": {
+                    "alpha": {
+                        "title": "Showcase Alpha",
+                        "episodes": [{"title": "Session"}],
+                    },
+                    "beta": {
+                        "title": "Showcase Beta",
+                        "episodes": [{"title": "Session"}],
+                    },
+                },
+            }
+        }
+    }
+
+    show = normalizer.load_show(raw)
+
+    assert show.seasons[0].round_number == 1
+    assert show.seasons[0].display_number == 1
+    assert show.seasons[1].round_number == 2
+    assert show.seasons[1].display_number == 2
 

@@ -456,7 +456,7 @@ libraries:
       - url: https://raw.githubusercontent.com/s0len/meta-manager-config/main/metadata-files/nfl-2025-26.yaml
       - url: https://raw.githubusercontent.com/s0len/meta-manager-config/main/metadata-files/premier-league-2025-26.yaml
       - url: https://raw.githubusercontent.com/s0len/meta-manager-config/main/metadata-files/uefa-champions-league-2025-26.yaml
-      - url: https://raw.githubusercontent.com/s0len/meta-manager-config/main/metadata-files/ufc-2025.yaml
+      - url: https://raw.githubusercontent.com/s0len/meta-manager-config/main/metadata-files/ufc/2025.yaml
       - url: https://raw.githubusercontent.com/s0len/meta-manager-config/main/metadata-files/womens-uefa-euro.yaml
       - url: https://raw.githubusercontent.com/s0len/meta-manager-config/main/metadata-files/wsbk-2025.yaml
       - url: https://raw.githubusercontent.com/s0len/meta-manager-config/main/metadata-files/wssp-2025.yaml
@@ -515,6 +515,8 @@ NFL.*NiGHTNiNJAS
 # WorldSBK / WorldSSP / WorldSSP300 by MWR
 ([Ww][Ss][Bb][Kk]|[Ww][Ss][Ss][Pp]|[Ww][Ss][Ss][Pp]300)\.\d{4}\.Round\d+\.[^.]+\.(FP\d?|[Ss]eason\.[Pp]review|[Ss]uperpole|[Rr]ace\.[Oo]ne|[Rr]ace\.[Tt]wo|[Ww]arm\.[Uu]p(\.[Oo]ne|\.[Tt]wo)?|[Ww]eekend\.[Hh]ighlights)\..*h264..*MWR
 ```
+
+UFC releases must now include the matchup slug (e.g., `UFC 322 Della Maddalena vs Makhachev`) so Playbook can align each file with the correct metadata season. Event numbers alone are ignored by the new title-based matching.
 
 ## Plex Library Setup
 

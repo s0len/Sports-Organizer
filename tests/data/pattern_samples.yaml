@@ -46,46 +46,46 @@ samples:
       key: "ufc"
       title: "Ultimate Fighting Championship"
       seasons:
-        - key: "321"
-          title: "UFC 321"
-          round_number: 321
+        - key: "1"
+          title: "UFC 321 Aspinall vs Gane"
+          round_number: 1
           episodes:
             - title: "Early Prelims"
             - title: "Prelims"
             - title: "Main Card"
-        - key: "284"
-          title: "UFC 284"
-          round_number: 284
+        - key: "2"
+          title: "UFC 284 Volkanovski vs Makhachev"
+          round_number: 2
           episodes:
             - title: "Early Prelims"
             - title: "Prelims"
             - title: "Main Card"
     filenames:
-      - value: "UFC.321.1080p.WEB-DL.H264.Fight-BB.mkv"
+      - value: "UFC.321.Aspinall.vs.Gane.Main.Card.1080p.WEB-DL.H264.Fight-BB.mkv"
         expect_episode: "Main Card"
-      - value: "UFC.284.Early.Prelims.WEB-DL.H264-SHREDDiE.mp4"
+      - value: "UFC.284.Volkanovski.vs.Makhachev.Early.Prelims.WEB-DL.H264-SHREDDiE.mp4"
         expect_episode: "Early Prelims"
-      - value: "UFC.284.Prelims.WEB-DL.H264-SHREDDiE.mp4"
+      - value: "UFC.284.Volkanovski.vs.Makhachev.Prelims.WEB-DL.H264-SHREDDiE.mp4"
         expect_episode: "Prelims"
-      - value: "UFC.284.Main.Card.WEB-DL.H264-SHREDDiE.mkv"
+      - value: "UFC.284.Volkanovski.vs.Makhachev.Main.Card.WEB-DL.H264-SHREDDiE.mkv"
         expect_episode: "Main Card"
-      - value: "UFC.284.MainCard.WEB-DL.H264.SHREDDiE.mkv"
+      - value: "UFC.284.Volkanovski.vs.Makhachev.MainCard.WEB-DL.H264.SHREDDiE.mkv"
         expect_episode: "Main Card"
-      - value: "UFC.284.PPV.WEB-DL.H264-SHREDDiE.mp4"
+      - value: "UFC.284.Volkanovski.vs.Makhachev.PPV.WEB-DL.H264-SHREDDiE.mp4"
         expect_episode: "Main Card"
-      - value: "UFC.284.Pay.Per.View.WEB-DL.H264-SHREDDiE.mp4"
+      - value: "UFC.284.Volkanovski.vs.Makhachev.Pay.Per.View.WEB-DL.H264-SHREDDiE.mp4"
         expect_episode: "Main Card"
-      - value: "UFC.284.Pay-Per-View.WEB-DL.H264-Fight.BB.mkv"
+      - value: "UFC.284.Volkanovski.vs.Makhachev.Pay-Per-View.WEB-DL.H264-Fight.BB.mkv"
         expect_episode: "Main Card"
-      - value: "UFC.284.Pay_Per_View.WEB-DL.1080p.SHREDDiE.ts"
+      - value: "UFC.284.Volkanovski.vs.Makhachev.Pay_Per_View.WEB-DL.1080p.SHREDDiE.ts"
         expect_episode: "Main Card"
-      - value: "UFC.284.PayPerView.WEBRip.720p.Fight-BB.mp4"
+      - value: "UFC.284.Volkanovski.vs.Makhachev.PayPerView.WEBRip.720p.Fight-BB.mp4"
         expect_episode: "Main Card"
-      - value: "UFC 284 Pay Per View 1080p WEB SHREDDiE.mp4"
+      - value: "UFC 284 Volkanovski vs Makhachev Pay Per View 1080p WEB SHREDDiE.mp4"
         expect_episode: "Main Card"
-      - value: "UFC 284 Fight-BB 1080p WEB.mp4"
+      - value: "UFC 284 Volkanovski vs Makhachev Fight-BB 1080p WEB.mp4"
         expect_episode: "Main Card"
-      - value: "UFC 284 SHREDDiE 1080p WEB.mp4"
+      - value: "UFC 284 Volkanovski vs Makhachev SHREDDiE 1080p WEB.mp4"
         expect_episode: "Main Card"
 
   - description: "UFC Fight Night releases resolve"
@@ -99,12 +99,12 @@ samples:
       title: "UFC 2025"
       seasons:
         - title: "UFC Fight Night 263 Garcia vs Onama"
-          round_number: 263
+          round_number: 1
           episodes:
             - title: "Prelims"
             - title: "Main Card"
         - title: "UFC Fight Night 262 de Ridder vs Allen"
-          round_number: 262
+          round_number: 2
           episodes:
             - title: "Prelims"
             - title: "Main Card"
