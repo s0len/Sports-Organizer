@@ -453,7 +453,7 @@ libraries:
       - url: https://raw.githubusercontent.com/s0len/meta-manager-config/main/metadata-files/moto3-2025.yaml
       - url: https://raw.githubusercontent.com/s0len/meta-manager-config/main/metadata-files/motogp-2025.yaml
       - url: https://raw.githubusercontent.com/s0len/meta-manager-config/main/metadata-files/nba/2025-2026.yaml
-      - url: https://raw.githubusercontent.com/s0len/meta-manager-config/main/metadata-files/nfl/2025-2026.yaml
+      - url: https://raw.githubusercontent.com/s0len/meta-manager-config/main/metadata-files/nfl/2025.yaml
       - url: https://raw.githubusercontent.com/s0len/meta-manager-config/main/metadata-files/premier-league/2025-2026.yaml
       - url: https://raw.githubusercontent.com/s0len/meta-manager-config/main/metadata-files/uefa-champions-league/2025-2026.yaml
       - url: https://raw.githubusercontent.com/s0len/meta-manager-config/main/metadata-files/ufc/2025.yaml
