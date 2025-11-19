@@ -344,8 +344,8 @@ sports:
     enabled: true
 
     metadata:
-      url: https://raw.githubusercontent.com/s0len/meta-manager-config/refs/heads/main/metadata-files/nfl-2025-26.yaml
-      show_key: NFL 2025-26
+      url: https://raw.githubusercontent.com/s0len/meta-manager-config/refs/heads/main/metadata-files/nfl/2025-2026.yaml
+      show_key: NFL 2025-2026
       ttl_hours: 24
 
     source_globs:
@@ -363,8 +363,8 @@ sports:
     enabled: true
 
     metadata:
-      url: https://raw.githubusercontent.com/s0len/meta-manager-config/refs/heads/main/metadata-files/nba-2025-26.yaml
-      show_key: NBA 2025-26
+      url: https://raw.githubusercontent.com/s0len/meta-manager-config/refs/heads/main/metadata-files/nba/2025-2026.yaml
+      show_key: NBA 2025-2026
       ttl_hours: 24
 
     source_globs:
