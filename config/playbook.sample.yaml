@@ -192,17 +192,17 @@ sports:
     variants:
       - year: 2025
         metadata:
-          url: https://raw.githubusercontent.com/s0len/meta-manager-config/refs/heads/main/metadata-files/motogp-2025.yaml
+          url: https://raw.githubusercontent.com/s0len/meta-manager-config/refs/heads/main/metadata-files/motogp/2025.yaml
           show_key: MotoGP 2025
           ttl_hours: 24
       - year: 2024
         metadata:
-          url: https://raw.githubusercontent.com/s0len/meta-manager-config/refs/heads/main/metadata-files/motogp-2024.yaml
+          url: https://raw.githubusercontent.com/s0len/meta-manager-config/refs/heads/main/metadata-files/motogp/2024.yaml
           show_key: MotoGP 2024
           ttl_hours: 24
       - year: 2023
         metadata:
-          url: https://raw.githubusercontent.com/s0len/meta-manager-config/refs/heads/main/metadata-files/motogp-2023.yaml
+          url: https://raw.githubusercontent.com/s0len/meta-manager-config/refs/heads/main/metadata-files/motogp/2023.yaml
           show_key: MotoGP 2023
           ttl_hours: 24
 
@@ -223,7 +223,7 @@ sports:
     variants:
       - year: 2025
         metadata:
-          url: https://raw.githubusercontent.com/s0len/meta-manager-config/refs/heads/main/metadata-files/moto2-2025.yaml
+          url: https://raw.githubusercontent.com/s0len/meta-manager-config/refs/heads/main/metadata-files/moto2/2025.yaml
           show_key: Moto2 2025
           ttl_hours: 24
 
@@ -244,7 +244,7 @@ sports:
     variants:
       - year: 2025
         metadata:
-          url: https://raw.githubusercontent.com/s0len/meta-manager-config/refs/heads/main/metadata-files/moto3-2025.yaml
+          url: https://raw.githubusercontent.com/s0len/meta-manager-config/refs/heads/main/metadata-files/moto3/2025.yaml
           show_key: Moto3 2025
           ttl_hours: 24
 
