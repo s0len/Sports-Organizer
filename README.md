@@ -261,9 +261,16 @@ Start with `config/playbook.sample.yaml`. The schema mirrors `playbook.config` d
 | `discord_webhook_url` | Optional Discord webhook URL for processed-file notifications. Set via config or `DISCORD_WEBHOOK_URL`. | `null` |
 | `notifications.batch_daily` | When `true`, queue per-sport notifications for the day and edit a single Discord message instead of posting every file. | `false` |
 | `notifications.flush_time` | Local time boundary (`HH:MM`) used to roll daily batches forward. Entries before this time count toward the previous day. | `"00:00"` |
+| `file_watcher.enabled` | When `true`, Playbook watches the filesystem for changes rather than sleeping for `poll_interval`. | `false` |
+| `file_watcher.paths` | Directories to observe; defaults to `source_dir` when empty. Relative entries resolve under `source_dir`. | `[]` |
+| `file_watcher.include` / `ignore` | Glob filters to allow/skip events (e.g. ignore `*.part`). | `[]` / `["*.part","*.tmp"]` |
+| `file_watcher.debounce_seconds` | Minimum seconds between watcher-triggered runs. Batches bursts of events into a single processor pass. | `5` |
+| `file_watcher.reconcile_interval` | Forces a full scan every _N_ seconds even if no events arrive, ensuring missed events are caught. | `900` |
 | `destination.*` | Default templates for root folder, season folder, and filename. | See sample |
 
 When `discord_webhook_url` is set (or `DISCORD_WEBHOOK_URL` is exported), Playbook will post a short embed to that channel each time a new file is linked or copied into the library. Enable `notifications.batch_daily` if you prefer a single rolling message per sport/day: the first processed file creates the message, later files edit it in place with cumulative details. Use `notifications.flush_time` to control when the “day” ends (useful for overnight events).
+
+Enable `file_watcher.enabled` to react to filesystem events instead of blind polling. The watcher listens for `create`, `modify`, and `move` events under `source_dir` (or the directories listed in `file_watcher.paths`). Globs in `include`/`ignore` cull noisy files, `debounce_seconds` batches rapid-fire events into a single processor run, and `reconcile_interval` guarantees a periodic full scan just in case the platform drops events.
 
 ### 2. Sport Entries
 
@@ -377,6 +384,8 @@ Each variant inherits the base config, tweaks fields from the variant block, and
 | `--console-level LEVEL` | `CONSOLE_LEVEL` | matches file level | Console log level. |
 | `--log-file PATH` | `LOG_FILE` / `LOG_DIR` | `./playbook.log` | Rotates to `*.previous` on start. |
 | `--clear-processed-cache` | `CLEAR_PROCESSED_CACHE` | `false` | Truthy to reset processed file cache before processing. |
+| `--watch` | `WATCH_MODE=true` | `settings.file_watcher.enabled` | Force filesystem watcher mode (ignores `poll_interval`). |
+| `--no-watch` | `WATCH_MODE=false` | `false` | Disable watcher mode even if the config enables it. |
 
 Environment variables always win over config defaults, and CLI flags win over environment variables.
 
@@ -443,11 +452,11 @@ libraries:
       - url: https://raw.githubusercontent.com/s0len/meta-manager-config/main/metadata-files/moto2-2025.yaml
       - url: https://raw.githubusercontent.com/s0len/meta-manager-config/main/metadata-files/moto3-2025.yaml
       - url: https://raw.githubusercontent.com/s0len/meta-manager-config/main/metadata-files/motogp-2025.yaml
-      - url: https://raw.githubusercontent.com/s0len/meta-manager-config/main/metadata-files/nba-2025-26.yaml
-      - url: https://raw.githubusercontent.com/s0len/meta-manager-config/main/metadata-files/nfl-2025-26.yaml
-      - url: https://raw.githubusercontent.com/s0len/meta-manager-config/main/metadata-files/premier-league-2025-26.yaml
-      - url: https://raw.githubusercontent.com/s0len/meta-manager-config/main/metadata-files/uefa-champions-league-2025-26.yaml
-      - url: https://raw.githubusercontent.com/s0len/meta-manager-config/main/metadata-files/ufc-2025.yaml
+      - url: https://raw.githubusercontent.com/s0len/meta-manager-config/main/metadata-files/nba/2025-2026.yaml
+      - url: https://raw.githubusercontent.com/s0len/meta-manager-config/main/metadata-files/nfl/2025.yaml
+      - url: https://raw.githubusercontent.com/s0len/meta-manager-config/main/metadata-files/premier-league/2025-2026.yaml
+      - url: https://raw.githubusercontent.com/s0len/meta-manager-config/main/metadata-files/uefa-champions-league/2025-2026.yaml
+      - url: https://raw.githubusercontent.com/s0len/meta-manager-config/main/metadata-files/ufc/2025.yaml
       - url: https://raw.githubusercontent.com/s0len/meta-manager-config/main/metadata-files/womens-uefa-euro.yaml
       - url: https://raw.githubusercontent.com/s0len/meta-manager-config/main/metadata-files/wsbk-2025.yaml
       - url: https://raw.githubusercontent.com/s0len/meta-manager-config/main/metadata-files/wssp-2025.yaml
@@ -506,6 +515,8 @@ NFL.*NiGHTNiNJAS
 # WorldSBK / WorldSSP / WorldSSP300 by MWR
 ([Ww][Ss][Bb][Kk]|[Ww][Ss][Ss][Pp]|[Ww][Ss][Ss][Pp]300)\.\d{4}\.Round\d+\.[^.]+\.(FP\d?|[Ss]eason\.[Pp]review|[Ss]uperpole|[Rr]ace\.[Oo]ne|[Rr]ace\.[Tt]wo|[Ww]arm\.[Uu]p(\.[Oo]ne|\.[Tt]wo)?|[Ww]eekend\.[Hh]ighlights)\..*h264..*MWR
 ```
+
+UFC releases must now include the matchup slug (e.g., `UFC 322 Della Maddalena vs Makhachev`) so Playbook can align each file with the correct metadata season. Event numbers alone are ignored by the new title-based matching.
 
 ## Plex Library Setup
 

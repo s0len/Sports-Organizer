@@ -40,3 +40,21 @@ def test_validation_flags_invalid_flush_time_and_metadata_url() -> None:
     assert "flush-time" in codes
     assert "metadata-url" in codes
 
+
+def test_validation_rejects_invalid_watcher_block() -> None:
+    config = {
+        "settings": {
+            "file_watcher": {
+                "debounce_seconds": -1,
+                "reconcile_interval": -5,
+                "paths": 123,
+            }
+        },
+        "sports": [
+            {"id": "demo", "metadata": {"url": "https://example.com/demo.yaml"}},
+        ],
+    }
+
+    report = validate_config_data(config)
+    assert any(issue.path == "settings.file_watcher.paths" for issue in report.errors)
+

@@ -41,6 +41,19 @@ settings:
     flush_time: "00:00"   # Local HH:MM (or HH:MM:SS) boundary for the batching day rollover. Useful for overnight events.
 
   ####################################################################
+  # FILESYSTEM WATCHER (OPTIONAL)
+  ####################################################################
+  file_watcher:
+    enabled: false        # When true, rely on filesystem events instead of fixed poll intervals.
+    paths: []             # Directories to watch; defaults to source_dir when empty. Relative paths resolve under source_dir.
+    include: []           # Optional glob filters (e.g. "*.mkv") to limit which files trigger a run.
+    ignore:               # Globs that should never trigger a run.
+      - "*.part"
+      - "*.tmp"
+    debounce_seconds: 5   # Minimum number of seconds between watcher-triggered processor runs.
+    reconcile_interval: 900 # Run a full scan every N seconds even if no events arrive. Set 0 to disable.
+
+  ####################################################################
   # DEFAULT DESTINATION TEMPLATES
   ####################################################################
   # These templates are used for every sport unless overridden under that sport's `destination` block.
@@ -369,8 +382,8 @@ sports:
     enabled: true
 
     metadata:
-      url: https://raw.githubusercontent.com/s0len/meta-manager-config/refs/heads/main/metadata-files/uefa-champions-league-2025-26.yaml
-      show_key: UEFA Champions League 2025-26
+      url: https://raw.githubusercontent.com/s0len/meta-manager-config/refs/heads/main/metadata-files/uefa-champions-league/2025-2026.yaml
+      show_key: UEFA Champions League 2025-2026
       ttl_hours: 24
 
     source_globs:
@@ -409,8 +422,8 @@ sports:
     enabled: true
 
     metadata:
-      url: https://raw.githubusercontent.com/s0len/meta-manager-config/refs/heads/main/metadata-files/premier-league-2025-26.yaml
-      show_key: Premier League 2025-26
+      url: https://raw.githubusercontent.com/s0len/meta-manager-config/refs/heads/main/metadata-files/premier-league/2025-2026.yaml
+      show_key: Premier League 2025-2026
       ttl_hours: 24
 
     source_globs:
@@ -433,19 +446,23 @@ sports:
     name: UFC
     enabled: true
 
-    metadata:
-      # Point this to the yearly UFC metadata feed you want to process.
-      url: https://raw.githubusercontent.com/s0len/meta-manager-config/refs/heads/main/metadata-files/ufc-2025.yaml
-      # Match the show entry inside that feed (e.g., "UFC 2026" when you swap years).
-      show_key: UFC 2025
-      ttl_hours: 24
-
+    variants:
+      - year: 2025
+        metadata:
+          url: https://raw.githubusercontent.com/s0len/meta-manager-config/refs/heads/main/metadata-files/ufc/2025.yaml
+          show_key: UFC 2025
+          ttl_hours: 24
+      - year: 2024
+        metadata:
+          url: https://raw.githubusercontent.com/s0len/meta-manager-config/refs/heads/main/metadata-files/ufc/2024.yaml
+          show_key: UFC 2024
+          ttl_hours: 24
+    
     source_globs:
       - "UFC.*"
       - "UFC *"
       - "ufc.*"
       - "ufc *"
-
-    # Use the built-in UFC pattern template.
+    
     pattern_sets:
       - ufc

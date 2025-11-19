@@ -11,7 +11,7 @@ from typing import Any, Dict, Iterable, List, Mapping, Optional, Set, Tuple
 
 from rich.progress import Progress
 
-from .cache import MetadataHttpCache, ProcessedFileCache
+from .cache import CachedFileRecord, MetadataHttpCache, ProcessedFileCache
 from .config import AppConfig, SportConfig
 from .matcher import PatternRuntime, compile_patterns, match_file_to_episode
 from .metadata import (
@@ -25,7 +25,7 @@ from .metadata import (
 from .models import ProcessingStats, Show, SportFileMatch
 from .notifications import NotificationEvent, NotificationService
 from .templating import render_template
-from .utils import ensure_directory, link_file, normalize_token, sanitize_component, sha1_of_text, slugify
+from .utils import ensure_directory, link_file, normalize_token, sanitize_component, sha1_of_file, sha1_of_text, slugify
 
 LOGGER = logging.getLogger(__name__)
 
@@ -73,6 +73,7 @@ class Processor:
         self._metadata_changed_sports: List[Tuple[str, str]] = []
         self._metadata_change_map: Dict[str, MetadataChangeResult] = {}
         self._stale_destinations: Dict[str, Path] = {}
+        self._stale_records: Dict[str, CachedFileRecord] = {}
         self._metadata_fetch_stats = MetadataFetchStatistics()
 
     @staticmethod
@@ -221,6 +222,7 @@ class Processor:
         self.processed_cache.prune_missing_sources()
         runtimes = self._load_sports()
         self._stale_destinations = {}
+        self._stale_records = {}
         if self._metadata_changed_sports:
             labels = ", ".join(
                 f"{sport_id} ({sport_name})" if sport_name and sport_name != sport_id else sport_id
@@ -240,6 +242,7 @@ class Processor:
                 for source, record in removed_records.items()
                 if record.destination
             }
+            self._stale_records = removed_records
         stats = ProcessingStats()
 
         try:
@@ -745,6 +748,40 @@ class Processor:
             "episode_key": self._episode_cache_key(match),
         }
 
+        stale_record = self._stale_records.get(source_key)
+
+        destination_display = self._format_relative_destination(destination)
+
+        file_checksum: Optional[str] = None
+        try:
+            file_checksum = sha1_of_file(match.source_path)
+        except ValueError as exc:  # pragma: no cover - depends on filesystem state
+            LOGGER.debug(
+                self._format_log(
+                    "Failed To Hash Source",
+                    {
+                        "Source": match.source_path,
+                        "Error": exc,
+                    },
+                )
+            )
+
+        stored_checksum = self.processed_cache.get_checksum(match.source_path)
+        previous_checksum = stored_checksum or (stale_record.checksum if stale_record else None)
+        previously_seen = bool(stored_checksum or stale_record)
+        content_changed = (
+            previously_seen
+            and file_checksum is not None
+            and previous_checksum is not None
+            and file_checksum != previous_checksum
+        )
+        if not previously_seen:
+            event_type = "new"
+        elif content_changed:
+            event_type = "changed"
+        else:
+            event_type = "refresh"
+
         destination_display = self._format_relative_destination(destination)
         event = NotificationEvent(
             sport_id=match.sport.id,
@@ -759,6 +796,7 @@ class Processor:
             action="link",
             link_mode=link_mode,
             match_details=dict(match.context),
+            event_type=event_type,
         )
 
         replace_existing = False
@@ -785,9 +823,15 @@ class Processor:
                     skip_message = f"Destination exists: {destination} (source {match.source_path})"
                     stats.register_skipped(skip_message, is_error=False)
                     if not settings.dry_run:
-                        self.processed_cache.mark_processed(match.source_path, destination, **cache_kwargs)
+                        self.processed_cache.mark_processed(
+                            match.source_path,
+                            destination,
+                            checksum=file_checksum,
+                            **cache_kwargs,
+                        )
                     event.action = "skipped"
                     event.skip_reason = skip_message
+                    event.event_type = "skipped"
                     return event
 
         if replace_existing:
@@ -816,6 +860,7 @@ class Processor:
                     )
                     event.action = "error"
                     event.skip_reason = f"failed-to-remove: {exc}"
+                    event.event_type = "error"
                     return event
 
         LOGGER.info(
@@ -848,13 +893,19 @@ class Processor:
         if settings.dry_run:
             stats.register_processed()
             event.action = "dry-run"
+            event.event_type = "dry-run"
             event.replaced = replace_existing
             return event
 
         result = link_file(match.source_path, destination, mode=link_mode)
         if result.created:
             stats.register_processed()
-            self.processed_cache.mark_processed(match.source_path, destination, **cache_kwargs)
+            self.processed_cache.mark_processed(
+                match.source_path,
+                destination,
+                checksum=file_checksum,
+                **cache_kwargs,
+            )
             self._cleanup_old_destination(
                 source_key,
                 old_destination,
@@ -868,7 +919,12 @@ class Processor:
             failure_message = f"Failed to link {match.source_path} -> {destination}: {result.reason}"
             stats.register_skipped(failure_message)
             if result.reason == "destination-exists":
-                self.processed_cache.mark_processed(match.source_path, destination, **cache_kwargs)
+                self.processed_cache.mark_processed(
+                    match.source_path,
+                    destination,
+                    checksum=file_checksum,
+                    **cache_kwargs,
+                )
                 self._cleanup_old_destination(
                     source_key,
                     old_destination,
@@ -877,9 +933,11 @@ class Processor:
                 )
                 event.action = "skipped"
                 event.skip_reason = failure_message
+                event.event_type = "skipped"
                 return event
             event.action = "error"
             event.skip_reason = failure_message
+            event.event_type = "error"
             return event
 
     def _should_overwrite_existing(self, match: SportFileMatch) -> bool:
@@ -1033,6 +1091,7 @@ class Processor:
         *,
         dry_run: bool,
     ) -> None:
+        self._stale_records.pop(source_key, None)
         if not old_destination:
             self._stale_destinations.pop(source_key, None)
             return

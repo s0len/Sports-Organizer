@@ -17,6 +17,7 @@ from .config import AppConfig, Settings, load_config
 from .processor import Processor, TraceOptions
 from .utils import load_yaml_file
 from .validation import ValidationIssue, validate_config_data
+from .watcher import FileWatcherLoop, WatchdogUnavailableError
 
 LOGGER = logging.getLogger(__name__)
 CONSOLE = Console()
@@ -109,7 +110,11 @@ def _parse_run_args(arguments: list[str]) -> argparse.Namespace:
         type=Path,
         help="Directory where match trace JSON files are written (implies --trace-matches)",
     )
+    parser.add_argument("--watch", action="store_true", help="Force filesystem watcher mode")
+    parser.add_argument("--no-watch", action="store_true", help="Disable filesystem watcher even if enabled in config")
     namespace = parser.parse_args(arguments)
+    if namespace.watch and namespace.no_watch:
+        parser.error("--watch and --no-watch cannot be used together")
     namespace.command = "run"
     return namespace
 
@@ -238,6 +243,16 @@ def apply_runtime_overrides(config: AppConfig, args: argparse.Namespace) -> None
     if cache_override:
         config.settings.cache_dir = Path(cache_override)
 
+    watch_enabled = config.settings.file_watcher.enabled
+    if getattr(args, "watch", False):
+        watch_enabled = True
+    if getattr(args, "no_watch", False):
+        watch_enabled = False
+    env_watch = _env_bool("WATCH_MODE")
+    if env_watch is not None:
+        watch_enabled = env_watch
+    config.settings.file_watcher.enabled = bool(watch_enabled)
+
     webhook_override = os.getenv("DISCORD_WEBHOOK_URL")
     if webhook_override is not None:
         config.settings.discord_webhook_url = webhook_override.strip() or None
@@ -318,6 +333,19 @@ def _execute_run(args: argparse.Namespace) -> int:
     interval = config.settings.poll_interval
 
     LOGGER.info("Starting Playbook%s", " (dry-run)" if config.settings.dry_run else "")
+
+    watcher_settings = config.settings.file_watcher
+    if watcher_settings.enabled and not once:
+        try:
+            FileWatcherLoop(processor, watcher_settings).run_forever()
+        except WatchdogUnavailableError as exc:
+            LOGGER.error("%s", exc)
+            return 1
+        except KeyboardInterrupt:
+            LOGGER.info("Interrupted by user")
+        return 0
+    if watcher_settings.enabled and once:
+        LOGGER.warning("--once requested; skipping filesystem watcher and running a single pass instead.")
 
     try:
         while True:

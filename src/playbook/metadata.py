@@ -674,28 +674,17 @@ class MetadataNormalizer:
                 or self._season_number_from_key(str(key))
                 or title_round
             )
+            if derived_round is None:
+                derived_round = index + 1
+
             season.round_number = int(round_override) if round_override is not None else derived_round
             season.display_number = (
                 int(display_override)
                 if display_override is not None
                 else season.round_number
             )
-
-            # UFC yearly metadata uses sequential sort titles (001_, 002_, …). Prefer the actual event number
-            # from the title (e.g., "UFC 319 …") when we can detect it, so numbered PPVs/Fight Nights can
-            # still resolve via round selectors.
-            if (
-                round_override is None
-                and title_round
-                and title_round >= 100
-                and "ufc" in title.lower()
-                and (season.round_number is None or season.round_number < 100)
-            ):
-                season.round_number = title_round
-                if display_override is None and (
-                    season.display_number is None or season.display_number < 100
-                ):
-                    season.display_number = title_round
+            if season.display_number is None:
+                season.display_number = index + 1
 
             seasons.append(season)
 

@@ -22,7 +22,7 @@ class FakeResponse:
         return self._payload
 
 
-def _build_event(destination: str = "Demo.mkv", action: str = "link") -> NotificationEvent:
+def _build_event(destination: str = "Demo.mkv", action: str = "link", event_type: str = "new") -> NotificationEvent:
     return NotificationEvent(
         sport_id="demo",
         sport_name="Demo Sport",
@@ -36,6 +36,7 @@ def _build_event(destination: str = "Demo.mkv", action: str = "link") -> Notific
         action=action,
         link_mode="hardlink",
         timestamp=dt.datetime.now(dt.timezone.utc),
+        event_type=event_type,
     )
 
 
@@ -128,4 +129,20 @@ def test_notification_service_handles_rate_limiting(tmp_path, monkeypatch) -> No
 
     assert request_calls == ["POST", "POST"]
     assert sleep_calls and sleep_calls[0] >= 1.0
+
+
+def test_notification_service_skips_non_new_events(tmp_path, monkeypatch) -> None:
+    settings = NotificationSettings(batch_daily=False, flush_time=dt.time(hour=0, minute=0))
+    service = NotificationService(
+        settings,
+        cache_dir=tmp_path,
+        default_discord_webhook="https://discord.test/webhook",
+        enabled=True,
+    )
+
+    def fake_request(method, url, json=None, timeout=None, headers=None):
+        raise AssertionError("Request should not be sent")
+
+    monkeypatch.setattr("playbook.notifications.requests.request", fake_request)
+    service.notify(_build_event(event_type="refresh"))
 
