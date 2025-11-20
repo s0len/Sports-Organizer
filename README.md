@@ -310,7 +310,7 @@ Each sport defines metadata, source detection, and matching behavior. Example be
   name: Formula 1 2025
   enabled: true
   metadata:
-    url: https://raw.githubusercontent.com/s0len/meta-manager-config/refs/heads/main/metadata-files/formula1-2025.yaml
+    url: https://raw.githubusercontent.com/s0len/meta-manager-config/refs/heads/main/metadata/formula1/2025.yaml
     show_key: Formula1 2025
     ttl_hours: 12
     season_overrides:
@@ -474,22 +474,22 @@ Add something like this to your Kometa `config.yml` (library name can be whateve
 libraries:
   Sport:
     metadata_files:
-      - url: https://raw.githubusercontent.com/s0len/meta-manager-config/main/metadata-files/formula1-2025.yaml
-      - url: https://raw.githubusercontent.com/s0len/meta-manager-config/main/metadata-files/formulae-2025.yaml
-      - url: https://raw.githubusercontent.com/s0len/meta-manager-config/main/metadata-files/indycar-2025.yaml
-      - url: https://raw.githubusercontent.com/s0len/meta-manager-config/main/metadata-files/isle-of-man-tt.yaml
-      - url: https://raw.githubusercontent.com/s0len/meta-manager-config/main/metadata-files/moto2-2025.yaml
-      - url: https://raw.githubusercontent.com/s0len/meta-manager-config/main/metadata-files/moto3-2025.yaml
-      - url: https://raw.githubusercontent.com/s0len/meta-manager-config/main/metadata-files/motogp-2025.yaml
-      - url: https://raw.githubusercontent.com/s0len/meta-manager-config/main/metadata-files/nba/2025-2026.yaml
-      - url: https://raw.githubusercontent.com/s0len/meta-manager-config/main/metadata-files/nfl/2025.yaml
-      - url: https://raw.githubusercontent.com/s0len/meta-manager-config/main/metadata-files/premier-league/2025-2026.yaml
-      - url: https://raw.githubusercontent.com/s0len/meta-manager-config/main/metadata-files/uefa-champions-league/2025-2026.yaml
-      - url: https://raw.githubusercontent.com/s0len/meta-manager-config/main/metadata-files/ufc/2025.yaml
-      - url: https://raw.githubusercontent.com/s0len/meta-manager-config/main/metadata-files/womens-uefa-euro.yaml
-      - url: https://raw.githubusercontent.com/s0len/meta-manager-config/main/metadata-files/wsbk-2025.yaml
-      - url: https://raw.githubusercontent.com/s0len/meta-manager-config/main/metadata-files/wssp-2025.yaml
-      - url: https://raw.githubusercontent.com/s0len/meta-manager-config/main/metadata-files/wssp300-2025.yaml
+      - url: https://raw.githubusercontent.com/s0len/meta-manager-config/main/metadata/formula1/2025.yaml
+      - url: https://raw.githubusercontent.com/s0len/meta-manager-config/main/metadata/formula-e/2025-2026.yaml
+      - url: https://raw.githubusercontent.com/s0len/meta-manager-config/main/metadata/indycar-2025.yaml
+      - url: https://raw.githubusercontent.com/s0len/meta-manager-config/main/metadata/isle-of-man-tt.yaml
+      - url: https://raw.githubusercontent.com/s0len/meta-manager-config/main/metadata/moto2-2025.yaml
+      - url: https://raw.githubusercontent.com/s0len/meta-manager-config/main/metadata/moto3-2025.yaml
+      - url: https://raw.githubusercontent.com/s0len/meta-manager-config/main/metadata/motogp-2025.yaml
+      - url: https://raw.githubusercontent.com/s0len/meta-manager-config/main/metadata/nba/2025-2026.yaml
+      - url: https://raw.githubusercontent.com/s0len/meta-manager-config/main/metadata/nfl/2025.yaml
+      - url: https://raw.githubusercontent.com/s0len/meta-manager-config/main/metadata/premier-league/2025-2026.yaml
+      - url: https://raw.githubusercontent.com/s0len/meta-manager-config/main/metadata/uefa-champions-league/2025-2026.yaml
+      - url: https://raw.githubusercontent.com/s0len/meta-manager-config/main/metadata/ufc/2025.yaml
+      - url: https://raw.githubusercontent.com/s0len/meta-manager-config/main/metadata/womens-uefa-euro.yaml
+      - url: https://raw.githubusercontent.com/s0len/meta-manager-config/main/metadata/wsbk-2025.yaml
+      - url: https://raw.githubusercontent.com/s0len/meta-manager-config/main/metadata/wssp-2025.yaml
+      - url: https://raw.githubusercontent.com/s0len/meta-manager-config/main/metadata/wssp300-2025.yaml
 ```
 
 ## Downloading Sports with Autobrr
@@ -619,7 +619,7 @@ Questions, feature ideas, or metadata feed requests? [Open an issue](https://git
 
 ## Sample Figure Skating Grand Prix Filenames
 
-Bundle the `figure_skating_grand_prix` pattern set with the [Figure Skating Grand Prix 2025 metadata feed](https://raw.githubusercontent.com/s0len/meta-manager-config/refs/heads/main/metadata-files/figure-skating-grand-prix-2025.yaml) to normalize releases such as:
+Bundle the `figure_skating_grand_prix` pattern set with the [Figure Skating Grand Prix 2025 metadata feed](https://raw.githubusercontent.com/s0len/meta-manager-config/refs/heads/main/metadata/figure-skating-grand-prix-2025.yaml) to normalize releases such as:
 
 - `Figure Skating Grand Prix France 2025 Pairs Short Program 17 10 720pEN50fps ES`
 - `Figure Skating Grand Prix France 2025 Ice Dancing Rhythm Dance 18 10 720pEN50fps ES`
@@ -634,4 +634,4 @@ Bundle the `figure_skating_grand_prix` pattern set with the [Figure Skating Gran
 
 ---
 
-[^f1]: Formula 1 2025 metadata feed – [raw YAML](https://raw.githubusercontent.com/s0len/meta-manager-config/refs/heads/main/metadata-files/formula1-2025.yaml)
+[^f1]: Formula 1 2025 metadata feed – [raw YAML](https://raw.githubusercontent.com/s0len/meta-manager-config/refs/heads/main/metadata/formula1/2025.yaml)
