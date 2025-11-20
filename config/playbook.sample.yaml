@@ -39,6 +39,17 @@ settings:
   notifications:
     batch_daily: false    # When true, send one message per sport/day and edit it with new entries instead of posting each file.
     flush_time: "00:00"   # Local HH:MM (or HH:MM:SS) boundary for the batching day rollover. Useful for overnight events.
+    targets:              # Optional explicit targets. Leave empty to fall back to `discord_webhook_url`.
+      - type: discord
+        webhook_url: ${DISCORD_WEBHOOK_URL:-} # Override the default webhook per target (optional).
+      - type: autoscan
+        url: ${AUTOSCAN_URL:-http://autoscan:3030} # Base Autoscan URL; delete this block if not using Autoscan.
+        trigger: manual       # Autoscan trigger name; `manual` works with the built-in manual endpoint.
+        username: ${AUTOSCAN_USERNAME:-} # Optional basic auth credentials for Autoscan.
+        password: ${AUTOSCAN_PASSWORD:-}
+        rewrite:              # Rewrite Playbook's destination paths to whatever Autoscan/Plex can see.
+          - from: ${DESTINATION_DIR:-/data/destination}
+            to: /mnt/unionfs/Media
 
   ####################################################################
   # FILESYSTEM WATCHER (OPTIONAL)

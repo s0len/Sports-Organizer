@@ -270,6 +270,35 @@ Start with `config/playbook.sample.yaml`. The schema mirrors `playbook.config` d
 
 When `discord_webhook_url` is set (or `DISCORD_WEBHOOK_URL` is exported), Playbook will post a short embed to that channel each time a new file is linked or copied into the library. Enable `notifications.batch_daily` if you prefer a single rolling message per sport/day: the first processed file creates the message, later files edit it in place with cumulative details. Use `notifications.flush_time` to control when the “day” ends (useful for overnight events).
 
+#### Notification targets & Autoscan
+
+`notifications.targets` lets you fan out the same event to multiple destinations. Supported `type` values today are:
+
+- `discord` (single event or rolling daily embed, as above)
+- `slack` (simple text payload, optional template)
+- `webhook` (generic JSON payload, fully templatable)
+- `email` (SMTP with configurable subject/body templates)
+- `autoscan` (new) — ping the Autoscan manual trigger so Plex/Emby/Jellyfin rescans a directory as soon as Playbook links a file
+
+Autoscan support mirrors the [manual trigger endpoint](https://github.com/Cloudbox/autoscan?tab=readme-ov-file#manual): Playbook issues a `POST /triggers/<name>?dir=...` call with the directory that just received a processed file. Add a block like this under `notifications.targets`:
+
+```yaml
+notifications:
+  targets:
+    - type: autoscan
+      url: http://autoscan:3030          # Base Autoscan URL (http/s)
+      trigger: manual                    # Optional when using the default manual endpoint
+      username: ${AUTOSCAN_USERNAME:-}   # Optional basic-auth credentials
+      password: ${AUTOSCAN_PASSWORD:-}
+      rewrite:
+        - from: ${DESTINATION_DIR:-/data/destination}
+          to: /mnt/unionfs/Media         # Rewrite Playbook’s path to what Autoscan/Plex can see
+      timeout: 10                        # Seconds before the request is considered failed (default 10)
+      verify_ssl: true                   # Set false for self-signed endpoints (not recommended)
+```
+
+Every successful `new`/`changed` event sends the parent directory of the destination file as a `dir` query parameter. Add more rewrite entries if Autoscan lives inside a container with different mount points.
+
 Enable `file_watcher.enabled` to react to filesystem events instead of blind polling. The watcher listens for `create`, `modify`, and `move` events under `source_dir` (or the directories listed in `file_watcher.paths`). Globs in `include`/`ignore` cull noisy files, `debounce_seconds` batches rapid-fire events into a single processor run, and `reconcile_interval` guarantees a periodic full scan just in case the platform drops events.
 
 ### 2. Sport Entries
