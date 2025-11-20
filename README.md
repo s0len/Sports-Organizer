@@ -270,6 +270,35 @@ Start with `config/playbook.sample.yaml`. The schema mirrors `playbook.config` d
 
 When `discord_webhook_url` is set (or `DISCORD_WEBHOOK_URL` is exported), Playbook will post a short embed to that channel each time a new file is linked or copied into the library. Enable `notifications.batch_daily` if you prefer a single rolling message per sport/day: the first processed file creates the message, later files edit it in place with cumulative details. Use `notifications.flush_time` to control when the “day” ends (useful for overnight events).
 
+#### Notification targets & Autoscan
+
+`notifications.targets` lets you fan out the same event to multiple destinations. Supported `type` values today are:
+
+- `discord` (single event or rolling daily embed, as above)
+- `slack` (simple text payload, optional template)
+- `webhook` (generic JSON payload, fully templatable)
+- `email` (SMTP with configurable subject/body templates)
+- `autoscan` (new) — ping the Autoscan manual trigger so Plex/Emby/Jellyfin rescans a directory as soon as Playbook links a file
+
+Autoscan support mirrors the [manual trigger endpoint](https://github.com/Cloudbox/autoscan?tab=readme-ov-file#manual): Playbook issues a `POST /triggers/<name>?dir=...` call with the directory that just received a processed file. Add a block like this under `notifications.targets`:
+
+```yaml
+notifications:
+  targets:
+    - type: autoscan
+      url: http://autoscan:3030          # Base Autoscan URL (http/s)
+      trigger: manual                    # Optional when using the default manual endpoint
+      username: ${AUTOSCAN_USERNAME:-}   # Optional basic-auth credentials
+      password: ${AUTOSCAN_PASSWORD:-}
+      rewrite:
+        - from: ${DESTINATION_DIR:-/data/destination}
+          to: /mnt/unionfs/Media         # Rewrite Playbook’s path to what Autoscan/Plex can see
+      timeout: 10                        # Seconds before the request is considered failed (default 10)
+      verify_ssl: true                   # Set false for self-signed endpoints (not recommended)
+```
+
+Every successful `new`/`changed` event sends the parent directory of the destination file as a `dir` query parameter. Add more rewrite entries if Autoscan lives inside a container with different mount points.
+
 Enable `file_watcher.enabled` to react to filesystem events instead of blind polling. The watcher listens for `create`, `modify`, and `move` events under `source_dir` (or the directories listed in `file_watcher.paths`). Globs in `include`/`ignore` cull noisy files, `debounce_seconds` batches rapid-fire events into a single processor run, and `reconcile_interval` guarantees a periodic full scan just in case the platform drops events.
 
 ### 2. Sport Entries
@@ -281,7 +310,7 @@ Each sport defines metadata, source detection, and matching behavior. Example be
   name: Formula 1 2025
   enabled: true
   metadata:
-    url: https://raw.githubusercontent.com/s0len/meta-manager-config/refs/heads/main/metadata-files/formula1-2025.yaml
+    url: https://raw.githubusercontent.com/s0len/meta-manager-config/refs/heads/main/metadata/formula1/2025.yaml
     show_key: Formula1 2025
     ttl_hours: 12
     season_overrides:
@@ -445,22 +474,22 @@ Add something like this to your Kometa `config.yml` (library name can be whateve
 libraries:
   Sport:
     metadata_files:
-      - url: https://raw.githubusercontent.com/s0len/meta-manager-config/main/metadata-files/formula1-2025.yaml
-      - url: https://raw.githubusercontent.com/s0len/meta-manager-config/main/metadata-files/formulae-2025.yaml
-      - url: https://raw.githubusercontent.com/s0len/meta-manager-config/main/metadata-files/indycar-2025.yaml
-      - url: https://raw.githubusercontent.com/s0len/meta-manager-config/main/metadata-files/isle-of-man-tt.yaml
-      - url: https://raw.githubusercontent.com/s0len/meta-manager-config/main/metadata-files/moto2-2025.yaml
-      - url: https://raw.githubusercontent.com/s0len/meta-manager-config/main/metadata-files/moto3-2025.yaml
-      - url: https://raw.githubusercontent.com/s0len/meta-manager-config/main/metadata-files/motogp-2025.yaml
-      - url: https://raw.githubusercontent.com/s0len/meta-manager-config/main/metadata-files/nba/2025-2026.yaml
-      - url: https://raw.githubusercontent.com/s0len/meta-manager-config/main/metadata-files/nfl/2025.yaml
-      - url: https://raw.githubusercontent.com/s0len/meta-manager-config/main/metadata-files/premier-league/2025-2026.yaml
-      - url: https://raw.githubusercontent.com/s0len/meta-manager-config/main/metadata-files/uefa-champions-league/2025-2026.yaml
-      - url: https://raw.githubusercontent.com/s0len/meta-manager-config/main/metadata-files/ufc/2025.yaml
-      - url: https://raw.githubusercontent.com/s0len/meta-manager-config/main/metadata-files/womens-uefa-euro.yaml
-      - url: https://raw.githubusercontent.com/s0len/meta-manager-config/main/metadata-files/wsbk-2025.yaml
-      - url: https://raw.githubusercontent.com/s0len/meta-manager-config/main/metadata-files/wssp-2025.yaml
-      - url: https://raw.githubusercontent.com/s0len/meta-manager-config/main/metadata-files/wssp300-2025.yaml
+      - url: https://raw.githubusercontent.com/s0len/meta-manager-config/main/metadata/formula1/2025.yaml
+      - url: https://raw.githubusercontent.com/s0len/meta-manager-config/main/metadata/formula-e/2025-2026.yaml
+      - url: https://raw.githubusercontent.com/s0len/meta-manager-config/main/metadata/indycar-2025.yaml
+      - url: https://raw.githubusercontent.com/s0len/meta-manager-config/main/metadata/isle-of-man-tt.yaml
+      - url: https://raw.githubusercontent.com/s0len/meta-manager-config/main/metadata/moto2-2025.yaml
+      - url: https://raw.githubusercontent.com/s0len/meta-manager-config/main/metadata/moto3-2025.yaml
+      - url: https://raw.githubusercontent.com/s0len/meta-manager-config/main/metadata/motogp-2025.yaml
+      - url: https://raw.githubusercontent.com/s0len/meta-manager-config/main/metadata/nba/2025-2026.yaml
+      - url: https://raw.githubusercontent.com/s0len/meta-manager-config/main/metadata/nfl/2025.yaml
+      - url: https://raw.githubusercontent.com/s0len/meta-manager-config/main/metadata/premier-league/2025-2026.yaml
+      - url: https://raw.githubusercontent.com/s0len/meta-manager-config/main/metadata/uefa-champions-league/2025-2026.yaml
+      - url: https://raw.githubusercontent.com/s0len/meta-manager-config/main/metadata/ufc/2025.yaml
+      - url: https://raw.githubusercontent.com/s0len/meta-manager-config/main/metadata/womens-uefa-euro.yaml
+      - url: https://raw.githubusercontent.com/s0len/meta-manager-config/main/metadata/wsbk-2025.yaml
+      - url: https://raw.githubusercontent.com/s0len/meta-manager-config/main/metadata/wssp-2025.yaml
+      - url: https://raw.githubusercontent.com/s0len/meta-manager-config/main/metadata/wssp300-2025.yaml
 ```
 
 ## Downloading Sports with Autobrr
@@ -590,7 +619,7 @@ Questions, feature ideas, or metadata feed requests? [Open an issue](https://git
 
 ## Sample Figure Skating Grand Prix Filenames
 
-Bundle the `figure_skating_grand_prix` pattern set with the [Figure Skating Grand Prix 2025 metadata feed](https://raw.githubusercontent.com/s0len/meta-manager-config/refs/heads/main/metadata-files/figure-skating-grand-prix-2025.yaml) to normalize releases such as:
+Bundle the `figure_skating_grand_prix` pattern set with the [Figure Skating Grand Prix 2025 metadata feed](https://raw.githubusercontent.com/s0len/meta-manager-config/refs/heads/main/metadata/figure-skating-grand-prix-2025.yaml) to normalize releases such as:
 
 - `Figure Skating Grand Prix France 2025 Pairs Short Program 17 10 720pEN50fps ES`
 - `Figure Skating Grand Prix France 2025 Ice Dancing Rhythm Dance 18 10 720pEN50fps ES`
@@ -605,4 +634,4 @@ Bundle the `figure_skating_grand_prix` pattern set with the [Figure Skating Gran
 
 ---
 
-[^f1]: Formula 1 2025 metadata feed – [raw YAML](https://raw.githubusercontent.com/s0len/meta-manager-config/refs/heads/main/metadata-files/formula1-2025.yaml)
+[^f1]: Formula 1 2025 metadata feed – [raw YAML](https://raw.githubusercontent.com/s0len/meta-manager-config/refs/heads/main/metadata/formula1/2025.yaml)

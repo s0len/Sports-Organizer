@@ -3,7 +3,7 @@ from __future__ import annotations
 import datetime as dt
 import json
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 from playbook.config import NotificationSettings
 from playbook.notifications import NotificationEvent, NotificationService
@@ -22,7 +22,12 @@ class FakeResponse:
         return self._payload
 
 
-def _build_event(destination: str = "Demo.mkv", action: str = "link", event_type: str = "new") -> NotificationEvent:
+def _build_event(
+    destination: str = "Demo.mkv",
+    action: str = "link",
+    event_type: str = "new",
+    match_details: Optional[Dict[str, Any]] = None,
+) -> NotificationEvent:
     return NotificationEvent(
         sport_id="demo",
         sport_name="Demo Sport",
@@ -37,6 +42,7 @@ def _build_event(destination: str = "Demo.mkv", action: str = "link", event_type
         link_mode="hardlink",
         timestamp=dt.datetime.now(dt.timezone.utc),
         event_type=event_type,
+        match_details=match_details or {},
     )
 
 
@@ -45,6 +51,7 @@ def test_notification_service_sends_discord_message(tmp_path, monkeypatch) -> No
     service = NotificationService(
         settings,
         cache_dir=tmp_path,
+        destination_dir=tmp_path,
         default_discord_webhook="https://discord.test/webhook",
         enabled=True,
     )
@@ -72,6 +79,7 @@ def test_notification_service_batches_discord_messages(tmp_path, monkeypatch) ->
     service = NotificationService(
         settings,
         cache_dir=tmp_path,
+        destination_dir=tmp_path,
         default_discord_webhook="https://discord.test/webhook",
         enabled=True,
     )
@@ -107,6 +115,7 @@ def test_notification_service_handles_rate_limiting(tmp_path, monkeypatch) -> No
     service = NotificationService(
         settings,
         cache_dir=tmp_path,
+        destination_dir=tmp_path,
         default_discord_webhook="https://discord.test/webhook",
         enabled=True,
     )
@@ -136,6 +145,7 @@ def test_notification_service_skips_non_new_events(tmp_path, monkeypatch) -> Non
     service = NotificationService(
         settings,
         cache_dir=tmp_path,
+        destination_dir=tmp_path,
         default_discord_webhook="https://discord.test/webhook",
         enabled=True,
     )
@@ -145,4 +155,56 @@ def test_notification_service_skips_non_new_events(tmp_path, monkeypatch) -> Non
 
     monkeypatch.setattr("playbook.notifications.requests.request", fake_request)
     service.notify(_build_event(event_type="refresh"))
+
+
+def test_autoscan_target_posts_manual_trigger(tmp_path, monkeypatch) -> None:
+    rewrite_from = str(tmp_path / "dest")
+    settings = NotificationSettings(
+        batch_daily=False,
+        flush_time=dt.time(hour=0, minute=0),
+        targets=[
+            {
+                "type": "autoscan",
+                "url": "http://autoscan.test:3030",
+                "rewrite": [
+                    {
+                        "from": rewrite_from,
+                        "to": "/mnt/unionfs",
+                    }
+                ],
+            }
+        ],
+    )
+    service = NotificationService(
+        settings,
+        cache_dir=tmp_path,
+        destination_dir=tmp_path,
+        default_discord_webhook=None,
+        enabled=True,
+    )
+
+    calls: List[Dict[str, Any]] = []
+
+    def fake_post(url, params=None, auth=None, timeout=None, verify=None):
+        calls.append({"url": url, "params": params, "auth": auth, "timeout": timeout, "verify": verify})
+
+        class _Response:
+            status_code = 200
+            text = ""
+
+        return _Response()
+
+    monkeypatch.setattr("playbook.notifications.requests.post", fake_post)
+
+    destination_file = Path(rewrite_from) / "Show" / "Episode.mkv"
+    event = _build_event(
+        match_details={"destination_path": str(destination_file)},
+    )
+    service.notify(event)
+
+    assert len(calls) == 1
+    request = calls[0]
+    assert request["url"] == "http://autoscan.test:3030/triggers/manual"
+    assert ("dir", "/mnt/unionfs/Show") in request["params"]
+    assert request["auth"] is None
 

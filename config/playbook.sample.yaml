@@ -39,6 +39,17 @@ settings:
   notifications:
     batch_daily: false    # When true, send one message per sport/day and edit it with new entries instead of posting each file.
     flush_time: "00:00"   # Local HH:MM (or HH:MM:SS) boundary for the batching day rollover. Useful for overnight events.
+    targets:              # Optional explicit targets. Leave empty to fall back to `discord_webhook_url`.
+      - type: discord
+        webhook_url: ${DISCORD_WEBHOOK_URL:-} # Override the default webhook per target (optional).
+      - type: autoscan
+        url: ${AUTOSCAN_URL:-http://autoscan:3030} # Base Autoscan URL; delete this block if not using Autoscan.
+        trigger: manual       # Autoscan trigger name; `manual` works with the built-in manual endpoint.
+        username: ${AUTOSCAN_USERNAME:-} # Optional basic auth credentials for Autoscan.
+        password: ${AUTOSCAN_PASSWORD:-}
+        rewrite:              # Rewrite Playbook's destination paths to whatever Autoscan/Plex can see.
+          - from: ${DESTINATION_DIR:-/data/destination}
+            to: /mnt/unionfs/Media
 
   ####################################################################
   # FILESYSTEM WATCHER (OPTIONAL)
@@ -119,8 +130,8 @@ sports:
     variants:
       - year: 2025
         metadata:
-          url: https://raw.githubusercontent.com/s0len/meta-manager-config/refs/heads/main/metadata-files/formula1-2025.yaml
-          show_key: Formula1 2025
+          url: https://raw.githubusercontent.com/s0len/meta-manager-config/refs/heads/main/metadata/formula1/2025.yaml
+          show_key: Formula 1 2025
           ttl_hours: 24
           season_overrides:
             Pre-Season Testing:
@@ -147,8 +158,13 @@ sports:
     variants:
       - year: 2025
         metadata:
-          url: https://raw.githubusercontent.com/s0len/meta-manager-config/refs/heads/main/metadata-files/formulae-2025.yaml
-          show_key: Formula E 2025
+          url: https://raw.githubusercontent.com/s0len/meta-manager-config/refs/heads/main/metadata/formula-e/2024-2025.yaml
+          show_key: Formula E 2024-2025
+          ttl_hours: 24
+      - year: 2026
+        metadata:
+          url: https://raw.githubusercontent.com/s0len/meta-manager-config/refs/heads/main/metadata/formula-e/2025-2026.yaml
+          show_key: Formula E 2025-2026
           ttl_hours: 24
 
   - id: indycar
@@ -171,8 +187,13 @@ sports:
     variants:
       - year: 2025
         metadata:
-          url: https://raw.githubusercontent.com/s0len/meta-manager-config/refs/heads/main/metadata-files/indycar-2025.yaml
+          url: https://raw.githubusercontent.com/s0len/meta-manager-config/refs/heads/main/metadata/indycar/2025.yaml
           show_key: NTT IndyCar Series 2025
+          ttl_hours: 24
+      - year: 2026
+        metadata:
+          url: https://raw.githubusercontent.com/s0len/meta-manager-config/refs/heads/main/metadata/indycar/2026.yaml
+          show_key: NTT IndyCar Series 2026
           ttl_hours: 24
 
   - id: motogp
@@ -192,17 +213,17 @@ sports:
     variants:
       - year: 2025
         metadata:
-          url: https://raw.githubusercontent.com/s0len/meta-manager-config/refs/heads/main/metadata-files/motogp-2025.yaml
+          url: https://raw.githubusercontent.com/s0len/meta-manager-config/refs/heads/main/metadata/motogp/2025.yaml
           show_key: MotoGP 2025
           ttl_hours: 24
       - year: 2024
         metadata:
-          url: https://raw.githubusercontent.com/s0len/meta-manager-config/refs/heads/main/metadata-files/motogp-2024.yaml
+          url: https://raw.githubusercontent.com/s0len/meta-manager-config/refs/heads/main/metadata/motogp/2024.yaml
           show_key: MotoGP 2024
           ttl_hours: 24
       - year: 2023
         metadata:
-          url: https://raw.githubusercontent.com/s0len/meta-manager-config/refs/heads/main/metadata-files/motogp-2023.yaml
+          url: https://raw.githubusercontent.com/s0len/meta-manager-config/refs/heads/main/metadata/motogp/2023.yaml
           show_key: MotoGP 2023
           ttl_hours: 24
 
@@ -223,7 +244,7 @@ sports:
     variants:
       - year: 2025
         metadata:
-          url: https://raw.githubusercontent.com/s0len/meta-manager-config/refs/heads/main/metadata-files/moto2-2025.yaml
+          url: https://raw.githubusercontent.com/s0len/meta-manager-config/refs/heads/main/metadata/moto2/2025.yaml
           show_key: Moto2 2025
           ttl_hours: 24
 
@@ -244,7 +265,7 @@ sports:
     variants:
       - year: 2025
         metadata:
-          url: https://raw.githubusercontent.com/s0len/meta-manager-config/refs/heads/main/metadata-files/moto3-2025.yaml
+          url: https://raw.githubusercontent.com/s0len/meta-manager-config/refs/heads/main/metadata/moto3/2025.yaml
           show_key: Moto3 2025
           ttl_hours: 24
 
@@ -266,17 +287,17 @@ sports:
     variants:
       - year: 2025
         metadata:
-          url: https://raw.githubusercontent.com/s0len/meta-manager-config/refs/heads/main/metadata-files/wssp-2025.yaml
+          url: https://raw.githubusercontent.com/s0len/meta-manager-config/refs/heads/main/metadata/wssp-2025.yaml
           show_key: World Supersport 2025
           ttl_hours: 24
       - year: 2024
         metadata:
-          url: https://raw.githubusercontent.com/s0len/meta-manager-config/refs/heads/main/metadata-files/wssp-2024.yaml
+          url: https://raw.githubusercontent.com/s0len/meta-manager-config/refs/heads/main/metadata/wssp-2024.yaml
           show_key: World Supersport 2024
           ttl_hours: 24
       - year: 2023
         metadata:
-          url: https://raw.githubusercontent.com/s0len/meta-manager-config/refs/heads/main/metadata-files/wssp-2023.yaml
+          url: https://raw.githubusercontent.com/s0len/meta-manager-config/refs/heads/main/metadata/wssp-2023.yaml
           show_key: World Supersport 2023
           ttl_hours: 24
 
@@ -302,17 +323,17 @@ sports:
     variants:
       - year: 2025
         metadata:
-          url: https://raw.githubusercontent.com/s0len/meta-manager-config/refs/heads/main/metadata-files/wsbk-2025.yaml
+          url: https://raw.githubusercontent.com/s0len/meta-manager-config/refs/heads/main/metadata/wsbk-2025.yaml
           show_key: World Superbike 2025
           ttl_hours: 24
       - year: 2024
         metadata:
-          url: https://raw.githubusercontent.com/s0len/meta-manager-config/refs/heads/main/metadata-files/wsbk-2024.yaml
+          url: https://raw.githubusercontent.com/s0len/meta-manager-config/refs/heads/main/metadata/wsbk-2024.yaml
           show_key: World Superbike 2024
           ttl_hours: 24
       - year: 2023
         metadata:
-          url: https://raw.githubusercontent.com/s0len/meta-manager-config/refs/heads/main/metadata-files/wsbk-2023.yaml
+          url: https://raw.githubusercontent.com/s0len/meta-manager-config/refs/heads/main/metadata/wsbk-2023.yaml
           show_key: World Superbike 2023
           ttl_hours: 24
 
@@ -321,7 +342,7 @@ sports:
     enabled: true
 
     metadata:
-      url: https://raw.githubusercontent.com/s0len/meta-manager-config/refs/heads/main/metadata-files/isle-of-man-tt.yaml
+      url: https://raw.githubusercontent.com/s0len/meta-manager-config/refs/heads/main/metadata/isle-of-man-tt.yaml
       show_key: Isle of Man TT
       ttl_hours: 24
 
@@ -344,8 +365,8 @@ sports:
     enabled: true
 
     metadata:
-      url: https://raw.githubusercontent.com/s0len/meta-manager-config/refs/heads/main/metadata-files/nfl-2025-26.yaml
-      show_key: NFL 2025-26
+      url: https://raw.githubusercontent.com/s0len/meta-manager-config/refs/heads/main/metadata/nfl/2025.yaml
+      show_key: NFL 2025
       ttl_hours: 24
 
     source_globs:
@@ -363,8 +384,8 @@ sports:
     enabled: true
 
     metadata:
-      url: https://raw.githubusercontent.com/s0len/meta-manager-config/refs/heads/main/metadata-files/nba-2025-26.yaml
-      show_key: NBA 2025-26
+      url: https://raw.githubusercontent.com/s0len/meta-manager-config/refs/heads/main/metadata/nba/2025-2026.yaml
+      show_key: NBA 2025-2026
       ttl_hours: 24
 
     source_globs:
@@ -382,7 +403,7 @@ sports:
     enabled: true
 
     metadata:
-      url: https://raw.githubusercontent.com/s0len/meta-manager-config/refs/heads/main/metadata-files/uefa-champions-league/2025-2026.yaml
+      url: https://raw.githubusercontent.com/s0len/meta-manager-config/refs/heads/main/metadata/uefa-champions-league/2025-2026.yaml
       show_key: UEFA Champions League 2025-2026
       ttl_hours: 24
 
@@ -403,7 +424,7 @@ sports:
     enabled: true
 
     metadata:
-      url: https://raw.githubusercontent.com/s0len/meta-manager-config/refs/heads/main/metadata-files/figure-skating-grand-prix-2025.yaml
+      url: https://raw.githubusercontent.com/s0len/meta-manager-config/refs/heads/main/metadata/figure-skating-grand-prix-2025.yaml
       show_key: Figure Skating Grand Prix 2025
       ttl_hours: 24
 
@@ -422,7 +443,7 @@ sports:
     enabled: true
 
     metadata:
-      url: https://raw.githubusercontent.com/s0len/meta-manager-config/refs/heads/main/metadata-files/premier-league/2025-2026.yaml
+      url: https://raw.githubusercontent.com/s0len/meta-manager-config/refs/heads/main/metadata/premier-league/2025-2026.yaml
       show_key: Premier League 2025-2026
       ttl_hours: 24
 
@@ -449,12 +470,12 @@ sports:
     variants:
       - year: 2025
         metadata:
-          url: https://raw.githubusercontent.com/s0len/meta-manager-config/refs/heads/main/metadata-files/ufc/2025.yaml
+          url: https://raw.githubusercontent.com/s0len/meta-manager-config/refs/heads/main/metadata/ufc/2025.yaml
           show_key: UFC 2025
           ttl_hours: 24
       - year: 2024
         metadata:
-          url: https://raw.githubusercontent.com/s0len/meta-manager-config/refs/heads/main/metadata-files/ufc/2024.yaml
+          url: https://raw.githubusercontent.com/s0len/meta-manager-config/refs/heads/main/metadata/ufc/2024.yaml
           show_key: UFC 2024
           ttl_hours: 24
     

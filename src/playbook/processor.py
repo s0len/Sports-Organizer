@@ -66,6 +66,7 @@ class Processor:
         self.notification_service = NotificationService(
             settings.notifications,
             cache_dir=settings.cache_dir,
+            destination_dir=settings.destination_dir,
             default_discord_webhook=settings.discord_webhook_url if enable_notifications else None,
             enabled=enable_notifications,
         )
@@ -483,6 +484,10 @@ class Processor:
                         trace_context["destination_context"] = context
                         self._persist_trace(trace_context)
                     return False, [("error", message)]
+
+                context["destination_path"] = str(destination)
+                context["destination_dir"] = str(destination.parent)
+                context["source_path"] = str(source_path)
 
                 match = SportFileMatch(
                     source_path=source_path,
