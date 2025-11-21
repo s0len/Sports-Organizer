@@ -54,6 +54,8 @@
   - [Plex Metadata via Kometa](#plex-metadata-via-kometa)
     - [Example Kometa config](#example-kometa-config)
     - [Triggering Kometa After Ingests](#triggering-kometa-after-ingests)
+      - [Kubernetes CronJob trigger](#kubernetes-cronjob-trigger)
+      - [Docker Run trigger](#docker-run-trigger)
   - [Downloading Sports with Autobrr](#downloading-sports-with-autobrr)
     - [Basic Autobrr setup](#basic-autobrr-setup)
     - [Example regexes](#example-regexes)
@@ -496,24 +498,61 @@ libraries:
 
 ### Triggering Kometa After Ingests
 
-When you enable the new `settings.kometa_trigger` block, Playbook will fire Kometa's `kometa-sport` CronJob through the in-cluster Kubernetes API immediately after the first newly ingested file in each run:
+Playbook can nudge Kometa automatically after each ingest cycle. Configure it once under `settings.kometa_trigger` and it will fire immediately after the first _new_ file is linked so duplicate runs are avoided.
+
+#### Kubernetes CronJob trigger
+
+Use this when Playbook and Kometa live in the same cluster:
 
 ```yaml
 settings:
   kometa_trigger:
     enabled: true
+    mode: kubernetes
     namespace: media
     cronjob_name: kometa-sport
+    job_name_prefix: kometa-sport-triggered-by-playbook
 ```
 
-Playbook clones the CronJob's job template to create an ad-hoc Job named `kometa-sport-manual-<timestamp>-<rand>` and labels it `trigger=playbook` so you can monitor it easily:
+Playbook clones the CronJob's `jobTemplate` so Kometa uses the exact same Pod spec you already trust. Jobs are labeled `trigger=playbook`, which makes it easy to monitor and tail logs:
 
 ```bash
 kubectl -n media get jobs -l trigger=playbook
-kubectl -n media logs job/kometa-sport-manual-20241121-123456-abcd
+kubectl -n media logs job/kometa-sport-triggered-by-playbook-20241121-123456-abcd
 ```
 
-If Kometa is already busy running a Job, the trigger logs a duplicate warning and waits for the next ingest cycle.
+If a Job already exists (e.g., Kometa is still running from a previous batch), Playbook logs the conflict and waits for the next ingest cycle.
+
+#### Docker Run trigger
+
+No Kubernetes? Set `mode: docker` and Playbook will shell out to `docker run` (or `podman`, etc.) with whatever libraries and config path you provide:
+
+```yaml
+settings:
+  kometa_trigger:
+    enabled: true
+    mode: docker
+    docker:
+      binary: docker
+      image: kometateam/kometa
+      config_path: /srv/media/Kometa/config   # host path
+      libraries: "Sports|TV Shows - 4K"
+      extra_args:
+        - --config
+        - /config/config.yml
+```
+
+Under the hood Playbook runs a command similar to:
+
+```bash
+docker run --rm \
+  -v "/srv/media/Kometa/config:/config:rw" \
+  kometateam/kometa \
+  --run-libraries "Sports|TV Shows - 4K" \
+  --config /config/config.yml
+```
+
+Add any additional Kometa CLI flags to `docker.extra_args`, and mount a different config path/container path if needed. Logs from the container are captured and surfaced in `playbook.log`, so failures stand out quickly.
 
 ## Downloading Sports with Autobrr
 

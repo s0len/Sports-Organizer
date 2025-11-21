@@ -13,7 +13,7 @@ from rich.progress import Progress
 
 from .cache import CachedFileRecord, MetadataHttpCache, ProcessedFileCache
 from .config import AppConfig, SportConfig
-from .kometa_trigger import KometaCronTrigger
+from .kometa_trigger import build_kometa_trigger
 from .matcher import PatternRuntime, compile_patterns, match_file_to_episode
 from .metadata import (
     MetadataChangeResult,
@@ -71,7 +71,7 @@ class Processor:
             default_discord_webhook=settings.discord_webhook_url if enable_notifications else None,
             enabled=enable_notifications,
         )
-        self._kometa_trigger = KometaCronTrigger(settings.kometa_trigger)
+        self._kometa_trigger = build_kometa_trigger(settings.kometa_trigger)
         self._kometa_trigger_fired = False
         self._previous_summary: Optional[Tuple[int, int, int]] = None
         self._metadata_changed_sports: List[Tuple[str, str]] = []

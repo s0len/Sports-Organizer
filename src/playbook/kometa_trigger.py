@@ -5,6 +5,9 @@ import datetime as dt
 import logging
 import re
 import secrets
+import shlex
+import shutil
+import subprocess
 from typing import Any, Dict, Optional
 
 from .config import KometaTriggerSettings
@@ -25,7 +28,34 @@ _DEFAULT_LABEL_KEY = "trigger"
 _DEFAULT_LABEL_VALUE = "playbook"
 
 
-class KometaCronTrigger:
+class _BaseKometaTrigger:
+    @property
+    def enabled(self) -> bool:  # pragma: no cover - overridden
+        return False
+
+    def trigger(
+        self,
+        extra_labels: Optional[Dict[str, str]] = None,
+        extra_annotations: Optional[Dict[str, str]] = None,
+    ) -> bool:  # pragma: no cover - overridden
+        return False
+
+
+class _NullKometaTrigger(_BaseKometaTrigger):
+    pass
+
+
+def build_kometa_trigger(settings: KometaTriggerSettings) -> _BaseKometaTrigger:
+    mode = (settings.mode or "kubernetes").lower()
+    if mode == "docker":
+        return KometaDockerTrigger(settings)
+    if mode == "kubernetes":
+        return KometaCronTrigger(settings)
+    LOGGER.warning("Unknown kometa_trigger.mode '%s'; disabling trigger", settings.mode)
+    return _NullKometaTrigger()
+
+
+class KometaCronTrigger(_BaseKometaTrigger):
     """Creates ad-hoc Jobs from the Kometa CronJob when new items are ingested."""
 
     def __init__(self, settings: KometaTriggerSettings) -> None:
@@ -35,7 +65,9 @@ class KometaCronTrigger:
 
     @property
     def enabled(self) -> bool:
-        return bool(self._settings.enabled)
+        return bool(
+            self._settings.enabled and (self._settings.mode or "kubernetes").lower() == "kubernetes"
+        )
 
     def trigger(
         self,
@@ -198,4 +230,93 @@ class KometaCronTrigger:
                 if key and value is not None:
                     annotations[str(key)] = str(value)
         return annotations
+
+
+class KometaDockerTrigger(_BaseKometaTrigger):
+    """Runs Kometa via `docker run` after new items are ingested."""
+
+    def __init__(self, settings: KometaTriggerSettings) -> None:
+        self._settings = settings
+
+    @property
+    def enabled(self) -> bool:
+        return bool(self._settings.enabled and (self._settings.mode or "").lower() == "docker")
+
+    def trigger(
+        self,
+        extra_labels: Optional[Dict[str, str]] = None,  # noqa: ARG002 - docker implementation ignores labels
+        extra_annotations: Optional[Dict[str, str]] = None,  # noqa: ARG002
+    ) -> bool:
+        if not self.enabled:
+            return False
+
+        binary = self._settings.docker_binary or "docker"
+        if shutil.which(binary) is None:
+            LOGGER.error("Docker binary '%s' not found on PATH; skipping Kometa trigger", binary)
+            return False
+
+        config_path = self._settings.docker_config_path
+        if not config_path:
+            LOGGER.error("Kometa docker trigger requires 'kometa_trigger.docker.config_path'")
+            return False
+
+        command = self._build_command(binary, config_path)
+        LOGGER.debug("Running Kometa docker command: %s", " ".join(shlex.quote(part) for part in command))
+
+        try:
+            result = subprocess.run(
+                command,
+                check=False,
+                capture_output=True,
+                text=True,
+            )
+        except OSError as exc:
+            LOGGER.error("Failed to start Kometa docker trigger: %s", exc)
+            return False
+
+        if result.returncode != 0:
+            stderr = (result.stderr or "").strip()
+            LOGGER.error(
+                "Kometa docker trigger exited with code %s%s",
+                result.returncode,
+                f": {stderr}" if stderr else "",
+            )
+            return False
+
+        stdout = (result.stdout or "").strip()
+        if stdout:
+            LOGGER.debug("Kometa docker output:\n%s", stdout)
+
+        LOGGER.info(
+            "Triggered Kometa via docker\n  Image: %s\n  Libraries: %s",
+            self._settings.docker_image or "kometateam/kometa",
+            self._settings.docker_libraries or "(all configured libraries)",
+        )
+        return True
+
+    def _build_command(self, binary: str, config_path: str) -> list[str]:
+        command: list[str] = [binary, "run"]
+        if self._settings.docker_remove_container:
+            command.append("--rm")
+        if self._settings.docker_interactive:
+            command.extend(["-it"])
+
+        container_path = self._settings.docker_config_container_path or "/config"
+        volume_mode = self._settings.docker_volume_mode or "rw"
+        volume = f"{config_path}:{container_path}"
+        if volume_mode:
+            volume = f"{volume}:{volume_mode}"
+        command.extend(["-v", volume])
+
+        for key, value in (self._settings.docker_env or {}).items():
+            command.extend(["-e", f"{key}={value}"])
+
+        image = self._settings.docker_image or "kometateam/kometa"
+        command.append(image)
+
+        if self._settings.docker_libraries:
+            command.extend(["--run-libraries", self._settings.docker_libraries])
+
+        command.extend(self._settings.docker_extra_args or [])
+        return command
 

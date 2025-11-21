@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from types import SimpleNamespace
 from unittest.mock import MagicMock
 
 import pytest
@@ -7,7 +8,13 @@ import pytest
 pytest.importorskip("kubernetes")
 
 from playbook.config import KometaTriggerSettings
-from playbook.kometa_trigger import KometaCronTrigger, client, config  # noqa: E402
+from playbook.kometa_trigger import (
+    KometaCronTrigger,
+    KometaDockerTrigger,
+    build_kometa_trigger,
+    client,
+    config,
+)  # noqa: E402
 
 
 def test_trigger_returns_false_when_disabled() -> None:
@@ -63,4 +70,38 @@ def test_trigger_creates_job_from_cronjob(monkeypatch) -> None:
     assert job_body["metadata"]["labels"]["trigger"] == "playbook"
     assert job_body["metadata"]["labels"]["sport-id"] == "f1"
     assert job_body["spec"]["template"]["metadata"]["labels"]["trigger"] == "playbook"
+
+
+def test_build_kometa_trigger_selects_docker() -> None:
+    settings = KometaTriggerSettings(
+        enabled=True,
+        mode="docker",
+        docker_config_path="/srv/kometa",
+        docker_libraries="Sport",
+    )
+
+    trigger = build_kometa_trigger(settings)
+
+    assert isinstance(trigger, KometaDockerTrigger)
+
+
+def test_docker_trigger_runs_command(monkeypatch) -> None:
+    settings = KometaTriggerSettings(
+        enabled=True,
+        mode="docker",
+        docker_binary="docker",
+        docker_image="kometa:latest",
+        docker_config_path="/srv/kometa/config",
+        docker_libraries="Movies - 4K|TV Shows - 4K",
+        docker_extra_args=["--config", "/config/config.yml"],
+    )
+
+    trigger = KometaDockerTrigger(settings)
+
+    monkeypatch.setattr("playbook.kometa_trigger.shutil.which", lambda _: "/usr/bin/docker")
+
+    run_result = SimpleNamespace(returncode=0, stdout="ok", stderr="")
+    monkeypatch.setattr("playbook.kometa_trigger.subprocess.run", lambda *_, **__: run_result)
+
+    assert trigger.trigger() is True
 

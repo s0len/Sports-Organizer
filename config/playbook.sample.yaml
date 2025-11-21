@@ -67,15 +67,25 @@ settings:
   ####################################################################
   # KOMETA CRONJOB TRIGGER (OPTIONAL)
   ####################################################################
-  # Enable this to have Playbook kick Kometa's `kometa-sport` CronJob after the
-  # first newly ingested file each run. The ad-hoc Job inherits Kometa's pod
-  # template and is labeled `trigger=playbook`, so you can monitor it with
-  # `kubectl -n media get jobs -l trigger=playbook`.
+  # Enable this to have Playbook kick Kometa right after the first newly ingested
+  # file each run. You can point it at the in-cluster CronJob or fall back to a
+  # simple `docker run` command when you're not on Kubernetes.
   kometa_trigger:
     enabled: false
+    mode: kubernetes         # kubernetes | docker
     namespace: media
     cronjob_name: kometa-sport
-    job_name_prefix: kometa-sport-manual
+    job_name_prefix: kometa-sport-triggered-by-playbook
+    docker:
+      binary: docker
+      image: kometateam/kometa
+      config_path: /absolute/path/to/kometa/config
+      container_path: /config
+      volume_mode: rw
+      libraries: "Sports|TV Shows - 4K"
+      extra_args: []         # Additional CLI args (e.g. '--config', '/config/config.yml')
+      remove_container: true
+      interactive: false
 
   ####################################################################
   # DEFAULT DESTINATION TEMPLATES
