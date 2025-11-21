@@ -85,7 +85,7 @@ class KometaTriggerSettings:
     enabled: bool = False
     namespace: str = "media"
     cronjob_name: str = "kometa-sport"
-    job_name_prefix: str = "kometa-sport-manual"
+    job_name_prefix: str = "kometa-sport-triggered-by-playbook"
 
 
 @dataclass(slots=True)
@@ -375,7 +375,7 @@ def _build_kometa_trigger_settings(data: Dict[str, Any]) -> KometaTriggerSetting
 
     namespace = namespace_raw or "media"
     cronjob_name = cronjob_raw or "kometa-sport"
-    default_prefix = f"{cronjob_name}-manual"
+    default_prefix = f"{cronjob_name}-triggered-by-playbook"
 
     job_name_prefix = str(data.get("job_name_prefix", default_prefix)).strip() or default_prefix
 
