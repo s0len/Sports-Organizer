@@ -65,6 +65,19 @@ settings:
     reconcile_interval: 900 # Run a full scan every N seconds even if no events arrive. Set 0 to disable.
 
   ####################################################################
+  # KOMETA CRONJOB TRIGGER (OPTIONAL)
+  ####################################################################
+  # Enable this to have Playbook kick Kometa's `kometa-sport` CronJob after the
+  # first newly ingested file each run. The ad-hoc Job inherits Kometa's pod
+  # template and is labeled `trigger=playbook`, so you can monitor it with
+  # `kubectl -n media get jobs -l trigger=playbook`.
+  kometa_trigger:
+    enabled: false
+    namespace: media
+    cronjob_name: kometa-sport
+    job_name_prefix: kometa-sport-manual
+
+  ####################################################################
   # DEFAULT DESTINATION TEMPLATES
   ####################################################################
   # These templates are used for every sport unless overridden under that sport's `destination` block.

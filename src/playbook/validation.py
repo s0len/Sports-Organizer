@@ -92,6 +92,16 @@ CONFIG_SCHEMA: Dict[str, Any] = {
                     },
                     "additionalProperties": True,
                 },
+                "kometa_trigger": {
+                    "type": "object",
+                    "properties": {
+                        "enabled": {"type": "boolean"},
+                        "namespace": {"type": "string"},
+                        "cronjob_name": {"type": "string"},
+                        "job_name_prefix": {"type": "string"},
+                    },
+                    "additionalProperties": True,
+                },
             },
             "additionalProperties": True,
         },

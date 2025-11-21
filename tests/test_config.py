@@ -105,3 +105,34 @@ def test_file_watcher_settings_defaults_and_overrides(tmp_path) -> None:
     assert watcher.debounce_seconds == 2.5
     assert watcher.reconcile_interval == 60
 
+
+def test_kometa_trigger_settings_round_trip(tmp_path) -> None:
+    config_path = tmp_path / "playbook.yaml"
+    write_yaml(
+        config_path,
+        f"""
+        settings:
+          source_dir: "{tmp_path / 'source'}"
+          destination_dir: "{tmp_path / 'dest'}"
+          cache_dir: "{tmp_path / 'cache'}"
+          kometa_trigger:
+            enabled: true
+            namespace: custom
+            cronjob_name: custom-sport
+            job_name_prefix: manual-run
+
+        sports:
+          - id: demo
+            metadata:
+              url: https://example.com/demo.yaml
+        """,
+    )
+
+    config = load_config(config_path)
+    trigger = config.settings.kometa_trigger
+
+    assert trigger.enabled is True
+    assert trigger.namespace == "custom"
+    assert trigger.cronjob_name == "custom-sport"
+    assert trigger.job_name_prefix == "manual-run"
+

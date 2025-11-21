@@ -42,6 +42,7 @@
     - [Option C: Kubernetes (Flux HelmRelease)](#option-c-kubernetes-flux-helmrelease)
   - [Configuration Deep Dive](#configuration-deep-dive)
     - [1. Global Settings](#1-global-settings)
+      - [Notification targets \& Autoscan](#notification-targets--autoscan)
     - [2. Sport Entries](#2-sport-entries)
     - [3. Pattern Matching](#3-pattern-matching)
     - [4. Destination Templating](#4-destination-templating)
@@ -52,6 +53,7 @@
   - [Directory Conventions](#directory-conventions)
   - [Plex Metadata via Kometa](#plex-metadata-via-kometa)
     - [Example Kometa config](#example-kometa-config)
+    - [Triggering Kometa After Ingests](#triggering-kometa-after-ingests)
   - [Downloading Sports with Autobrr](#downloading-sports-with-autobrr)
     - [Basic Autobrr setup](#basic-autobrr-setup)
     - [Example regexes](#example-regexes)
@@ -491,6 +493,27 @@ libraries:
       - url: https://raw.githubusercontent.com/s0len/meta-manager-config/main/metadata/wssp-2025.yaml
       - url: https://raw.githubusercontent.com/s0len/meta-manager-config/main/metadata/wssp300-2025.yaml
 ```
+
+### Triggering Kometa After Ingests
+
+When you enable the new `settings.kometa_trigger` block, Playbook will fire Kometa's `kometa-sport` CronJob through the in-cluster Kubernetes API immediately after the first newly ingested file in each run:
+
+```yaml
+settings:
+  kometa_trigger:
+    enabled: true
+    namespace: media
+    cronjob_name: kometa-sport
+```
+
+Playbook clones the CronJob's job template to create an ad-hoc Job named `kometa-sport-manual-<timestamp>-<rand>` and labels it `trigger=playbook` so you can monitor it easily:
+
+```bash
+kubectl -n media get jobs -l trigger=playbook
+kubectl -n media logs job/kometa-sport-manual-20241121-123456-abcd
+```
+
+If Kometa is already busy running a Job, the trigger logs a duplicate warning and waits for the next ingest cycle.
 
 ## Downloading Sports with Autobrr
 

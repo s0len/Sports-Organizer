@@ -81,6 +81,14 @@ class WatcherSettings:
 
 
 @dataclass(slots=True)
+class KometaTriggerSettings:
+    enabled: bool = False
+    namespace: str = "media"
+    cronjob_name: str = "kometa-sport"
+    job_name_prefix: str = "kometa-sport-manual"
+
+
+@dataclass(slots=True)
 class SportConfig:
     id: str
     name: str
@@ -109,6 +117,7 @@ class Settings:
     discord_webhook_url: Optional[str] = None
     notifications: NotificationSettings = field(default_factory=NotificationSettings)
     file_watcher: WatcherSettings = field(default_factory=WatcherSettings)
+    kometa_trigger: KometaTriggerSettings = field(default_factory=KometaTriggerSettings)
 
 
 @dataclass(slots=True)
@@ -355,6 +364,29 @@ def _build_watcher_settings(data: Dict[str, Any]) -> WatcherSettings:
     )
 
 
+def _build_kometa_trigger_settings(data: Dict[str, Any]) -> KometaTriggerSettings:
+    if not data:
+        return KometaTriggerSettings()
+    if not isinstance(data, dict):
+        raise ValueError("'kometa_trigger' must be provided as a mapping when specified")
+
+    namespace_raw = str(data.get("namespace", "media")).strip()
+    cronjob_raw = str(data.get("cronjob_name", "kometa-sport")).strip()
+
+    namespace = namespace_raw or "media"
+    cronjob_name = cronjob_raw or "kometa-sport"
+    default_prefix = f"{cronjob_name}-manual"
+
+    job_name_prefix = str(data.get("job_name_prefix", default_prefix)).strip() or default_prefix
+
+    return KometaTriggerSettings(
+        enabled=bool(data.get("enabled", False)),
+        namespace=namespace,
+        cronjob_name=cronjob_name,
+        job_name_prefix=job_name_prefix,
+    )
+
+
 def _build_settings(data: Dict[str, Any]) -> Settings:
     destination_defaults = DestinationTemplates(
         root_template=data.get("destination", {}).get("root_template", "{show_title}"),
@@ -418,6 +450,7 @@ def _build_settings(data: Dict[str, Any]) -> Settings:
     destination_dir = Path(data.get("destination_dir", "/data/destination")).expanduser()
     cache_dir = Path(data.get("cache_dir", "/data/cache")).expanduser()
     watcher_settings = _build_watcher_settings(data.get("file_watcher", {}) or {})
+    kometa_trigger = _build_kometa_trigger_settings(data.get("kometa_trigger", {}) or {})
 
     return Settings(
         source_dir=source_dir,
@@ -431,6 +464,7 @@ def _build_settings(data: Dict[str, Any]) -> Settings:
         discord_webhook_url=discord_webhook_url,
         notifications=notifications,
         file_watcher=watcher_settings,
+        kometa_trigger=kometa_trigger,
     )
 
 
