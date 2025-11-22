@@ -255,12 +255,18 @@ class KometaDockerTrigger(_BaseKometaTrigger):
             LOGGER.error("Docker binary '%s' not found on PATH; skipping Kometa trigger", binary)
             return False
 
-        config_path = self._settings.docker_config_path
-        if not config_path:
-            LOGGER.error("Kometa docker trigger requires 'kometa_trigger.docker.config_path'")
+        use_exec = bool(self._settings.docker_container_name)
+        if not use_exec and not self._settings.docker_config_path:
+            LOGGER.error(
+                "Kometa docker trigger requires 'kometa_trigger.docker.config_path' when launching a new container"
+            )
             return False
 
-        command = self._build_command(binary, config_path)
+        if use_exec:
+            command = self._build_exec_command(binary)
+        else:
+            command = self._build_run_command(binary, self._settings.docker_config_path or "")
+
         LOGGER.debug("Running Kometa docker command: %s", " ".join(shlex.quote(part) for part in command))
 
         try:
@@ -287,14 +293,21 @@ class KometaDockerTrigger(_BaseKometaTrigger):
         if stdout:
             LOGGER.debug("Kometa docker output:\n%s", stdout)
 
-        LOGGER.info(
-            "Triggered Kometa via docker\n  Image: %s\n  Libraries: %s",
-            self._settings.docker_image or "kometateam/kometa",
-            self._settings.docker_libraries or "(all configured libraries)",
-        )
+        if use_exec:
+            LOGGER.info(
+                "Triggered Kometa via docker exec\n  Container: %s\n  Libraries: %s",
+                self._settings.docker_container_name,
+                self._settings.docker_libraries or "(all configured libraries)",
+            )
+        else:
+            LOGGER.info(
+                "Triggered Kometa via docker run\n  Image: %s\n  Libraries: %s",
+                self._settings.docker_image or "kometateam/kometa",
+                self._settings.docker_libraries or "(all configured libraries)",
+            )
         return True
 
-    def _build_command(self, binary: str, config_path: str) -> list[str]:
+    def _build_run_command(self, binary: str, config_path: str) -> list[str]:
         command: list[str] = [binary, "run"]
         if self._settings.docker_remove_container:
             command.append("--rm")
@@ -313,10 +326,32 @@ class KometaDockerTrigger(_BaseKometaTrigger):
 
         image = self._settings.docker_image or "kometateam/kometa"
         command.append(image)
-
-        if self._settings.docker_libraries:
-            command.extend(["--run-libraries", self._settings.docker_libraries])
-
-        command.extend(self._settings.docker_extra_args or [])
+        command.extend(self._kometa_cli_args())
         return command
+
+    def _build_exec_command(self, binary: str) -> list[str]:
+        container = self._settings.docker_container_name
+        if not container:
+            raise ValueError("docker_container_name is required for docker exec mode")
+
+        command: list[str] = [binary, "exec"]
+        if self._settings.docker_interactive:
+            command.extend(["-it"])
+
+        for key, value in (self._settings.docker_env or {}).items():
+            command.extend(["-e", f"{key}={value}"])
+
+        command.append(container)
+        python_bin = self._settings.docker_exec_python or "python3"
+        script_path = self._settings.docker_exec_script or "/app/kometa/kometa.py"
+        command.extend([python_bin, script_path])
+        command.extend(self._kometa_cli_args())
+        return command
+
+    def _kometa_cli_args(self) -> list[str]:
+        args: list[str] = []
+        if self._settings.docker_libraries:
+            args.extend(["--run-libraries", self._settings.docker_libraries])
+        args.extend(self._settings.docker_extra_args or [])
+        return args
 

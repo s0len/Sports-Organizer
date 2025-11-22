@@ -109,6 +109,9 @@ CONFIG_SCHEMA: Dict[str, Any] = {
                                 "container_path": {"type": "string"},
                                 "volume_mode": {"type": "string"},
                                 "libraries": {"type": "string"},
+                                "container_name": {"type": "string"},
+                                "exec_python": {"type": "string"},
+                                "exec_script": {"type": "string"},
                                 "extra_args": {
                                     "oneOf": [
                                         {"type": "array", "items": {"type": "string"}},

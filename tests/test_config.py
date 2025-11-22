@@ -185,4 +185,39 @@ def test_kometa_trigger_docker_settings(tmp_path) -> None:
     assert trigger.docker_env == {"PUID": "1000"}
     assert trigger.docker_remove_container is False
     assert trigger.docker_interactive is True
+    assert trigger.docker_container_name is None
+    assert trigger.docker_exec_python == "python3"
+    assert trigger.docker_exec_script == "/app/kometa/kometa.py"
+
+
+def test_kometa_trigger_docker_exec_settings(tmp_path) -> None:
+    config_path = tmp_path / "playbook.yaml"
+    write_yaml(
+        config_path,
+        f"""
+        settings:
+          source_dir: "{tmp_path / 'source'}"
+          destination_dir: "{tmp_path / 'dest'}"
+          cache_dir: "{tmp_path / 'cache'}"
+          kometa_trigger:
+            enabled: true
+            mode: docker
+            docker:
+              container_name: kometa
+              exec_python: python
+              exec_script: /opt/kometa.py
+
+        sports:
+          - id: demo
+            metadata:
+              url: https://example.com/demo.yaml
+        """,
+    )
+
+    config = load_config(config_path)
+    trigger = config.settings.kometa_trigger
+
+    assert trigger.docker_container_name == "kometa"
+    assert trigger.docker_exec_python == "python"
+    assert trigger.docker_exec_script == "/opt/kometa.py"
 

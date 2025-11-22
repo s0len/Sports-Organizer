@@ -98,10 +98,43 @@ def test_docker_trigger_runs_command(monkeypatch) -> None:
 
     trigger = KometaDockerTrigger(settings)
 
+    recorded = {}
+
     monkeypatch.setattr("playbook.kometa_trigger.shutil.which", lambda _: "/usr/bin/docker")
 
-    run_result = SimpleNamespace(returncode=0, stdout="ok", stderr="")
-    monkeypatch.setattr("playbook.kometa_trigger.subprocess.run", lambda *_, **__: run_result)
+    def fake_run(cmd, **kwargs):
+        recorded["cmd"] = cmd
+        return SimpleNamespace(returncode=0, stdout="ok", stderr="")
+
+    monkeypatch.setattr("playbook.kometa_trigger.subprocess.run", fake_run)
 
     assert trigger.trigger() is True
+    assert recorded["cmd"][:3] == ["docker", "run", "--rm"]
+    assert "--run-libraries" in recorded["cmd"]
+
+
+def test_docker_trigger_execs_into_container(monkeypatch) -> None:
+    settings = KometaTriggerSettings(
+        enabled=True,
+        mode="docker",
+        docker_binary="docker",
+        docker_container_name="kometa",
+        docker_libraries="Sports",
+        docker_exec_python="python3",
+        docker_exec_script="/app/kometa/kometa.py",
+    )
+    trigger = KometaDockerTrigger(settings)
+
+    recorded = {}
+    monkeypatch.setattr("playbook.kometa_trigger.shutil.which", lambda _: "/usr/bin/docker")
+
+    def fake_run(cmd, **kwargs):
+        recorded["cmd"] = cmd
+        return SimpleNamespace(returncode=0, stdout="", stderr="")
+
+    monkeypatch.setattr("playbook.kometa_trigger.subprocess.run", fake_run)
+
+    assert trigger.trigger() is True
+    assert recorded["cmd"][:3] == ["docker", "exec", "kometa"]
+    assert recorded["cmd"][3:5] == ["python3", "/app/kometa/kometa.py"]
 

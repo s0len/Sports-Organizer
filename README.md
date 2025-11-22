@@ -554,6 +554,18 @@ docker run --rm \
 
 Add any additional Kometa CLI flags to `docker.extra_args`, and mount a different config path/container path if needed. Logs from the container are captured and surfaced in `playbook.log`, so failures stand out quickly.
 
+Already running Kometa in Docker Compose? Set `docker.container_name` (plus optional `exec_python` / `exec_script`) and Playbook will switch to `docker exec` instead of launching a new container:
+
+```bash
+docker exec kometa \
+  python3 /app/kometa/kometa.py \
+  --config /config/config.yml \
+  --library "Sports" \
+  --run
+```
+
+All other fields (`libraries`, `extra_args`, environment overrides) still apply, so you can reuse the same knobs regardless of whether you spin up a fresh container or exec into an existing one.
+
 ## Downloading Sports with Autobrr
 
 Playbook does **not** download anything itself – it expects files to appear in `SOURCE_DIR` from a downloader (qBittorrent, Deluge, etc.). One way to automate this is with [Autobrr](https://github.com/autobrr/autobrr).

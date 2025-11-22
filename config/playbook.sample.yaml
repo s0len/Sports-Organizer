@@ -86,6 +86,9 @@ settings:
       extra_args: []         # Additional CLI args (e.g. '--config', '/config/config.yml')
       remove_container: true
       interactive: false
+      # container_name: kometa   # Uncomment to exec into an already-running container instead of docker run
+      # exec_python: python3
+      # exec_script: /app/kometa/kometa.py
 
   ####################################################################
   # DEFAULT DESTINATION TEMPLATES

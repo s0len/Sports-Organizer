@@ -97,6 +97,9 @@ class KometaTriggerSettings:
     docker_env: Dict[str, str] = field(default_factory=dict)
     docker_remove_container: bool = True
     docker_interactive: bool = False
+    docker_container_name: Optional[str] = None
+    docker_exec_python: str = "python3"
+    docker_exec_script: str = "/app/kometa/kometa.py"
 
 
 @dataclass(slots=True)
@@ -419,6 +422,11 @@ def _build_kometa_trigger_settings(data: Dict[str, Any]) -> KometaTriggerSetting
 
     volume_mode = str(docker_raw.get("volume_mode", "rw")).strip() or "rw"
     container_path_raw = str(docker_raw.get("container_path", "/config")).strip() or "/config"
+    container_name = docker_raw.get("container_name")
+    if container_name is not None:
+        container_name = str(container_name).strip() or None
+    exec_python = str(docker_raw.get("exec_python", "python3")).strip() or "python3"
+    exec_script = str(docker_raw.get("exec_script", "/app/kometa/kometa.py")).strip() or "/app/kometa/kometa.py"
 
     return KometaTriggerSettings(
         enabled=bool(data.get("enabled", False)),
@@ -436,6 +444,9 @@ def _build_kometa_trigger_settings(data: Dict[str, Any]) -> KometaTriggerSetting
         docker_env=docker_env,
         docker_remove_container=bool(docker_raw.get("remove_container", True)),
         docker_interactive=bool(docker_raw.get("interactive", False)),
+        docker_container_name=container_name,
+        docker_exec_python=exec_python,
+        docker_exec_script=exec_script,
     )
 
 
